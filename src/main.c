@@ -86,48 +86,63 @@ int main(void) {
             default:
                 break;
         }
-    }
 
-    // Start Rendering
-    // ----------------------------------------------------------------------------------------
+        // Start Rendering
+        // ----------------------------------------------------------------------------------------
 
-    BeginDrawing();
+        BeginDrawing();
 
-    switch (gameState) {
-        case STATE_KOOLDUDE_LOGO:
-            render_kool_dude_logo(&logoAnim);
-            break;
+        switch (gameState) {
+            case STATE_KOOLDUDE_LOGO:
+                render_kool_dude_logo(&logoAnim);
+                break;
 
-        case STATE_DEV_LOGO:
-            render_dev_logo(&logoAnim, screenWidth, screenHeight);
-            break;
+            case STATE_DEV_LOGO:
+                render_dev_logo(&logoAnim, screenWidth, screenHeight);
+                break;
 
-        case STATE_RAYLIB_LOGO:
-            render_raylib_logo(&logoAnim);
-            break;
+            case STATE_RAYLIB_LOGO:
+                render_raylib_logo(&logoAnim);
+                break;
 
-        case STATE_LOGO:
-            render_game_logo(&logoAnim, screenWidth, screenHeight);
+            case STATE_LOGO:
+                render_game_logo(&logoAnim, screenWidth, screenHeight);
 
-        case STATE_MENU:
-            ClearBackground(BLACK);
-            DrawText("Select Dfficulty", screenWidth / 2 - 70, screenHeight / 2 - 60, 20, WHITE);
-            DrawText("Easy", screenWidth / 2 - 20, screenHeight / 2 - 20, 20, selectedOption == 0 ? YELLOW : WHITE);
-            DrawText("Medium", screenWidth / 2 - 20, screenHeight / 2, 20, selectedOption == 1 ? YELLOW : WHITE);
-            DrawText("Hard", screenWidth / 2 - 20, screenHeight / 2 + 20, 20, selectedOption == 2 ? YELLOW : WHITE);
-            DrawText("Use UP/DOWN to select, ENTER to start", screenWidth / 2 - 120, screenHeight / 2 + 60, 15, GRAY);
-            break;
+            case STATE_MENU:
+                ClearBackground(BLACK);
+                DrawText("Select Dfficulty", screenWidth / 2 - 70, screenHeight / 2 - 60, 20, WHITE);
+                DrawText("Easy", screenWidth / 2 - 20, screenHeight / 2 - 20, 20, selectedOption == 0 ? YELLOW : WHITE);
+                DrawText("Medium", screenWidth / 2 - 20, screenHeight / 2, 20, selectedOption == 1 ? YELLOW : WHITE);
+                DrawText("Hard", screenWidth / 2 - 20, screenHeight / 2 + 20, 20, selectedOption == 2 ? YELLOW : WHITE);
+                DrawText("Use UP/DOWN to select, ENTER to start", screenWidth / 2 - 120, screenHeight / 2 + 60, 15, GRAY);
+                break;
 
-        case STATE_PLAYING:
-            ClearBackground(BLACK);
-            render_maze();
-            render_pacman();
-            DrawText(TextFormat("Score: %d", pacman.score), 10, 10, 20, WHITE);
-            DrawText(TextFormat("Lives: %d", pacman.lives), screenWidth - 100, 10, 20, WHITE);
-            break;
-        
-        default:
-            break;
+            case STATE_PLAYING:
+                ClearBackground(BLACK);
+                render_maze();
+                render_pacman();
+                DrawText(TextFormat("Score: %d", pacman.score), 10, 10, 20, WHITE);
+                DrawText(TextFormat("Lives: %d", pacman.lives), screenWidth - 100, 10, 20, WHITE);
+                break;
+            
+            case STATE_PAUSED:
+                ClearBackground(BLACK);
+                render_maze();
+                render_pacman();
+                DrawText("Paused", screenWidth / 2 - 30, screenHeight / 2, 20, WHITE);
+                DrawText("Press P to Resume", screenWidth / 2 - 70, screenHeight / 2 + 30, 20, WHITE);
+                break;
+
+            case STATE_GAME_OVER:
+                ClearBackground(BLACK);
+                DrawText("Game Over", screenWidth / 2 - 50, screenHeight / 2 - 40, 20, RED);
+                DrawText("Press R to Return to Menu", screenWidth / 2 - 90, screenHeight / 2, 20, WHITE);
+                break;
+
+            default:
+                break;
+        }
+
     }
 
     CloseWindow();
