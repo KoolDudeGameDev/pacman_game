@@ -5,6 +5,7 @@
 
 // Structure to hold logo animation state
 typedef struct {
+    
     // General logo variables
     int logoPositionX;
     int logoPositionY;

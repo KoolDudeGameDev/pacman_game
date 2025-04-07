@@ -4,10 +4,9 @@
 // KoolDude Logo Functions
 // ----------------------------------------------------------------------------------------
 void init_kool_dude_logo(LogoAnimation* anim, int screenWidth, int screenHeight) {
-    // Scale the font size for the new resolution (previously 50 on a 400x400 screen)
-    int fontSize = 80; // Scaled up for 1280x720 (50 * 1280/400 ≈ 80)
+    int fontSize = 80; // Scaled for 1280x720
     anim->devLogoPositionX = screenWidth / 2 - MeasureText("Kool_Dude", fontSize) / 2;
-    anim->devLogoPositionY = screenHeight / 2 - fontSize / 2; // Center vertically
+    anim->devLogoPositionY = screenHeight / 2 - fontSize / 2;
     anim->devLogoAlpha = 0.0f;
     anim->devFramesCounter = 0;
 }
@@ -24,16 +23,13 @@ bool update_kool_dude_logo(LogoAnimation* anim) {
         anim->devLogoAlpha = 1.0f - ((float)(anim->devFramesCounter - 180) / 60.0f);
     }
 
-    // Debug print (optional, can remove if not needed)
-    TraceLog(LOG_INFO, "KoolDude Logo - Frame: %d, Alpha: %f", anim->devFramesCounter, anim->devLogoAlpha);
-
     // Return true if the animation is complete (after 240 frames, ~4 seconds at 60 FPS)
     return anim->devFramesCounter >= 240;
 }
 
 void render_kool_dude_logo(const LogoAnimation* anim, Font font) {
     ClearBackground(BLACK);
-    int fontSize = 80; // Match the font size used in init
+    int fontSize = 80; // Scaled for 1280x720
     DrawTextEx(font, "Kool_Dude", (Vector2){anim->devLogoPositionX, anim->devLogoPositionY}, fontSize, 1, Fade(WHITE, anim->devLogoAlpha));
 }
 
@@ -42,73 +38,65 @@ void render_kool_dude_logo(const LogoAnimation* anim, Font font) {
 void init_dev_logo(LogoAnimation* anim) {
     anim->timer = 0.0f;
     anim->alphaGeneral = 0.0f;
-    anim->scale = 1.0f;
+    anim->scale = 1.0f; // Not used anymore, but kept for struct compatibility
 }
 
 bool update_dev_logo(LogoAnimation* anim) {
-    anim->timer += GetFrameTime();
+    anim->timer += 1.0f; // Increment as a frame counter (1 frame per update at 60 FPS)
 
-    // Fade-in for first second, stay visible, then fade-out
-    if (anim->timer < 1.0f) {
-        anim->alphaGeneral = anim->timer / 1.0f;
-    } else if (anim->timer >= 1.0f && anim->timer < 2.0f) {
+    // Fade-in for first second (60 frames), stay visible for 2 seconds (120 frames), fade-out for 1 second (60 frames)
+    if (anim->timer < 60) {
+        anim->alphaGeneral = anim->timer / 60.0f;
+    } else if (anim->timer < 180) {
         anim->alphaGeneral = 1.0f;
-    } else if (anim->timer >= 2.0f && anim->timer < 3.0f) {
-        anim->alphaGeneral = 1.0f - (anim->timer - 2.0f) / 1.0f;
+    } else if (anim->timer < 240) {
+        anim->alphaGeneral = 1.0f - ((anim->timer - 180) / 60.0f);
     }
 
-    // Scaling animation: oscillate between 0.9 and 1.1
-    anim->scale = 1.0f + 0.1f * sinf(anim->timer * 2.0f * PI);
-
-    // Return true if the animation is complete (after 3 seconds)
-    return anim->timer >= 3.0f;
+    // Return true if the animation is complete (after 240 frames, ~4 seconds at 60 FPS)
+    return anim->timer >= 240;
 }
 
 void render_dev_logo(const LogoAnimation* anim, int screenWidth, int screenHeight, Font font) {
     ClearBackground(BLACK);
-    Color textColor = Fade(WHITE, anim->alphaGeneral);
-    int baseFontSize = 40; // Scaled up from 20 (20 * 1280/400 ≈ 40)
-    int fontSize = (int)(baseFontSize * anim->scale);
+    int fontSize = 40; // Scaled for 1280x720
     int textWidth = MeasureText("xAI Dev Team", fontSize);
     Vector2 textPos = {screenWidth / 2 - textWidth / 2, screenHeight / 2};
-    DrawTextEx(font, "xAI Dev Team", textPos, fontSize, 1, textColor);
+    DrawTextEx(font, "xAI Dev Team", textPos, fontSize, 1, Fade(WHITE, anim->alphaGeneral));
 }
 
 // Raylib Logo Functions
 // ----------------------------------------------------------------------------------------
 void init_raylib_logo(LogoAnimation* anim, int screenWidth, int screenHeight) {
-    // Scale the logo size for the new resolution
-    float scaleFactor = (float)screenWidth / 400.0f; // Based on the original 400x400 screen
-    int logoSize = (int)(256 * scaleFactor); // Original size was 256x256
-    anim->logoPositionX = screenWidth / 2 - logoSize / 2;
-    anim->logoPositionY = screenHeight / 2 - logoSize / 2;
+    // Use the original 256x256 size, centered on the 1280x720 screen
+    anim->logoPositionX = screenWidth / 2 - 128; // 128 = 256/2
+    anim->logoPositionY = screenHeight / 2 - 128;
     anim->framesCounter = 0;
     anim->lettersCount = 0;
-    anim->topSideRecWidth = (int)(16 * scaleFactor);    // Original was 16
-    anim->leftSideRecHeight = (int)(16 * scaleFactor);
-    anim->bottomSideRecWidth = (int)(16 * scaleFactor);
-    anim->rightSideRecHeight = (int)(16 * scaleFactor);
+    anim->topSideRecWidth = 16;    // Original size, not scaled
+    anim->leftSideRecHeight = 16;
+    anim->bottomSideRecWidth = 16;
+    anim->rightSideRecHeight = 16;
     anim->logoState = 0;
     anim->alpha = 1.0f;
 }
 
 bool update_raylib_logo(LogoAnimation* anim) {
-    float scaleFactor = (float)GetScreenWidth() / 400.0f; // Based on the original 400x400 screen
-    if (anim->logoState == 0) {
+    if (anim->logoState == 0) { // State 0: Small box blinking
         anim->framesCounter++;
         if (anim->framesCounter == 120) {
             anim->logoState = 1;
             anim->framesCounter = 0;
         }
-    } else if (anim->logoState == 1) {
-        anim->topSideRecWidth += (int)(4 * scaleFactor);
-        anim->leftSideRecHeight += (int)(4 * scaleFactor);
-        if (anim->topSideRecWidth >= (int)(256 * scaleFactor)) anim->logoState = 2;
-    } else if (anim->logoState == 2) {
-        anim->bottomSideRecWidth += (int)(4 * scaleFactor);
-        anim->rightSideRecHeight += (int)(4 * scaleFactor);
-        if (anim->bottomSideRecWidth >= (int)(256 * scaleFactor)) anim->logoState = 3;
-    } else if (anim->logoState == 3) {
+    } else if (anim->logoState == 1) { // State 1: Top and left bars growing
+        anim->topSideRecWidth += 4;
+        anim->leftSideRecHeight += 4;
+        if (anim->topSideRecWidth == 256) anim->logoState = 2;
+    } else if (anim->logoState == 2) { // State 2: Bottom and right bars growing
+        anim->bottomSideRecWidth += 4;
+        anim->rightSideRecHeight += 4;
+        if (anim->bottomSideRecWidth == 256) anim->logoState = 3;
+    } else if (anim->logoState == 3) { // State 3: Letters appearing (one by one)
         anim->framesCounter++;
         if (anim->framesCounter / 12) {
             anim->lettersCount++;
@@ -118,6 +106,15 @@ bool update_raylib_logo(LogoAnimation* anim) {
             anim->alpha -= 0.02f;
             if (anim->alpha <= 0.0f) {
                 anim->alpha = 0.0f;
+                // Reset logo variables for potential replay
+                anim->framesCounter = 0;
+                anim->lettersCount = 0;
+                anim->topSideRecWidth = 16;
+                anim->leftSideRecHeight = 16;
+                anim->bottomSideRecWidth = 16;
+                anim->rightSideRecHeight = 16;
+                anim->alpha = 1.0f;
+                anim->logoState = 0;
                 return true; // Animation complete
             }
         }
@@ -127,29 +124,26 @@ bool update_raylib_logo(LogoAnimation* anim) {
 
 void render_raylib_logo(const LogoAnimation* anim) {
     ClearBackground(RAYWHITE);
-    float scaleFactor = (float)GetScreenWidth() / 400.0f; // Based on the original 400x400 screen
-    int logoSize = (int)(256 * scaleFactor);
-    int textFontSize = (int)(50 * scaleFactor); // Scaled up from 50
 
     if (anim->logoState == 0) {
         if ((anim->framesCounter / 15) % 2) {
-            DrawRectangle(anim->logoPositionX, anim->logoPositionY, (int)(16 * scaleFactor), (int)(16 * scaleFactor), BLACK);
+            DrawRectangle(anim->logoPositionX, anim->logoPositionY, 16, 16, BLACK);
         }
     } else if (anim->logoState == 1) {
-        DrawRectangle(anim->logoPositionX, anim->logoPositionY, anim->topSideRecWidth, (int)(16 * scaleFactor), BLACK);
-        DrawRectangle(anim->logoPositionX, anim->logoPositionY, (int)(16 * scaleFactor), anim->leftSideRecHeight, BLACK);
+        DrawRectangle(anim->logoPositionX, anim->logoPositionY, anim->topSideRecWidth, 16, BLACK);
+        DrawRectangle(anim->logoPositionX, anim->logoPositionY, 16, anim->leftSideRecHeight, BLACK);
     } else if (anim->logoState == 2) {
-        DrawRectangle(anim->logoPositionX, anim->logoPositionY, anim->topSideRecWidth, (int)(16 * scaleFactor), BLACK);
-        DrawRectangle(anim->logoPositionX, anim->logoPositionY, (int)(16 * scaleFactor), anim->leftSideRecHeight, BLACK);
-        DrawRectangle(anim->logoPositionX + anim->topSideRecWidth - (int)(16 * scaleFactor), anim->logoPositionY, (int)(16 * scaleFactor), anim->rightSideRecHeight, BLACK);
-        DrawRectangle(anim->logoPositionX, anim->logoPositionY + anim->leftSideRecHeight - (int)(16 * scaleFactor), anim->bottomSideRecWidth, (int)(16 * scaleFactor), BLACK);
+        DrawRectangle(anim->logoPositionX, anim->logoPositionY, anim->topSideRecWidth, 16, BLACK);
+        DrawRectangle(anim->logoPositionX, anim->logoPositionY, 16, anim->leftSideRecHeight, BLACK);
+        DrawRectangle(anim->logoPositionX + 240, anim->logoPositionY, 16, anim->rightSideRecHeight, BLACK);
+        DrawRectangle(anim->logoPositionX, anim->logoPositionY + 240, anim->bottomSideRecWidth, 16, BLACK);
     } else if (anim->logoState == 3) {
-        DrawRectangle(anim->logoPositionX, anim->logoPositionY, anim->topSideRecWidth, (int)(16 * scaleFactor), Fade(BLACK, anim->alpha));
-        DrawRectangle(anim->logoPositionX, anim->logoPositionY + (int)(16 * scaleFactor), (int)(16 * scaleFactor), anim->leftSideRecHeight - (int)(32 * scaleFactor), Fade(BLACK, anim->alpha));
-        DrawRectangle(anim->logoPositionX + anim->topSideRecWidth - (int)(16 * scaleFactor), anim->logoPositionY + (int)(16 * scaleFactor), (int)(16 * scaleFactor), anim->rightSideRecHeight - (int)(32 * scaleFactor), Fade(BLACK, anim->alpha));
-        DrawRectangle(anim->logoPositionX, anim->logoPositionY + anim->leftSideRecHeight - (int)(16 * scaleFactor), anim->bottomSideRecWidth, (int)(16 * scaleFactor), Fade(BLACK, anim->alpha));
-        DrawRectangle(GetScreenWidth() / 2 - (int)(112 * scaleFactor), GetScreenHeight() / 2 - (int)(112 * scaleFactor), (int)(224 * scaleFactor), (int)(224 * scaleFactor), Fade(RAYWHITE, anim->alpha));
-        DrawText(TextSubtext("raylib", 0, anim->lettersCount), GetScreenWidth() / 2 - (int)(44 * scaleFactor), GetScreenHeight() / 2 + (int)(48 * scaleFactor), textFontSize, Fade(BLACK, anim->alpha));
+        DrawRectangle(anim->logoPositionX, anim->logoPositionY, anim->topSideRecWidth, 16, Fade(BLACK, anim->alpha));
+        DrawRectangle(anim->logoPositionX, anim->logoPositionY + 16, 16, anim->leftSideRecHeight - 32, Fade(BLACK, anim->alpha));
+        DrawRectangle(anim->logoPositionX + 240, anim->logoPositionY + 16, 16, anim->rightSideRecHeight - 32, Fade(BLACK, anim->alpha));
+        DrawRectangle(anim->logoPositionX, anim->logoPositionY + 240, anim->bottomSideRecWidth, 16, Fade(BLACK, anim->alpha));
+        DrawRectangle(GetScreenWidth() / 2 - 112, GetScreenHeight() / 2 - 112, 224, 224, Fade(RAYWHITE, anim->alpha));
+        DrawText(TextSubtext("raylib", 0, anim->lettersCount), GetScreenWidth() / 2 - 44, GetScreenHeight() / 2 + 48, 50, Fade(BLACK, anim->alpha));
     }
 }
 
@@ -177,7 +171,7 @@ bool update_game_logo(LogoAnimation* anim) {
 
 void render_game_logo(const LogoAnimation* anim, int screenWidth, int screenHeight, Font font) {
     ClearBackground(BLACK);
-    int fontSize = 40; // Scaled up from 20 (20 * 1280/400 ≈ 40)
+    int fontSize = 40; // Scaled for 1280x720
     Color textColor = Fade(YELLOW, anim->alphaGeneral);
     DrawTextEx(font, "Pac-Man", (Vector2){screenWidth / 2 - 50, screenHeight / 2 - 40}, fontSize, 1, textColor);
     textColor = Fade(WHITE, anim->alphaGeneral);
