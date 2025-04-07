@@ -3,11 +3,11 @@
 
 extern Player pacman;
 
-void render_maze(void) {
-    for (int y = 0; y < MAZE_HEIGHT; y ++) {
-        for (int x = 0; x < MAZE_WIDTH; x ++) {
-            int posX = x * TILE_SIZE;
-            int posY = y * TILE_SIZE;
+void render_maze(int offsetX, int offsetY) {
+    for (int y = 0; y < MAZE_HEIGHT; y++) {
+        for (int x = 0; x < MAZE_WIDTH; x++) {
+            int posX = offsetX + x * TILE_SIZE;
+            int posY = offsetY + y * TILE_SIZE;
 
             switch (maze[y][x]) {
                 case WALL:
@@ -26,8 +26,8 @@ void render_maze(void) {
     }
 }
 
-void render_pacman(void) {
-    int posX = pacman.x * TILE_SIZE + TILE_SIZE / 2;
-    int posY = pacman.y * TILE_SIZE + TILE_SIZE / 2;
-    DrawCircle(posX, posY, 15, YELLOW);
+void render_pacman(int offsetX, int offsetY) {
+    int posX = offsetX + pacman.x * TILE_SIZE + TILE_SIZE / 2;
+    int posY = offsetY + pacman.y * TILE_SIZE + TILE_SIZE / 2;
+    DrawCircle(posX, posY, TILE_SIZE / 2, YELLOW);
 }

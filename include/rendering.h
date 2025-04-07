@@ -3,7 +3,7 @@
 
 #include "game_logic.h"
 
-void render_maze(void);
-void render_pacman(void);
+void render_maze(int offsetX, int offsetY);
+void render_pacman(int offsetX, int offsetY);
 
 #endif

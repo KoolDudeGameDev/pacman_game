@@ -5,7 +5,6 @@
 
 // Structure to hold logo animation state
 typedef struct {
-
     // General logo variables
     int logoPositionX;
     int logoPositionY;
@@ -35,12 +34,12 @@ typedef struct {
 // Functions for KoolDude logo
 void init_kool_dude_logo(LogoAnimation* anim, int screenWidth, int screenHeight);
 bool update_kool_dude_logo(LogoAnimation* anim);
-void render_kool_dude_logo(const LogoAnimation* anim);
+void render_kool_dude_logo(const LogoAnimation* anim, Font font);
 
 // Functions for xAI Dev logo
 void init_dev_logo(LogoAnimation* anim);
 bool update_dev_logo(LogoAnimation* anim);
-void render_dev_logo(const LogoAnimation* anim, int screenWidth, int screenHeight);
+void render_dev_logo(const LogoAnimation* anim, int screenWidth, int screenHeight, Font font);
 
 // Functions for Raylib logo
 void init_raylib_logo(LogoAnimation* anim, int screenWidth, int screenHeight);
@@ -50,6 +49,6 @@ void render_raylib_logo(const LogoAnimation* anim);
 // Functions for Game logo
 void init_game_logo(LogoAnimation* anim);
 bool update_game_logo(LogoAnimation* anim);
-void render_game_logo(const LogoAnimation* anim, int screenWidth, int screenHeight);
+void render_game_logo(const LogoAnimation* anim, int screenWidth, int screenHeight, Font font);
 
 #endif
