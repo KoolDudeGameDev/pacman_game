@@ -1,101 +1,135 @@
+/*
+Easy: Simple maze, slower Pac-Man speed.
+Medium: More walls, medium speed.
+Hard: Complex maze, faster speed.
+*/
+
+#include "raylib.h"
 #include "game_logic.h"
-#include <stdio.h>
 
-int score = 0;
+int maze[MAZE_HEIGHT][MAZE_WIDTH];
+Player pacman;
+GameState gameState = STATE_KOOLDUDE_LOGO; // Initial state
+Difficulty selectedDifficulty = DIFFICULTY_EASY; // Default difficulty
 
-void InitGame(Pacman* pacman, Ghost ghosts[], Maze* maze) {
-    // Initialize Pacman
-    pacman->x = 640;  // Center of 1280x800 screen
-    pacman->y = 400;
-    pacman->speed = 5;
-    pacman->radius = 15;
+// Function Definitions
+// --------------------------------------------------------------------------------------------------------------------------
 
-    // Initialize Ghosts (4 ghosts)
-    ghosts[0] = (Ghost){100, 100, 4, RED};
-    ghosts[1] = (Ghost){1180, 100, 4, PINK};
-    ghosts[2] = (Ghost){100, 700, 4, GREEN};
-    ghosts[3] = (Ghost){1180, 700, 4, ORANGE};
-
-    // Initialize Maze (simplified example)
-    maze->tileSize = 32;
-    for (int y = 0; y < 20; y++) {
-        for (int x = 0; x < 25; x++) {
-            if (x == 0 || x == 24 || y == 0 || y == 19) {
-                maze->grid[y][x] = 0;  // Walls
-            } else {
-                maze->grid[y][x] = 2;  // Pellets
-            }
-        }
-    }
-    // Add some inner walls
-    maze->grid[5][5] = 0;
-    maze->grid[5][6] = 0;
-}
-
-void UpdatePacman(Pacman* pacman, Maze* maze) {
-    int newX = pacman->x;
-    int newY = pacman->y;
-
-    if (IsKeyDown(KEY_RIGHT)) newX += pacman->speed;
-    if (IsKeyDown(KEY_LEFT)) newX -= pacman->speed;
-    if (IsKeyDown(KEY_UP)) newY -= pacman->speed;
-    if (IsKeyDown(KEY_DOWN)) newY += pacman->speed;
-
-    int gridX = newX / maze->tileSize;
-    int gridY = newY / maze->tileSize;
-
-    if (maze->grid[gridY][gridX] != 0) {  // Not a wall
-        pacman->x = newX;
-        pacman->y = newY;
-        if (maze->grid[gridY][gridX] == 2) {
-            maze->grid[gridY][gridX] = 1;  // Eat pellet
-            score += 10;
-        }
-    }
-}
-
-void UpdateGhost(Ghost* ghost, Maze* maze) {
-    // Simple movement (random for now)
-    int dir = GetRandomValue(0, 3);
-    int newX = ghost->x;
-    int newY = ghost->y;
-
-    if (dir == 0) newX += ghost->speed;
-    if (dir == 1) newX -= ghost->speed;
-    if (dir == 2) newY -= ghost->speed;
-    if (dir == 3) newY += ghost->speed;
-
-    int gridX = newX / maze->tileSize;
-    int gridY = newY / maze->tileSize;
-
-    if (gridX >= 0 && gridX < 25 && gridY >= 0 && gridY < 20 && maze->grid[gridY][gridX] != 0) {
-        ghost->x = newX;
-        ghost->y = newY;
-    }
-}
-
-void DrawGame(Pacman* pacman, Ghost ghosts[], Maze* maze) {
-    // Draw Maze
-    for (int y = 0; y < 20; y++) {
-        for (int x = 0; x < 25; x++) {
-            int tileX = x * maze->tileSize;
-            int tileY = y * maze->tileSize;
-            if (maze->grid[y][x] == 0) {
-                DrawRectangle(tileX, tileY, maze->tileSize, maze->tileSize, BLUE);
-            } else if (maze->grid[y][x] == 2) {
-                DrawCircle(tileX + maze->tileSize / 2, tileY + maze->tileSize / 2, 5, YELLOW);
-            }
+// Initialize maze
+void init_maze(void) {
+    // Clear maze
+    for (int y = 0; y < MAZE_HEIGHT; y ++) {
+        for (int x = 0; x < MAZE_WIDTH; x ++) {
+            maze[y][x] = EMPTY;
         }
     }
 
-    // Draw Pacman
-    DrawCircle(pacman->x, pacman->y, pacman->radius, YELLOW);
+    //Define maze layouts for each difficulty
+    int easy_maze[MAZE_HEIGHT][MAZE_WIDTH] = {
+        {1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+        {1, 2, 2, 2, 1, 2, 2, 2, 2, 1},
+        {1, 2, 1, 2, 1, 2, 1, 1, 2, 1},
+        {1, 2, 1, 2, 2, 2, 2, 2, 2, 1},
+        {1, 2, 1, 1, 1, 1, 2, 1, 2, 1},
+        {1, 2, 2, 2, 3, 2, 2, 1, 2, 1},
+        {1, 2, 1, 1, 2, 1, 2, 1, 2, 1},
+        {1, 2, 1, 2, 2, 2, 2, 2, 2, 1},
+        {1, 2, 2, 2, 1, 2, 2, 2, 2, 1},
+        {1, 1, 1, 1, 1, 1, 1, 1, 1, 1}
+    };
 
-    // Draw Ghosts
-    for (int i = 0; i < 4; i++) {
-        DrawCircle(ghosts[i].x, ghosts[i].y, 15, ghosts[i].color);
+    int medium_maze[MAZE_HEIGHT][MAZE_WIDTH] = {
+        {1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+        {1, 2, 2, 1, 2, 2, 1, 2, 2, 1},
+        {1, 2, 1, 1, 2, 1, 1, 1, 2, 1},
+        {1, 2, 2, 2, 2, 2, 2, 2, 2, 1},
+        {1, 1, 1, 1, 1, 1, 1, 1, 2, 1},
+        {1, 2, 2, 2, 3, 2, 2, 1, 2, 1},
+        {1, 2, 1, 1, 1, 1, 2, 1, 2, 1},
+        {1, 2, 2, 1, 2, 2, 2, 2, 2, 1},
+        {1, 2, 1, 1, 2, 1, 2, 2, 2, 1},
+        {1, 1, 1, 1, 1, 1, 1, 1, 1, 1}
+    };
+
+    int hard_maze[MAZE_HEIGHT][MAZE_WIDTH] = {
+        {1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+        {1, 2, 1, 2, 1, 2, 1, 2, 2, 1},
+        {1, 2, 1, 1, 2, 1, 1, 1, 2, 1},
+        {1, 2, 2, 1, 2, 2, 2, 1, 2, 1},
+        {1, 1, 1, 1, 1, 1, 1, 1, 2, 1},
+        {1, 2, 2, 2, 3, 1, 2, 1, 2, 1},
+        {1, 2, 1, 1, 2, 1, 2, 1, 2, 1},
+        {1, 2, 1, 2, 1, 2, 1, 2, 2, 1},
+        {1, 2, 2, 1, 2, 1, 2, 2, 2, 1},
+        {1, 1, 1, 1, 1, 1, 1, 1, 1, 1}
+    };
+
+    // Copy appropriate maze based on difficulty
+    int (*selected_maze)[MAZE_WIDTH] = easy_maze; // Default to easy
+    if (selectedDifficulty == DIFFICULTY_MEDIUM) {
+        selected_maze = medium_maze;
+    } else if (selectedDifficulty == DIFFICULTY_HARD) {
+        selected_maze = hard_maze;
     }
 
-    // Draw Score
-    DrawText(TextFormat("Score: %i", score), 20, 20, 40, WHITE);
+    for (int y = 0; y < MAZE_HEIGHT; y ++) {
+        for (int x = 0; x < MAZE_WIDTH; x ++) {
+            maze[y][x] = selected_maze [y][x];
+        }
+    }
 }
+
+// Initialize Pac-Man with difficulty-based speed
+// --------------------------------------------------------------------------------------------------------------------------
+
+void init_pacman(void) {
+    pacman.x = 1;
+    pacman.y = 1;
+    pacman.score = 0;
+    pacman.lives = 3;
+
+    // Set speed based on difficulty
+    switch (selectedDifficulty) {
+        case DIFFICULTY_EASY:
+            pacman.speed = 2;
+            break;
+        case DIFFICULTY_MEDIUM:
+            pacman.speed = 3;
+            break;
+        case DIFFICULTY_HARD:
+            pacman.speed = 4;
+            break;
+        default:
+            break;
+    }
+}
+
+// Update position and handle pellet collection
+void update_pacman(void) {
+    int newX = pacman.x;
+    int newY = pacman.y;
+
+    // Handle input
+    if (IsKeyDown(KEY_RIGHT)) newX ++;
+    if (IsKeyDown(KEY_LEFT)) newX --;
+    if (IsKeyDown(KEY_UP)) newY --;
+    if (IsKeyDown(KEY_DOWN)) newY ++;
+
+    // Check wall collision
+    if (newX >= 0 && newX < MAZE_WIDTH && newY >= 0 && newY < MAZE_HEIGHT && maze[newX][newY] != WALL) {
+        pacman.x = newX;
+        pacman.y = newY;
+
+        // Check pellet collision
+        if (maze[newX][newY] == PELLET) {
+            pacman.score += 10;
+            maze[newX][newY] = EMPTY;
+        } else if (maze[newX][newY == POWER_PELLET]) {
+            pacman.score += 50;
+            maze[newX][newY] = EMPTY;
+            // Power pellet effect for ghosts
+
+        }
+    }
+}
+
