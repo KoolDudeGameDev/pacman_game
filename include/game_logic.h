@@ -4,32 +4,53 @@
 #include "raylib.h"
 #include "resource_dir.h"
 
-extern int score;
+#define MAZE_WIDTH 10
+#define MAZE_HEIGHT 10
+#define TILE_SIZE 40
 
-// Pacman structure
+// Tile types
+typedef enum {
+    EMPTY = 0,
+    WALL = 1,
+    PELLET = 2,
+    POWER_PELLET = 3
+};
+
+// Game states
+typedef enum {
+    STATE_DEV_LOGO,
+    STATE_LOGO,
+    STATE_MENU,
+    STATE_PLAYING,
+    STATE_PAUSED,
+    STATE_GAME_OVER
+} GameState;
+
+// Difficulty levels
+typedef enum {
+    DIFFICULTY_EASY,
+    DIFFICULTY_MEDIUM,
+    DIFFICULTY_HARD
+} Difficulty;
+
+// Pac-Man structure
 typedef struct {
-    float x, y;
-    int speed;
-    int radius;
-} Pacman;
+    int x;         // Grid position X
+    int y;         // Grid position Y
+    int speed;     // Pixels per frame
+    int score;     // Player score
+    int lives;     // Player lives
+} Player;
 
-// Ghost structure
-typedef struct {
-    float x, y;
-    int speed;
-    Color color;
-} Ghost;
+// Global Variables (extern to declare them, defined in game.c)
+extern int maze [MAZE_HEIGHT][MAZE_WIDTH];
+extern Player pacman;
+extern GameState gameState;
+extern Difficulty selectedDifficulty;
 
-// Maze structure (simplified as a grid)
-typedef struct {
-    int grid[20][25];  // 0 = wall, 1 = path, 2 = pellet
-    int tileSize;
-} Maze;
-
-// Function declarations
-void InitGame(Pacman* pacman, Ghost ghosts[], Maze* maze);
-void UpdatePacman(Pacman* pacman, Maze* maze);
-void UpdateGhost(Ghost* ghost, Maze* maze);
-void DrawGame(Pacman* pacman, Ghost ghosts[], Maze* maze);
+// Function Declarations
+void init_maze(void);
+void init_pacman(void);
+void update_pacman(void);
 
 #endif // GAME_H
