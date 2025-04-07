@@ -18,8 +18,10 @@ typedef enum {
 
 // Game states
 typedef enum {
-    STATE_DEV_LOGO,
-    STATE_LOGO,
+    STATE_KOOLDUDE_LOGO, // Kyle Ibo Dev Logo
+    STATE_DEV_LOGO,      // xAI Dev Logo
+    STATE_RAYLIB_LOGO,   // Raylib logo
+    STATE_LOGO,          // Game logo
     STATE_MENU,
     STATE_PLAYING,
     STATE_PAUSED,
@@ -50,6 +52,7 @@ extern Difficulty selectedDifficulty;
 
 // Function Declarations
 void init_maze(void);
+
 void init_pacman(void);
 void update_pacman(void);
 
