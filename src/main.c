@@ -6,19 +6,19 @@
 
 int main(void) {
     // Initialization
-    const int screenWidth = 1280;
+    const int screenWidth = 1280; // 720p resolution
     const int screenHeight = 720;
     InitWindow(screenWidth, screenHeight, "Pacman v1.0");
     SetTargetFPS(60);
 
     // Load a font
-    Font font = GetFontDefault();
+    Font font = GetFontDefault(); // Use default font for now
 
     // Calculate maze dimensions and offsets
-    const int mazePixelWidth = MAZE_WIDTH * TILE_SIZE;              // 560px
-    const int mazePixelHeight = MAZE_HEIGHT * TILE_SIZE;            // 620px
-    const int mazeOffsetX = (screenWidth - mazePixelWidth) / 2;     // 360px (180px on each side)
-    const int mazeOffsetY = (screenHeight - mazePixelHeight) / 2;   // 50px (top and bottom)
+    const int mazePixelWidth = MAZE_WIDTH * TILE_SIZE;   // 560px
+    const int mazePixelHeight = MAZE_HEIGHT * TILE_SIZE; // 620px
+    const int mazeOffsetX = (screenWidth - mazePixelWidth) / 2;  // 360px (180px on each side)
+    const int mazeOffsetY = (screenHeight - mazePixelHeight) / 2; // 50px (top and bottom)
 
     // Menu variables
     int selectedOption = 0; // 0 = Easy, 1 = Medium, 2 = Hard
@@ -27,9 +27,30 @@ int main(void) {
     LogoAnimation logoAnim;
     init_kool_dude_logo(&logoAnim, screenWidth, screenHeight); // First state
 
+    // Fade to black transition variables
+    float transitionAlpha = 0.0f;
+    bool fadingOut = false;
+    GameState nextState = STATE_KOOLDUDE_LOGO;
+
     // Game Loop
     // ----------------------------------------------------------------------------------------
     while (!WindowShouldClose()) {
+
+        // Fade to black transition
+        if (fadingOut) {
+            transitionAlpha += 0.05f;
+            if (transitionAlpha >= 1.0f) {
+                transitionAlpha = 1.0f;
+                fadingOut = false;
+                gameState = nextState;
+                transitionAlpha = 1.0f;
+            }
+        } else if (transitionAlpha > 0.0f) {
+            transitionAlpha -= 0.05f;
+            if (transitionAlpha < 0.0f) {
+                transitionAlpha = 0.0f;
+            }
+        }
         switch (gameState) {
             case STATE_KOOLDUDE_LOGO:
                 if (update_kool_dude_logo(&logoAnim)) {
@@ -129,10 +150,8 @@ int main(void) {
 
             case STATE_PLAYING:
                 ClearBackground(BLACK);
-                // Render the maze with the offset
                 render_maze(mazeOffsetX, mazeOffsetY);
                 render_pacman(mazeOffsetX, mazeOffsetY);
-                // Render UI elements
                 DrawTextEx(font, TextFormat("Score: %d", pacman.score), (Vector2){mazeOffsetX + 10, 10}, 20, 1, WHITE);
                 DrawTextEx(font, TextFormat("Lives: %d", pacman.lives), (Vector2){mazeOffsetX + mazePixelWidth - 100, screenHeight - 30}, 20, 1, WHITE);
                 break;
@@ -157,7 +176,8 @@ int main(void) {
 
         EndDrawing();
     }
-
+    DrawRectangle(0, 0, screenWidth, screenHeight, Fade(BLACK, transitionAlpha));
+    
     CloseWindow();
     return 0;
 }
