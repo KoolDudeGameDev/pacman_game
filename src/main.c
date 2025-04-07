@@ -6,10 +6,19 @@
 
 int main(void) {
     // Initialization
-    const int screenWidth = MAZE_WIDTH * TILE_SIZE;
-    const int screenHeight = MAZE_HEIGHT * TILE_SIZE;
+    const int screenWidth = 1280;
+    const int screenHeight = 720;
     InitWindow(screenWidth, screenHeight, "Pacman v1.0");
     SetTargetFPS(60);
+
+    // Load a font
+    Font font = GetFontDefault();
+
+    // Calculate maze dimensions and offsets
+    const int mazePixelWidth = MAZE_WIDTH * TILE_SIZE;              // 560px
+    const int mazePixelHeight = MAZE_HEIGHT * TILE_SIZE;            // 620px
+    const int mazeOffsetX = (screenWidth - mazePixelWidth) / 2;     // 360px (180px on each side)
+    const int mazeOffsetY = (screenHeight - mazePixelHeight) / 2;   // 50px (top and bottom)
 
     // Menu variables
     int selectedOption = 0; // 0 = Easy, 1 = Medium, 2 = Hard
@@ -20,12 +29,12 @@ int main(void) {
 
     // Game Loop
     // ----------------------------------------------------------------------------------------
-
     while (!WindowShouldClose()) {
         switch (gameState) {
             case STATE_KOOLDUDE_LOGO:
                 if (update_kool_dude_logo(&logoAnim)) {
                     gameState = STATE_DEV_LOGO;
+                    init_dev_logo(&logoAnim);
                 }
                 break;
             
@@ -90,16 +99,15 @@ int main(void) {
 
         // Start Rendering
         // ----------------------------------------------------------------------------------------
-
         BeginDrawing();
 
         switch (gameState) {
             case STATE_KOOLDUDE_LOGO:
-                render_kool_dude_logo(&logoAnim);
+                render_kool_dude_logo(&logoAnim, font);
                 break;
 
             case STATE_DEV_LOGO:
-                render_dev_logo(&logoAnim, screenWidth, screenHeight);
+                render_dev_logo(&logoAnim, screenWidth, screenHeight, font);
                 break;
 
             case STATE_RAYLIB_LOGO:
@@ -107,44 +115,47 @@ int main(void) {
                 break;
 
             case STATE_LOGO:
-                render_game_logo(&logoAnim, screenWidth, screenHeight);
+                render_game_logo(&logoAnim, screenWidth, screenHeight, font);
                 break;
 
             case STATE_MENU:
                 ClearBackground(BLACK);
-                DrawText("Select Difficulty", screenWidth / 2 - 70, screenHeight / 2 - 60, 20, WHITE);
-                DrawText("Easy", screenWidth / 2 - 20, screenHeight / 2 - 20, 20, selectedOption == 0 ? YELLOW : WHITE);
-                DrawText("Medium", screenWidth / 2 - 20, screenHeight / 2, 20, selectedOption == 1 ? YELLOW : WHITE);
-                DrawText("Hard", screenWidth / 2 - 20, screenHeight / 2 + 20, 20, selectedOption == 2 ? YELLOW : WHITE);
-                DrawText("Use UP/DOWN to select, ENTER to start", screenWidth / 2 - 120, screenHeight / 2 + 60, 15, GRAY);
+                DrawTextEx(font, "Select Difficulty", (Vector2){screenWidth / 2 - 70, screenHeight / 2 - 60}, 20, 1, WHITE);
+                DrawTextEx(font, "Easy", (Vector2){screenWidth / 2 - 20, screenHeight / 2 - 20}, 20, 1, selectedOption == 0 ? YELLOW : WHITE);
+                DrawTextEx(font, "Medium", (Vector2){screenWidth / 2 - 20, screenHeight / 2}, 20, 1, selectedOption == 1 ? YELLOW : WHITE);
+                DrawTextEx(font, "Hard", (Vector2){screenWidth / 2 - 20, screenHeight / 2 + 20}, 20, 1, selectedOption == 2 ? YELLOW : WHITE);
+                DrawTextEx(font, "Use UP/DOWN to select, ENTER to start", (Vector2){screenWidth / 2 - 120, screenHeight / 2 + 60}, 15, 1, GRAY);
                 break;
 
             case STATE_PLAYING:
                 ClearBackground(BLACK);
-                render_maze();
-                render_pacman();
-                DrawText(TextFormat("Score: %d", pacman.score), 10, 10, 20, WHITE);
-                DrawText(TextFormat("Lives: %d", pacman.lives), screenWidth - 100, 10, 20, WHITE);
+                // Render the maze with the offset
+                render_maze(mazeOffsetX, mazeOffsetY);
+                render_pacman(mazeOffsetX, mazeOffsetY);
+                // Render UI elements
+                DrawTextEx(font, TextFormat("Score: %d", pacman.score), (Vector2){mazeOffsetX + 10, 10}, 20, 1, WHITE);
+                DrawTextEx(font, TextFormat("Lives: %d", pacman.lives), (Vector2){mazeOffsetX + mazePixelWidth - 100, screenHeight - 30}, 20, 1, WHITE);
                 break;
             
             case STATE_PAUSED:
                 ClearBackground(BLACK);
-                render_maze();
-                render_pacman();
-                DrawText("Paused", screenWidth / 2 - 30, screenHeight / 2, 20, WHITE);
-                DrawText("Press P to Resume", screenWidth / 2 - 70, screenHeight / 2 + 30, 20, WHITE);
+                render_maze(mazeOffsetX, mazeOffsetY);
+                render_pacman(mazeOffsetX, mazeOffsetY);
+                DrawTextEx(font, "Paused", (Vector2){screenWidth / 2 - 30, screenHeight / 2}, 20, 1, WHITE);
+                DrawTextEx(font, "Press P to Resume", (Vector2){screenWidth / 2 - 70, screenHeight / 2 + 30}, 20, 1, WHITE);
                 break;
 
             case STATE_GAME_OVER:
                 ClearBackground(BLACK);
-                DrawText("Game Over", screenWidth / 2 - 50, screenHeight / 2 - 40, 20, RED);
-                DrawText("Press R to Return to Menu", screenWidth / 2 - 90, screenHeight / 2, 20, WHITE);
+                DrawTextEx(font, "Game Over", (Vector2){screenWidth / 2 - 50, screenHeight / 2 - 40}, 20, 1, RED);
+                DrawTextEx(font, "Press R to Return to Menu", (Vector2){screenWidth / 2 - 90, screenHeight / 2}, 20, 1, WHITE);
                 break;
 
             default:
                 break;
         }
 
+        EndDrawing();
     }
 
     CloseWindow();

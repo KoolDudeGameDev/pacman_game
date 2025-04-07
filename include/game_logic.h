@@ -4,9 +4,9 @@
 #include "raylib.h"
 #include "resource_dir.h"
 
-#define MAZE_WIDTH 10
-#define MAZE_HEIGHT 10
-#define TILE_SIZE 40
+#define MAZE_WIDTH 28
+#define MAZE_HEIGHT 31
+#define TILE_SIZE 20
 
 // Tile types
 typedef enum {
