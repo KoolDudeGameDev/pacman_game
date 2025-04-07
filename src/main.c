@@ -2,6 +2,7 @@
 #include "resource_dir.h"
 #include "game_logic.h"
 #include "logo_animation.h"
+#include "rendering.h"
 
 int main(void) {
     // Initialization
@@ -53,7 +54,7 @@ int main(void) {
                     selectedOption = (selectedOption + 1) % 3;
                 }
                 if (IsKeyPressed(KEY_UP)) {
-                    selectedOption - (selectedOption - 1 + 3) % 3;
+                    selectedOption = (selectedOption - 1 + 3) % 3;
                 }
                 if (IsKeyPressed(KEY_ENTER)) {
                     selectedDifficulty = (Difficulty)selectedOption;
@@ -107,10 +108,11 @@ int main(void) {
 
             case STATE_LOGO:
                 render_game_logo(&logoAnim, screenWidth, screenHeight);
+                break;
 
             case STATE_MENU:
                 ClearBackground(BLACK);
-                DrawText("Select Dfficulty", screenWidth / 2 - 70, screenHeight / 2 - 60, 20, WHITE);
+                DrawText("Select Difficulty", screenWidth / 2 - 70, screenHeight / 2 - 60, 20, WHITE);
                 DrawText("Easy", screenWidth / 2 - 20, screenHeight / 2 - 20, 20, selectedOption == 0 ? YELLOW : WHITE);
                 DrawText("Medium", screenWidth / 2 - 20, screenHeight / 2, 20, selectedOption == 1 ? YELLOW : WHITE);
                 DrawText("Hard", screenWidth / 2 - 20, screenHeight / 2 + 20, 20, selectedOption == 2 ? YELLOW : WHITE);
