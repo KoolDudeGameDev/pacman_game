@@ -1,5 +1,5 @@
-#ifndef GAME_H
-#define GAME_H
+#ifndef GAME_LOGIC_H
+#define GAME_LOGIC_H
 
 #include "raylib.h"
 #include "resource_dir.h"
@@ -14,7 +14,7 @@ typedef enum {
     WALL = 1,
     PELLET = 2,
     POWER_PELLET = 3
-};
+} TileType;
 
 // Game states
 typedef enum {
