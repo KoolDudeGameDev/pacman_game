@@ -6,7 +6,7 @@
 
 int main(void) {
     // Initialization
-    const int screenWidth = 1280; // 720p resolution
+    const int screenWidth = 1280;
     const int screenHeight = 720;
     InitWindow(screenWidth, screenHeight, "Pacman v1.0");
     SetTargetFPS(60);
@@ -15,10 +15,10 @@ int main(void) {
     Font font = GetFontDefault(); // Use default font for now
 
     // Calculate maze dimensions and offsets
-    const int mazePixelWidth = MAZE_WIDTH * TILE_SIZE;   // 560px
-    const int mazePixelHeight = MAZE_HEIGHT * TILE_SIZE; // 620px
-    const int mazeOffsetX = (screenWidth - mazePixelWidth) / 2;  // 360px (180px on each side)
-    const int mazeOffsetY = (screenHeight - mazePixelHeight) / 2; // 50px (top and bottom)
+    const int mazePixelWidth = MAZE_WIDTH * TILE_SIZE;              // 560px
+    const int mazePixelHeight = MAZE_HEIGHT * TILE_SIZE;            // 620px
+    const int mazeOffsetX = (screenWidth - mazePixelWidth) / 2;     // 360px (180px on each side)
+    const int mazeOffsetY = (screenHeight - mazePixelHeight) / 2;   // 50px (top and bottom)
 
     // Menu variables
     int selectedOption = 0; // 0 = Easy, 1 = Medium, 2 = Hard
@@ -173,10 +173,11 @@ int main(void) {
             default:
                 break;
         }
+        // Apply fade to black transition
+        DrawRectangle(0, 0, screenWidth, screenHeight, Fade(BLACK, transitionAlpha));
 
         EndDrawing();
     }
-    DrawRectangle(0, 0, screenWidth, screenHeight, Fade(BLACK, transitionAlpha));
     
     CloseWindow();
     return 0;
