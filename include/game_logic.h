@@ -13,7 +13,8 @@ typedef enum {
     EMPTY = 0,
     WALL = 1,
     PELLET = 2,
-    POWER_PELLET = 3
+    POWER_PELLET = 3,
+    GHOST_GATE = 4
 } TileType;
 
 // Game states
@@ -45,7 +46,11 @@ typedef struct {
 } Player;
 
 // Global Variables (extern to declare them, defined in game.c)
+<<<<<<< HEAD
 extern int maze [MAZE_HEIGHT][MAZE_WIDTH];
+=======
+extern int maze[MAZE_HEIGHT][MAZE_WIDTH];
+>>>>>>> 7050e85257a8af7ed61344fbe8bde932585b2d95
 extern Player pacman;
 extern GameState gameState;
 extern Difficulty selectedDifficulty;
@@ -56,4 +61,4 @@ void init_maze(void);
 void init_pacman(void);
 void update_pacman(void);
 
-#endif // GAME_H
+#endif // GAME_LOGIC_H
