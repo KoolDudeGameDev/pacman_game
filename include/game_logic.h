@@ -36,13 +36,24 @@ typedef enum {
     DIFFICULTY_HARD
 } Difficulty;
 
+// Direction enum
+typedef enum {
+    DIR_NONE = 0,
+    DIR_UP,
+    DIR_DOWN,
+    DIR_LEFT,
+    DIR_RIGHT
+} Direction;
+
 // Pac-Man structure
 typedef struct {
     int x;         // Grid position X
     int y;         // Grid position Y
-    int speed;     // Pixels per frame
+    float speed;     // Pixels per frame
     int score;     // Player score
     int lives;     // Player lives
+    Direction direction;     // Current direction
+    Direction nextDirection; // Queued direction
 } Player;
 
 // Global Variables (extern to declare them, defined in game.c)
