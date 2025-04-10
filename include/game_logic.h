@@ -46,11 +46,7 @@ typedef struct {
 } Player;
 
 // Global Variables (extern to declare them, defined in game.c)
-<<<<<<< HEAD
-extern int maze [MAZE_HEIGHT][MAZE_WIDTH];
-=======
 extern int maze[MAZE_HEIGHT][MAZE_WIDTH];
->>>>>>> 7050e85257a8af7ed61344fbe8bde932585b2d95
 extern Player pacman;
 extern GameState gameState;
 extern Difficulty selectedDifficulty;

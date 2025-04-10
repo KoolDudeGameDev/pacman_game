@@ -5,20 +5,36 @@
 #include "rendering.h"
 
 int main(void) {
-    const int SCREEN_WIDTH = 1280;
-    const int SCREEN_HEIGHT = 800;
-
-    Pacman pacman;
-    Ghost ghosts[4];
-    Maze maze;
-
-    InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Pacman Game v1.0");
+    // Initialization
+    const int screenWidth = 1280; // 720p resolution
+    const int screenHeight = 720;
+    InitWindow(screenWidth, screenHeight, "Pacman v1.0");
     SetTargetFPS(60);
 
-    InitGame(&pacman, ghosts, &maze);
+    // Load a font
+    Font font = GetFontDefault(); // Use default font for now
 
+    // Calculate maze dimensions and offsets
+    const int mazePixelWidth = MAZE_WIDTH * TILE_SIZE;   // 560px
+    const int mazePixelHeight = MAZE_HEIGHT * TILE_SIZE; // 620px
+    const int mazeOffsetX = (screenWidth - mazePixelWidth) / 2;  // 360px (180px on each side)
+    const int mazeOffsetY = (screenHeight - mazePixelHeight) / 2; // 50px (top and bottom)
+
+    // Menu variables
+    int selectedOption = 0; // 0 = Easy, 1 = Medium, 2 = Hard
+
+    // Logo animation state
+    LogoAnimation logoAnim;
+    init_kool_dude_logo(&logoAnim, screenWidth, screenHeight); // First state
+
+    // Fade to black transition variables
+    float transitionAlpha = 0.0f;
+    bool fadingOut = false;
+    GameState nextState = STATE_KOOLDUDE_LOGO;
+
+    // Game Loop
+    // ----------------------------------------------------------------------------------------
     while (!WindowShouldClose()) {
-
         // Fade to black transition
         if (fadingOut) {
             transitionAlpha += 0.05f;
@@ -34,31 +50,36 @@ int main(void) {
                 transitionAlpha = 0.0f;
             }
         }
+
         switch (gameState) {
             case STATE_KOOLDUDE_LOGO:
                 if (update_kool_dude_logo(&logoAnim)) {
-                    gameState = STATE_DEV_LOGO;
+                    fadingOut = true;
+                    nextState = STATE_DEV_LOGO;
                     init_dev_logo(&logoAnim);
                 }
                 break;
             
             case STATE_DEV_LOGO:
                 if (update_dev_logo(&logoAnim)) {
-                    gameState = STATE_RAYLIB_LOGO;
+                    fadingOut = true;
+                    nextState = STATE_RAYLIB_LOGO;
                     init_raylib_logo(&logoAnim, screenWidth, screenHeight);
                 }
                 break;
 
             case STATE_RAYLIB_LOGO:
                 if (update_raylib_logo(&logoAnim)) {
-                    gameState = STATE_LOGO;
+                    fadingOut = true;
+                    nextState = STATE_LOGO;
                     init_game_logo(&logoAnim);
                 }
                 break;
 
             case STATE_LOGO:
                 if (update_game_logo(&logoAnim)) {
-                    gameState = STATE_MENU;
+                    fadingOut = true;
+                    nextState = STATE_MENU;
                 }
                 break;
 
@@ -104,11 +125,65 @@ int main(void) {
         // Start Rendering
         // ----------------------------------------------------------------------------------------
         BeginDrawing();
-            ClearBackground(BLACK);
-            DrawGame(&pacman, ghosts, &maze);
+
+        switch (gameState) {
+            case STATE_KOOLDUDE_LOGO:
+                render_kool_dude_logo(&logoAnim, font);
+                break;
+
+            case STATE_DEV_LOGO:
+                render_dev_logo(&logoAnim, screenWidth, screenHeight, font);
+                break;
+
+            case STATE_RAYLIB_LOGO:
+                render_raylib_logo(&logoAnim);
+                break;
+
+            case STATE_LOGO:
+                render_game_logo(&logoAnim, screenWidth, screenHeight, font);
+                break;
+
+            case STATE_MENU:
+                ClearBackground(BLACK);
+                DrawTextEx(font, "Select Difficulty", (Vector2){screenWidth / 2 - 70, screenHeight / 2 - 60}, 20, 1, WHITE);
+                DrawTextEx(font, "Easy", (Vector2){screenWidth / 2 - 20, screenHeight / 2 - 20}, 20, 1, selectedOption == 0 ? YELLOW : WHITE);
+                DrawTextEx(font, "Medium", (Vector2){screenWidth / 2 - 20, screenHeight / 2}, 20, 1, selectedOption == 1 ? YELLOW : WHITE);
+                DrawTextEx(font, "Hard", (Vector2){screenWidth / 2 - 20, screenHeight / 2 + 20}, 20, 1, selectedOption == 2 ? YELLOW : WHITE);
+                DrawTextEx(font, "Use UP/DOWN to select, ENTER to start", (Vector2){screenWidth / 2 - 120, screenHeight / 2 + 60}, 15, 1, GRAY);
+                break;
+
+            case STATE_PLAYING:
+                ClearBackground(BLACK);
+                render_maze(mazeOffsetX, mazeOffsetY);
+                render_pacman(mazeOffsetX, mazeOffsetY);
+                DrawTextEx(font, TextFormat("Score: %d", pacman.score), (Vector2){mazeOffsetX + 10, 10}, 20, 1, WHITE);
+                DrawTextEx(font, TextFormat("Lives: %d", pacman.lives), (Vector2){mazeOffsetX + mazePixelWidth - 100, screenHeight - 30}, 20, 1, WHITE);
+                break;
+            
+            case STATE_PAUSED:
+                ClearBackground(BLACK);
+                render_maze(mazeOffsetX, mazeOffsetY);
+                render_pacman(mazeOffsetX, mazeOffsetY);
+                DrawTextEx(font, "Paused", (Vector2){screenWidth / 2 - 30, screenHeight / 2}, 20, 1, WHITE);
+                DrawTextEx(font, "Press P to Resume", (Vector2){screenWidth / 2 - 70, screenHeight / 2 + 30}, 20, 1, WHITE);
+                break;
+
+            case STATE_GAME_OVER:
+                ClearBackground(BLACK);
+                DrawTextEx(font, "Game Over", (Vector2){screenWidth / 2 - 50, screenHeight / 2 - 40}, 20, 1, RED);
+                DrawTextEx(font, "Press R to Return to Menu", (Vector2){screenWidth / 2 - 90, screenHeight / 2}, 20, 1, WHITE);
+                break;
+
+            default:
+                break;
+        }
+
+        // Apply the fade-to-black transition
+        DrawRectangle(0, 0, screenWidth, screenHeight, Fade(BLACK, transitionAlpha));
+
         EndDrawing();
     }
-
+    
     CloseWindow();
     return 0;
 }
