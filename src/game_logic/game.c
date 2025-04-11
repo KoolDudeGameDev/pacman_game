@@ -9,6 +9,7 @@ int maze[MAZE_HEIGHT][MAZE_WIDTH];
 Player pacman;
 Ghost ghosts[MAX_GHOSTS];
 
+// Maze Layout
 static char game_maze[MAZE_HEIGHT][MAZE_WIDTH] = {
     "############################",
     "#............##............#",
@@ -73,5 +74,25 @@ void init_maze(void) {
                 break;
             }
         }
+    }
+}
+
+void find_pacman_start(int *startX, int *startY) {
+    bool found = false;
+    for (int y = 0; y < MAZE_HEIGHT; y ++) {
+        for (int x = 0; x < MAZE_WIDTH; x ++) {
+            if (game_maze[y][x] == 'P') {
+                *startX = x;
+                *startY = y;
+                found = true;
+                break;
+            }
+        }
+        if (found) break;
+    }
+
+    if (!found) {
+        *startX = 14;
+        *startY = 23;
     }
 }

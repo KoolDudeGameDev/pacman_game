@@ -81,9 +81,10 @@ extern GameState gameState;
 
 // game.c
 void init_maze(void);
+void find_pacman_start(int *startX, int *startY);
 
 // pacman_movement.c
-void init_pacman(void);
+void init_pacman(int startX, int startY);
 void update_pacman(void);
 
 // ghost_ai.c

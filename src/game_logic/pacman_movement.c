@@ -1,40 +1,20 @@
 #include "raylib.h"
 #include "game_logic.h"
 
-#include "game.c"
+#include <math.h>
 
 // Initialize Pac-Man with difficulty-based speed
 // --------------------------------------------------------------------------------------------------------------------------
-void init_pacman(void) {
+void init_pacman(int startX, int startY) {
+    pacman.gridX = startX;
+    pacman.gridY = startY;
+    pacman.x = startX * TILE_SIZE + TILE_SIZE / 2.0f;
+    pacman.y = startY * TILE_SIZE + TILE_SIZE / 2.0f;
 
-    // Find Pac-Man's starting position (marked as 'P' in the maze)
-    bool found = false;
-    for (int y = 0; y < MAZE_HEIGHT; y++) {
-        for (int x = 0; x < MAZE_WIDTH; x++) {
-            if (game_maze[y][x] == 'P') {
-                pacman.gridX = x;
-                pacman.gridY = y;
-                pacman.x = x * TILE_SIZE + TILE_SIZE / 2.0f;
-                pacman.y = y * TILE_SIZE + TILE_SIZE / 2.0f;
-                found = true;
-                break;
-            }
-        }
-        if (found) break;
-    }
-
-    if (!found) {
-        // Fallback position if 'P' is not found
-        pacman.x = 14; // Center of the maze (28/2)
-        pacman.y = 23; // Default starting position
-        pacman.x = pacman.gridX * TILE_SIZE + TILE_SIZE / 2.0f;
-        pacman.y = pacman.gridY * TILE_SIZE + TILE_SIZE / 2.0f;
-    }
-
-    pacman.speed = 120.0f;        // Pixels per second (approx 6 tiles/sec)
+    pacman.speed = 120.0f; // Pixels per second (approx 6 tiles/sec)
     pacman.score = 0;
     pacman.lives = 3;
-    pacman.direction = DIR_RIGHT; // Start moving right (as in the original)
+    pacman.direction = DIR_RIGHT;
     pacman.nextDirection = DIR_RIGHT;
 }
 
@@ -86,16 +66,16 @@ void update_pacman(void) {
             newGridY = pacman.gridY;
             switch (pacman.direction) {
                 case DIR_UP:
-                    newGridY --;
+                    newGridY--;
                     break;
                 case DIR_DOWN:
-                    newGridY ++;
+                    newGridY++;
                     break;
                 case DIR_LEFT:
-                    newGridX --;
+                    newGridX--;
                     break;
                 case DIR_RIGHT:
-                    newGridX ++;
+                    newGridX++;
                     break;
                 default:
                     break;
