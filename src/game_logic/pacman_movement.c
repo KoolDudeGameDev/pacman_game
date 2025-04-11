@@ -23,15 +23,15 @@ void update_pacman(void) {
     float deltaTime = GetFrameTime();
 
     // Queue the next direction
-    if (IsKeyPressed(KEY_RIGHT)) pacman.nextDirection = DIR_RIGHT;
-    if (IsKeyPressed(KEY_LEFT)) pacman.nextDirection = DIR_LEFT;
-    if (IsKeyPressed(KEY_UP)) pacman.nextDirection = DIR_UP;
-    if (IsKeyPressed(KEY_DOWN)) pacman.nextDirection = DIR_DOWN;
+    if (IsKeyDown(KEY_RIGHT)) pacman.nextDirection = DIR_RIGHT;
+    if (IsKeyDown(KEY_LEFT)) pacman.nextDirection = DIR_LEFT;
+    if (IsKeyDown(KEY_UP)) pacman.nextDirection = DIR_UP;
+    if (IsKeyDown(KEY_DOWN)) pacman.nextDirection = DIR_DOWN;
 
     // Check if Pac-Man is centered in the current tile
     float centerX = pacman.gridX * TILE_SIZE + TILE_SIZE / 2.0f;
     float centerY = pacman.gridY * TILE_SIZE + TILE_SIZE / 2.0f;
-    bool atCenter = fabs(pacman.x - centerX) < 0.1f && fabs(pacman.y - centerY) < 0.1f;
+    bool atCenter = fabs(pacman.x - centerX) < 1.0f && fabs(pacman.y - centerY) < 1.0f;
 
     if (atCenter) {
         // Try to change direction

@@ -42,7 +42,7 @@ void update_ghosts(void) {
         // Move only when centered
         float centerX = ghosts[i].gridX * TILE_SIZE + TILE_SIZE / 2.0f;
         float centerY = ghosts[i].gridY * TILE_SIZE + TILE_SIZE / 2.0f;
-        bool atCenter = fabs(ghosts[i].x - centerX) < 0.1f && fabs(ghosts[i].y - centerY) < 0.1f;
+        bool atCenter = fabs(ghosts[i].x - centerX) < 1.0f && fabs(ghosts[i].y - centerY) < 1.0f;
 
         if (atCenter) {
             // Simple AI: Chase Pac-Man in normal state, random in frightened
@@ -70,10 +70,22 @@ void update_ghosts(void) {
                         break;
                 }
 
+                // Ensure the new position is within bounds and not a wall or ghost gate
                 if (newGridX >= 0 && newGridX < MAZE_WIDTH && newGridY >= 0 && newGridY < MAZE_HEIGHT &&
                     maze[newGridY][newGridX] != WALL && maze[newGridY][newGridX] != GHOST_GATE) {
-                    validDirs[validCount] = d;
-                    validCount++;
+                    // Avoid moving back in the opposite direction (prevents jittering)
+                    Direction oppositeDir = DIR_NONE;
+                    switch (ghosts[i].direction) {
+                        case DIR_UP: oppositeDir = DIR_DOWN; break;
+                        case DIR_DOWN: oppositeDir = DIR_UP; break;
+                        case DIR_LEFT: oppositeDir = DIR_RIGHT; break;
+                        case DIR_RIGHT: oppositeDir = DIR_LEFT; break;
+                        default: break;
+                    }
+                    if (possibleDirs[d] != oppositeDir || validCount == 0) {
+                        validDirs[validCount] = d;
+                        validCount++;
+                    }
                 }
             }
 
@@ -152,6 +164,33 @@ void update_ghosts(void) {
                 break;
         }
 
+        // Boundary checks to keep ghosts within the maze
+        float minX = 0.0f + TILE_SIZE / 2.0f;
+        float maxX = (MAZE_WIDTH - 1) * TILE_SIZE + TILE_SIZE / 2.0f;
+        float minY = 0.0f + TILE_SIZE / 2.0f;
+        float maxY = (MAZE_HEIGHT - 1) * TILE_SIZE + TILE_SIZE / 2.0f;
+
+        if (ghosts[i].x < minX) {
+            ghosts[i].x = minX;
+            ghosts[i].direction = DIR_NONE;
+            ghosts[i].gridX = 0;
+        }
+        if (ghosts[i].x > maxX) {
+            ghosts[i].x = maxX;
+            ghosts[i].direction = DIR_NONE;
+            ghosts[i].gridX = MAZE_WIDTH - 1;
+        }
+        if (ghosts[i].y < minY) {
+            ghosts[i].y = minY;
+            ghosts[i].direction = DIR_NONE;
+            ghosts[i].gridY = 0;
+        }
+        if (ghosts[i].y > maxY) {
+            ghosts[i].y = maxY;
+            ghosts[i].direction = DIR_NONE;
+            ghosts[i].gridY = MAZE_HEIGHT - 1;
+        }
+
         // Check collision with Pac-Man
         float dist = sqrtf(powf(ghosts[i].x - pacman.x, 2) + powf(ghosts[i].y - pacman.y, 2));
         if (dist < TILE_SIZE / 2.0f) {
@@ -169,7 +208,9 @@ void update_ghosts(void) {
                     gameState = STATE_GAME_OVER;
                 } else {
                     // Reset positions
-                    init_pacman();
+                    int startX, startY;
+                    find_pacman_start(&startX, &startY);
+                    init_pacman(startX, startY);
                     init_ghosts();
                 }
             }
