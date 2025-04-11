@@ -101,7 +101,12 @@ void render_maze(int offsetX, int offsetY) {
 }
 
 void render_pacman(int offsetX, int offsetY) {
-    int posX = offsetX + pacman.x * TILE_SIZE + TILE_SIZE / 2;
-    int posY = offsetY + pacman.y * TILE_SIZE + TILE_SIZE / 2;
-    DrawCircle(posX, posY, TILE_SIZE / 2 - 2, YELLOW);
+    DrawCircle(pacman.x + offsetX, pacman.y + offsetY, TILE_SIZE / 2.0f, YELLOW);
+}
+
+void render_ghosts(int offsetX, int offsetY) {
+    for (int i = 0; i < MAX_GHOSTS; i ++) {
+        Color ghostColor = (ghosts[i].state == GHOST_FRIGHTENED) ? BLUE : RED;
+        DrawCircle(ghosts[i].x + offsetX, ghosts[i].y + offsetY, TILE_SIZE / 2.0f, ghostColor);
+    }
 }

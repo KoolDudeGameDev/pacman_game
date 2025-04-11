@@ -7,6 +7,7 @@
 #define MAZE_WIDTH 28
 #define MAZE_HEIGHT 31
 #define TILE_SIZE 20
+#define MAX_GHOSTS 4
 
 // Tile types
 typedef enum {
@@ -29,13 +30,6 @@ typedef enum {
     STATE_GAME_OVER
 } GameState;
 
-// Difficulty levels
-typedef enum {
-    DIFFICULTY_EASY,
-    DIFFICULTY_MEDIUM,
-    DIFFICULTY_HARD
-} Difficulty;
-
 // Direction enum
 typedef enum {
     DIR_NONE = 0,
@@ -45,27 +39,55 @@ typedef enum {
     DIR_RIGHT
 } Direction;
 
+// Ghost states
+typedef enum {
+    GHOST_NORMAL,
+    GHOST_FRIGHTENED,
+    GHOST_EATEN
+} GhostState;
+
 // Pac-Man structure
 typedef struct {
-    int x;         // Grid position X
-    int y;         // Grid position Y
+    float x;         // Grid position X
+    float y;         // Grid position Y
     float speed;     // Pixels per frame
+    int gridX;       // Grid position X
+    int gridY;       // Grid position Y
     int score;     // Player score
     int lives;     // Player lives
     Direction direction;     // Current direction
     Direction nextDirection; // Queued direction
 } Player;
 
+// Ghost structure
+typedef struct {
+    float x;         // Grid position X
+    float y;         // Grid position Y
+    float speed;     // Pixels per frame
+    int gridX;       // Grid position X
+    int gridY;       // Grid position Y
+    Direction direction;
+    GhostState state;
+    float stateTimer;
+} Ghost;
+
 // Global Variables (extern to declare them, defined in game.c)
 extern int maze[MAZE_HEIGHT][MAZE_WIDTH];
 extern Player pacman;
+extern Ghost ghosts[MAX_GHOSTS];
 extern GameState gameState;
-extern Difficulty selectedDifficulty;
 
 // Function Declarations
+
+// game.c
 void init_maze(void);
 
+// pacman_movement.c
 void init_pacman(void);
 void update_pacman(void);
+
+// ghost_ai.c
+void init_ghosts(void);
+void update_ghosts(void);
 
 #endif // GAME_LOGIC_H
