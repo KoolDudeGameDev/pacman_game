@@ -99,6 +99,7 @@ int main(void) {
                 break;
 
             case STATE_PLAYING:
+                DrawFPS(10,10);
                 update_pacman();
                 if (IsKeyPressed(KEY_P)) {
                     gameState = STATE_PAUSED;
