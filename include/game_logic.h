@@ -43,8 +43,15 @@ typedef enum {
 typedef enum {
     GHOST_NORMAL,
     GHOST_FRIGHTENED,
-    GHOST_EATEN
+    GHOST_EATEN,
+    GHOST_PENNED
 } GhostState;
+
+// Ghost mode (for GHOST_NORMAL state)
+typedef enum {
+    MODE_CHASE,
+    MODE_SCATTER
+} GhostMode;
 
 // Pac-Man structure
 typedef struct {
@@ -69,6 +76,8 @@ typedef struct {
     Direction direction;
     GhostState state;
     float stateTimer;
+    int scatterTargetX;
+    int scatterTargetY;
 } Ghost;
 
 // Global Variables (extern to declare them, defined in game.c)
@@ -76,6 +85,8 @@ extern int maze[MAZE_HEIGHT][MAZE_WIDTH];
 extern Player pacman;
 extern Ghost ghosts[MAX_GHOSTS];
 extern GameState gameState;
+extern GhostMode ghostMode;
+extern float modeTimer;
 
 // Function Declarations
 
@@ -90,5 +101,6 @@ void update_pacman(void);
 // ghost_ai.c
 void init_ghosts(void);
 void update_ghosts(void);
+void update_ghost_mode(void);
 
 #endif // GAME_LOGIC_H

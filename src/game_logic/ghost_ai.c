@@ -4,11 +4,64 @@
 #include <stdlib.h>
 #include <math.h>
 
+// Function to chooce best direction toward target
+static Direction choose_best_direction(int currentX, int currentY, int targetX, int targetY, Direction currentDir) {
+    Direction possibleDirs[4] = {DIR_UP, DIR_DOWN, DIR_LEFT, DIR_RIGHT};
+    int validDirs[4] = {0};
+    int validCount = 0;
+
+    for (int d = 0; d < 4; d++) {
+        int newGridX = currentX;
+        int newGridY = currentY;
+        switch (possibleDirs[d]) {
+            case DIR_UP:
+                newGridY--;
+                break;
+            case DIR_DOWN:
+                newGridY++;
+                break;
+            case DIR_LEFT:
+                newGridX--;
+                break;
+            case DIR_RIGHT:
+                newGridX++;
+                break;
+            default:
+                break;
+        }
+
+        // Check if the direction is valid (not a wall, and ghosts can pass through the gate when exiting)
+        if (newGridX >= 0 && newGridX < MAZE_WIDTH && newGridY >= 0 && newGridY < MAZE_HEIGHT &&
+            (maze[newGridY][newGridX] != WALL)) {
+            // Avoid moving back in the opposite direction
+            Direction oppositeDir = DIR_NONE;
+            switch (currentDir) {
+                case DIR_UP: oppositeDir = DIR_DOWN; break;
+                case DIR_DOWN: oppositeDir = DIR_UP; break;
+                case DIR_LEFT: oppositeDir = DIR_RIGHT; break;
+                case DIR_RIGHT: oppositeDir = DIR_LEFT; break;
+                default: break;
+            }
+            if (possibleDirs[d] != oppositeDir || validCount == 0) {
+                validDirs[validCount] = d;
+                validCount++;
+            }
+        }
+    }
+
+    if (validCount == 0) {
+        return DIR_NONE; // No valid directions
+    }
+
+    // Choose the direction that gets closest to target
+
+}
+
 // Initialize Ghosts
 void init_ghosts(void) {
     // Starting posistions near the ghost pen (center of maze) 
     int startPositions[4][2] = {
-        {13, 11},   // Ghost 1
+        {13, 11},   // Ghost 1 - Blinky
         {14, 11},   // Ghost 2
         {13, 12},   // Ghost 3
         {14, 12}    // Ghost 4
