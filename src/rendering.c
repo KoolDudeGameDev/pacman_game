@@ -106,7 +106,19 @@ void render_pacman(int offsetX, int offsetY) {
 
 void render_ghosts(int offsetX, int offsetY) {
     for (int i = 0; i < MAX_GHOSTS; i ++) {
-        Color ghostColor = (ghosts[i].state == GHOST_FRIGHTENED) ? BLUE : RED;
+        Color ghostColor;
+        Color customCyan = { 0, 255, 255, 255 }; // Standard cyan
+        if (ghosts[i].state == GHOST_FRIGHTENED) {
+            ghostColor = BLUE;
+        } else {
+            switch (i) {
+            case 0: ghostColor = RED; break;        // Blinky
+            case 1: ghostColor = PINK; break;       // Pinky
+            case 2: ghostColor = customCyan; break; // Inky
+            case 3: ghostColor = ORANGE; break;     // Clyde
+            default: ghostColor = RED; break;
+            }
+        }
         DrawCircle(ghosts[i].x + offsetX, ghosts[i].y + offsetY, TILE_SIZE / 2.0f, ghostColor);
     }
 }

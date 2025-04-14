@@ -3,8 +3,8 @@
 
 // Game State
 GameState gameState = STATE_MENU; // Initial state
-GhostMode ghostMode = MODE_SCATTER;
-float modeTimer = 0.0f;
+GhostMode ghostMode = MODE_SCATTER; // Start in Scatter mode
+float modeTimer = 0.0f; // Timer for switching between Chase and Scatter
 
 // Maze array
 int maze[MAZE_HEIGHT][MAZE_WIDTH];
