@@ -5,46 +5,48 @@
 #include <math.h>
 
 // Function to choose best direction toward target
-static Direction choose_best_direction(int currentX, int currentY, int targetX, int targetY, Direction currentDir) {
+static Direction choose_best_direction(int currentX, int currentY, int targetX, int targetY, Direction currentDir, bool isExitingPen) {
     Direction possibleDirs[4] = {DIR_UP, DIR_DOWN, DIR_LEFT, DIR_RIGHT};
     int validDirs[4] = {0};
     int validCount = 0;
 
-    for (int d = 0; d < 4; d++) {
+    for (int d = 0; d < 4; d ++) {
         int newGridX = currentX;
         int newGridY = currentY;
         switch (possibleDirs[d]) {
             case DIR_UP:
-                newGridY--;
+                newGridY --;
                 break;
             case DIR_DOWN:
-                newGridY++;
+                newGridY ++;
                 break;
             case DIR_LEFT:
-                newGridX--;
+                newGridX --;
                 break;
             case DIR_RIGHT:
-                newGridX++;
+                newGridX ++;
                 break;
             default:
                 break;
         }
 
-        // Check if the direction is valid (not a wall, and ghosts can pass through the gate when exiting)
-        if (newGridX >= 0 && newGridX < MAZE_WIDTH && newGridY >= 0 && newGridY < MAZE_HEIGHT &&
-            (maze[newGridY][newGridX] != WALL)) {
-            // Avoid moving back in the opposite direction
-            Direction oppositeDir = DIR_NONE;
-            switch (currentDir) {
-                case DIR_UP: oppositeDir = DIR_DOWN; break;
-                case DIR_DOWN: oppositeDir = DIR_UP; break;
-                case DIR_LEFT: oppositeDir = DIR_RIGHT; break;
-                case DIR_RIGHT: oppositeDir = DIR_LEFT; break;
-                default: break;
-            }
-            if (possibleDirs[d] != oppositeDir || validCount == 0) {
-                validDirs[validCount] = d;
-                validCount++;
+        // Check if the direction is valid (not a wall, ghosts can pass through the gate when exiting)
+        bool canPassGate = isExitingPen && newGridY == 11 && maze[newGridY][newGridX] == GHOST_GATE;
+        if (newGridX >= 0 && newGridX < MAZE_WIDTH && newGridY >= 0 && newGridY < MAZE_HEIGHT) {
+            if (maze[newGridY][newGridX] != WALL && (maze[newGridY][newGridX] != GHOST_GATE || canPassGate)) {
+                // Avoid moving back in the opposite direction
+                Direction oppositeDir = DIR_NONE;
+                switch (currentDir) {
+                    case DIR_UP: oppositeDir = DIR_DOWN; break;
+                    case DIR_DOWN: oppositeDir = DIR_UP; break;
+                    case DIR_LEFT: oppositeDir = DIR_RIGHT; break;
+                    case DIR_RIGHT: oppositeDir = DIR_LEFT; break;
+                    default: break;
+                }
+                if (possibleDirs[d] != oppositeDir || validCount == 0) {
+                    validDirs[validCount] = d;
+                    validCount++;
+                }
             }
         }
     }
@@ -56,21 +58,21 @@ static Direction choose_best_direction(int currentX, int currentY, int targetX, 
     // Choose the direction that gets closest to target
     float minDist = 9999.0f;
     int bestDir = -1;
-    for (int d = 0; d < validCount; d ++) {
+    for (int d = 0; d < validCount; d++) {
         int newGridX = currentX;
         int newGridY = currentY;
         switch (possibleDirs[validDirs[d]]) {
             case DIR_UP:
-                newGridY--;
+                newGridY --;
                 break;
             case DIR_DOWN:
-                newGridY++;
+                newGridY ++;
                 break;
             case DIR_LEFT:
-                newGridX--;
+                newGridX --;
                 break;
             case DIR_RIGHT:
-                newGridX++;
+                newGridX ++;
                 break;
             default:
                 break;
@@ -82,14 +84,13 @@ static Direction choose_best_direction(int currentX, int currentY, int targetX, 
         }
     }
 
-    return bestDir >= 0 ? possibleDirs[bestDir]: DIR_NONE;
-
+    return bestDir >= 0 ? possibleDirs[bestDir] : DIR_NONE;
 }
 
 // Initialize Ghosts
 // ----------------------------------------------------------------------------------------
 void init_ghosts(void) {
-    // Starting posistions near the ghost pen (center of maze) 
+    // Starting positions near the ghost pen (center of maze) 
     int startPositions[4][2] = {
         {13, 11},   // Ghost 0 (Blinky) - will start outside
         {14, 11},   // Ghost 1 (Pinky)
@@ -105,12 +106,12 @@ void init_ghosts(void) {
         {1, MAZE_HEIGHT - 2}                // Clyde: Bottom-left
     };
 
-    for (int i = 0; i < MAX_GHOSTS; i ++) {
+    for (int i = 0; i < MAX_GHOSTS; i++) {
         ghosts[i].gridX = startPositions[i][0];
         ghosts[i].gridY = startPositions[i][1];
         ghosts[i].x = ghosts[i].gridX * TILE_SIZE + TILE_SIZE / 2.0f;
         ghosts[i].y = ghosts[i].gridY * TILE_SIZE + TILE_SIZE / 2.0f;
-        ghosts[i].speed = 100.0f;   // Slightly slower than Pac_Man
+        ghosts[i].speed = 100.0f;   // Slightly slower than Pac-Man
         ghosts[i].direction = DIR_UP;   // Exits pen
         ghosts[i].scatterTargetX = scatterTargets[i][0];
         ghosts[i].scatterTargetY = scatterTargets[i][1];
@@ -162,6 +163,7 @@ void update_ghosts(void) {
             ghosts[i].stateTimer -= deltaTime;
             if (ghosts[i].stateTimer <= 0.0f) {
                 ghosts[i].state = GHOST_NORMAL;
+                ghosts[i].direction = DIR_UP; // Move up to exit the pen
             }
             // Move up and down within the pen until released
             if (ghosts[i].y <= (11 * TILE_SIZE + TILE_SIZE / 2.0f)) {
@@ -184,7 +186,7 @@ void update_ghosts(void) {
         }
 
         // Update frightened timer
-        if (ghosts[i].state == GHOST_PENNED) {
+        if (ghosts[i].state == GHOST_FRIGHTENED) {
             ghosts[i].stateTimer -= deltaTime;
             if (ghosts[i].stateTimer <= 0.0f) {
                 ghosts[i].state = GHOST_NORMAL;
@@ -196,11 +198,20 @@ void update_ghosts(void) {
         float centerY = ghosts[i].gridY * TILE_SIZE + TILE_SIZE / 2.0f;
         bool atCenter = fabs(ghosts[i].x - centerX) < 1.0f && fabs(ghosts[i].y - centerY) < 1.0f;
 
-        if (atCenter) {
+        // Determine if the ghost is still exiting the pen (not yet above the gate)
+        bool isExitingPen = (ghosts[i].gridY >= 11 && ghosts[i].gridY <= 12 && ghosts[i].state == GHOST_NORMAL);
 
-            // Snap positin to center to prevent drift
+        if (atCenter) {
+            // Snap position to center to prevent drift
             ghosts[i].x = centerX;
             ghosts[i].y = centerY;
+
+            // If still in the pen area, force move toward exit
+            if (isExitingPen) {
+                ghosts[i].direction = DIR_UP;
+                ghosts[i].gridY--;
+                continue;
+            }
 
             // Determine target based on ghost type and mode
             int targetX, targetY;
@@ -230,9 +241,9 @@ void update_ghosts(void) {
                             break;
                     }
 
-                    // Ensure the new position is within bounds and not a wall or ghost gate
+                    // Ensure the new position is within bounds and not a wall or ghost gate (unless exiting)
                     if (newGridX >= 0 && newGridX < MAZE_WIDTH && newGridY >= 0 && newGridY < MAZE_HEIGHT &&
-                        maze[newGridY][newGridX] != WALL) {
+                        (maze[newGridY][newGridX] != WALL && (maze[newGridY][newGridX] != GHOST_GATE))) {
                         // Avoid moving back in the opposite direction (prevents jittering)
                         Direction oppositeDir = DIR_NONE;
                         switch (ghosts[i].direction) {
@@ -257,9 +268,9 @@ void update_ghosts(void) {
                 }
 
             } else {
-                
+
                 // Normal behavior (Chase or Scatter)
-                if (ghostMode = MODE_SCATTER) {
+                if (ghostMode == MODE_SCATTER) {
                     targetX = ghosts[i].scatterTargetX;
                     targetY = ghosts[i].scatterTargetY;
                 } else {    // MODE_CHASE
@@ -278,6 +289,7 @@ void update_ghosts(void) {
                                     break;
                                 case DIR_DOWN:
                                     targetY += 4;
+                                    break;
                                 case DIR_LEFT:
                                     targetX -= 4;
                                     break;
@@ -286,31 +298,31 @@ void update_ghosts(void) {
                                     break;
                                 default:
                                     break;
-                                }
+                            }
                             break;
 
-                        case 2:     // Inkey: Complex targeting
+                        case 2:     // Inky: Complex targeting
                         {
                             // Target is 2 tiles ahead of Pac-Man
                             int intermediateX = pacman.gridX;
                             int intermediateY = pacman.gridY;
                             switch (pacman.direction) {
-                            case DIR_UP:
-                                intermediateY -= 2;
-                                break;
-                            case DIR_DOWN:
-                                intermediateY += 2;
-                                break;
-                            case DIR_LEFT:
-                                intermediateX -= 2;
-                                break;;
-                            case DIR_RIGHT:
-                                intermediateX += 2;
-                                break;
-                            default:
-                                break;
+                                case DIR_UP:
+                                    intermediateY -= 2;
+                                    break;
+                                case DIR_DOWN:
+                                    intermediateY += 2;
+                                    break;
+                                case DIR_LEFT:
+                                    intermediateX -= 2;
+                                    break;
+                                case DIR_RIGHT:
+                                    intermediateX += 2;
+                                    break;
+                                default:
+                                    break;
                             }
-                            // Vector from blinky to intermediate point
+                            // Vector from Blinky to intermediate point
                             int vecX = intermediateX - ghosts[0].gridX;
                             int vecY = intermediateY - ghosts[0].gridY;
                             // Target is intermediate point + vector
@@ -346,7 +358,7 @@ void update_ghosts(void) {
                 targetY = (targetY < 0) ? 0 : (targetY >= MAZE_HEIGHT ? MAZE_HEIGHT - 1 : targetY);
 
                 // Choose the best direction toward the target
-                ghosts[i].direction = choose_best_direction(ghosts[i].gridX, ghosts[i].gridY, targetX, targetY, ghosts[i].direction);
+                ghosts[i].direction = choose_best_direction(ghosts[i].gridX, ghosts[i].gridY, targetX, targetY, ghosts[i].direction, isExitingPen);
             }
 
             // Update grid position based on direction
@@ -367,7 +379,7 @@ void update_ghosts(void) {
                     break;
             }
         }
-
+        
 
         // Move ghost
         switch (ghosts[i].direction) {
@@ -388,9 +400,9 @@ void update_ghosts(void) {
         }
 
         // Boundary checks to keep ghosts within the maze
-        float minX = 0.0f + TILE_SIZE / 2.0f;
+        float minX = TILE_SIZE / 2.0f;
         float maxX = (MAZE_WIDTH - 1) * TILE_SIZE + TILE_SIZE / 2.0f;
-        float minY = 0.0f + TILE_SIZE / 2.0f;
+        float minY = TILE_SIZE / 2.0f;
         float maxY = (MAZE_HEIGHT - 1) * TILE_SIZE + TILE_SIZE / 2.0f;
 
         if (ghosts[i].x < minX) {
