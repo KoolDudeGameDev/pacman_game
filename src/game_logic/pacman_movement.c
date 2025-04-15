@@ -1,7 +1,4 @@
-#include "raylib.h"
 #include "game_logic.h"
-
-#include <math.h>
 
 // Initialize Pac-Man with difficulty-based speed
 // --------------------------------------------------------------------------------------------------------------------------

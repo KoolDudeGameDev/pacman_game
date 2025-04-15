@@ -1,5 +1,4 @@
 #include "logo_animation.h"
-#include <math.h>
 
 // KoolDude Logo Functions
 // ----------------------------------------------------------------------------------------

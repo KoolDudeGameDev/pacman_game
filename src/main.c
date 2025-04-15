@@ -1,11 +1,6 @@
-#include "raylib.h"
-#include "resource_dir.h"
 #include "game_logic.h"
 #include "logo_animation.h"
 #include "rendering.h"
-
-#include <time.h>
-#include <stddef.h>
 
 int main(void) {
     // Seed random number generator

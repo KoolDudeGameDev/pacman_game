@@ -1,8 +1,4 @@
-#include "raylib.h"
 #include "game_logic.h"
-
-#include <stdlib.h>
-#include <math.h>
 
 // Function to choose best direction toward target
 static Direction choose_best_direction(int currentX, int currentY, int targetX, int targetY, Direction currentDir, bool isExitingPen) {

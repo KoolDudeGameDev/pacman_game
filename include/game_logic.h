@@ -2,6 +2,7 @@
 #define GAME_LOGIC_H
 
 #include "raylib.h"
+#include "all_libs.h"
 #include "resource_dir.h"
 
 #define MAZE_WIDTH 28
