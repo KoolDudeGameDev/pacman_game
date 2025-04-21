@@ -3,7 +3,7 @@
 // KoolDude Logo Functions
 // ----------------------------------------------------------------------------------------
 void init_kool_dude_logo(LogoAnimation* anim, int screenWidth, int screenHeight) {
-    int fontSize = 80; // Scaled for 1280x720
+    int fontSize = 80;      // Scaled for 1280x720
     anim->devLogoPositionX = screenWidth / 2 - MeasureText("Kool_Dude", fontSize) / 2;
     anim->devLogoPositionY = screenHeight / 2 - fontSize / 2;
     anim->devLogoAlpha = 0.0f;
@@ -28,7 +28,7 @@ bool update_kool_dude_logo(LogoAnimation* anim) {
 
 void render_kool_dude_logo(const LogoAnimation* anim, Font font) {
     ClearBackground(BLACK);
-    int fontSize = 80; // Scaled for 1280x720
+    int fontSize = 80;      // Scaled for 1280x720
     DrawTextEx(font, "Kool_Dude", (Vector2){anim->devLogoPositionX, anim->devLogoPositionY}, fontSize, 1, Fade(WHITE, anim->devLogoAlpha));
 }
 
@@ -58,7 +58,7 @@ bool update_dev_logo(LogoAnimation* anim) {
 
 void render_dev_logo(const LogoAnimation* anim, int screenWidth, int screenHeight, Font font) {
     ClearBackground(BLACK);
-    int fontSize = 40; // Scaled for 1280x720
+    int fontSize = 40;      // Scaled for 1280x720
     int textWidth = MeasureText("xAI Dev Team", fontSize);
     Vector2 textPos = {screenWidth / 2 - textWidth / 2, screenHeight / 2};
     DrawTextEx(font, "xAI Dev Team", textPos, fontSize, 1, Fade(WHITE, anim->alphaGeneral));
@@ -170,7 +170,7 @@ bool update_game_logo(LogoAnimation* anim) {
 
 void render_game_logo(const LogoAnimation* anim, int screenWidth, int screenHeight, Font font) {
     ClearBackground(BLACK);
-    int fontSize = 40; // Scaled for 1280x720
+    int fontSize = 40;      // Scaled for 1280x720
     Color textColor = Fade(YELLOW, anim->alphaGeneral);
     DrawTextEx(font, "Pac-Man", (Vector2){screenWidth / 2 - 50, screenHeight / 2 - 40}, fontSize, 1, textColor);
     textColor = Fade(WHITE, anim->alphaGeneral);

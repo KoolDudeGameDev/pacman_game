@@ -1,111 +1,128 @@
-# Raylib-Quickstart
-A simple cross platform template for setting up a project with the bleeding edge raylib code.
-Works with C or C++.
+# Pac-Man v1.0
 
-## Supported Platforms
-Quickstart supports the main 3 desktop platforms:
-* Windows
-* Linux
-* MacOS
+A classic Pac-Man game implementation using the Raylib library. This project includes a fully functional Pac-Man game with maze rendering, ghost AI, pellet collection, and game state management.
 
-# Naming projects
-Do not name your game project 'raylib', it will conflict with the raylib library.
+## Table of Contents
+- [Features](#features)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Controls](#controls)
+- [Project Structure](#project-structure)
+- [Dependencies](#dependencies)
+- [Building the Project](#building-the-project)
+- [Contributing](#contributing)
+- [License](#license)
 
-# VSCode Users (all platforms)
-*Note* You must have a compiler toolchain installed in addition to vscode.
+## Features
+- Classic Pac-Man gameplay with a 28x31 tile maze.
+- Four ghosts (Blinky, Pinky, Inky, Clyde) with unique AI behaviors:
+  - Blinky chases Pac-Man directly.
+  - Pinky ambushes by targeting 4 tiles ahead of Pac-Man.
+  - Inky uses a complex targeting system based on Blinky's position.
+  - Clyde switches between chasing Pac-Man and scattering based on distance.
+- Chase and Scatter modes for ghosts, with timed transitions.
+- Pellets and power pellets that allow Pac-Man to eat ghosts temporarily.
+- Logo animations and a menu system with Start/Exit options.
+- Pause functionality and game-over state with score tracking.
 
-* Download the quickstart
-* Rename the folder to your game name
-* Open the folder in VSCode
-* Run the build task ( CTRL+SHIFT+B or F5 )
-* You are good to go
+## Installation
+1. Clone the repository:
+   ```bash
+   git clone <repository-url>
+   cd pacman_game
+      If you don’t have Git installed, download it from Git for Windows and install it.
+2. Install the required dependencies (see Dependencies for details).
+3. Ensure you have a working environment for compiling with GCC and Make (e.g., using MinGW-w64).
 
-# Windows Users
-There are two compiler toolchains available for windows, MinGW-W64 (a free compiler using GCC), and Microsoft Visual Studio
-## Using MinGW-W64
-* Double click the `build-MinGW-W64.bat` file
-* CD into the folder in your terminal
-* run `make`
-* You are good to go
+## Usage
+1. Build the project using the provided Makefile (see Building the Project).
+2. Run the game:
+   ```bash
+    pacman.exe
+3. Navigate the menu using the UP/DOWN keys and press ENTER to select an option.
+4. Play the game using the controls listed below.
 
-### Note on MinGW-64 versions
-Make sure you have a modern version of MinGW-W64 (not mingw).
-The best place to get it is from the W64devkit from
-https://github.com/skeeto/w64devkit/releases
-or the version installed with the raylib installer
-#### If you have installed raylib from the installer
-Make sure you have added the path
+## Controls
+UP/DOWN/LEFT/RIGHT: Move Pac-Man in the respective direction.
+P: Pause/Unpause the game.
+R: Return to the menu from the Game Over screen.
+ENTER: Select menu options (Start/Exit).
 
-`C:\raylib\w64devkit\bin`
+## Project Structure
+pacman_game/
+│
+├── assets/              # Sound and other asset files
+│   └── sounds/
+|
+├── include/
+|   ├── all_libs.h
+│   ├── game_logic.h     # Core game logic definitions
+│   ├── logo_animation.h
+│   ├── rendering.h
+|   ├── resource_dir.h
+|   └── utils.h 
+|
+├── src/                 # Source code
+│   ├── game_logic/
+│   │   ├── game.c            # Game state and maze initialization
+│   │   ├── ghost_ai.c        # Ghost AI and movement logic
+│   │   └── pacman_movement.c # Pac-Man movement and pellet collection
+│   │
+│   ├── logo_animation.c # Logo animation logic
+│   ├── main.c           # Main game loop and rendering
+│   ├── rendering.c      # Rendering functions for maze, Pac-Man, and ghosts
+│   └── utils.c          # Utility functions (e.g., collision detection)
+|
+├── docs/                # Documentation files
+│   └── README.md
+|
+├── .gitignore           # Git ignore file
+└── Makefile             # Build script
 
-To your path environment variable so that the compiler that came with raylib can be found.
+## Dependencies
+Raylib: A simple and easy-to-use library for game development.
+    Download the precompiled Raylib binaries for Windows from the Raylib releases page. Choose the latest release (e.g., raylib-X.X.X_win64_mingw-w64.zip for 64-bit systems).
+    Extract the zip file to a directory, e.g., C:\raylib.
+    Add the Raylib lib/ directory (e.g., C:\raylib\lib) to your system’s PATH environment variable, or copy libraylib.a to your project directory for linking.
+    Ensure the Raylib include/ directory (e.g., C:\raylib\include) is accessible for including headers (you may need to specify this path in your Makefile).
 
-DO NOT INSTALL ANOTHER MinGW-W64 from another source such as msys2, you don't need it.
+MinGW-w64 (GCC for Windows): Provides the GCC compiler for compiling C code on Windows.
+    Download the MinGW-w64 installer from MinGW-w64 SourceForge
+    Add the MinGW-w64 bin/ directory (e.g., C:\msys64\mingw64\bin) to your system’s PATH environment variable.
 
-## Microsoft Visual Studio
-* Run `build-VisualStudio2022.bat`
-* double click the `.sln` file that is generated
-* develop your game
-* you are good to go
 
-# Linux Users
-* CD into the build folder
-* run `./premake5 gmake2`
-* CD back to the root
-* run `make`
-* you are good to go
+## Building the Project
+1. Ensure all dependencies are installed.
+2. Navigate to the project directory:
+  ```bash
+  cd path\to\pacman_game
+3. Build the project:
+  ```bash
+  make
+4. Run the game:
+  ```bash
+  pacman.exe
 
-# MacOS Users
-* CD into the build folder
-* run `./premake5.osx gmake2`
-* CD back to the root
-* run `make`
-* you are good to go
+## Contributing
+Contributions are welcome! Please fork the repository, create a new branch, and submit a pull request with your changes. Ensure your code follows the existing style and includes appropriate comments.
 
-# Output files
-The built code will be in the bin dir
+## License
+Copyright (c) 2025 [nameeeee]
 
-# Working directories and the resources folder
-The example uses a utility function from `path_utils.h` that will find the resources dir and set it as the current working directory. This is very useful when starting out. If you wish to manage your own working directory you can simply remove the call to the function and the header.
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-# Changing to C++
-Simply rename `src/main.c` to `src/main.cpp` and re-run the steps above and do a clean build.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-# Using your own code
-Simply remove `src/main.c` and replace it with your code, and re-run the steps above and do a clean build.
-
-# Building for other OpenGL targets
-If you need to build for a different OpenGL version than the default (OpenGL 3.3) you can specify an OpenGL version in your premake command line. Just modify the bat file or add the following to your command line
-
-## For OpenGL 1.1
-`--graphics=opengl11`
-
-## For OpenGL 2.1
-`--graphics=opengl21`
-
-## For OpenGL 4.3
-`--graphics=opengl43`
-
-## For OpenGLES 2.0
-`--graphics=opengles2`
-
-## For OpenGLES 3.0
-`--graphics=opengles3`
-
-# License
-Copyright (c) 2020-2025 Jeffery Myers
-
-This software is provided "as-is", without any express or implied warranty. In no event 
-will the authors be held liable for any damages arising from the use of this software.
-
-Permission is granted to anyone to use this software for any purpose, including commercial 
-applications, and to alter it and redistribute it freely, subject to the following restrictions:
-
-  1. The origin of this software must not be misrepresented; you must not claim that you 
-  wrote the original software. If you use this software in a product, an acknowledgment 
-  in the product documentation would be appreciated but is not required.
-
-  2. Altered source versions must be plainly marked as such, and must not be misrepresented
-  as being the original software.
-
-  3. This notice may not be removed or altered from any source distribution.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

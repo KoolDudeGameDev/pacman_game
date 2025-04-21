@@ -52,7 +52,7 @@ void render_maze(int offsetX, int offsetY) {
 
     // Second pass: Draw walls as single outlines with curved corners
     const int lineThickness = 1;
-    const Color wallColor = { 0, 120, 215, 255 }; // Light Blue
+    const Color wallColor = { 0, 120, 215, 255 }; /// Light Blue
 
     for (int y = 0; y < MAZE_HEIGHT; y++) {
         for (int x = 0; x < MAZE_WIDTH; x++) {

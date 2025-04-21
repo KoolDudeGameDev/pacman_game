@@ -1,4 +1,5 @@
 #include "game_logic.h"
+#include "utils.h"
 
 // Function to choose best direction toward target
 static Direction choose_best_direction(int currentX, int currentY, int targetX, int targetY, Direction currentDir, bool isExitingPen) {
@@ -26,24 +27,21 @@ static Direction choose_best_direction(int currentX, int currentY, int targetX, 
                 break;
         }
 
-        // Check if the direction is valid (not a wall, ghosts can pass through the gate when exiting)
-        bool canPassGate = isExitingPen && newGridY == 11 && maze[newGridY][newGridX] == GHOST_GATE;
-        if (newGridX >= 0 && newGridX < MAZE_WIDTH && newGridY >= 0 && newGridY < MAZE_HEIGHT) {
-            if (maze[newGridY][newGridX] != WALL && (maze[newGridY][newGridX] != GHOST_GATE || canPassGate)) {
-                // Avoid moving back in the opposite direction
-                Direction oppositeDir = DIR_NONE;
-                switch (currentDir) {
-                    case DIR_UP: oppositeDir = DIR_DOWN; break;
-                    case DIR_DOWN: oppositeDir = DIR_UP; break;
-                    case DIR_LEFT: oppositeDir = DIR_RIGHT; break;
-                    case DIR_RIGHT: oppositeDir = DIR_LEFT; break;
-                    default: break;
-                }
-                if (possibleDirs[d] != oppositeDir || validCount == 0) {
-                    validDirs[validCount] = d;
-                    validCount++;
-                }
+        // Check if the direction is valid using utility function
+        if (IsTileWalkable(newGridX, newGridY, isExitingPen && newGridY == 11)) {
+            // Avoid moving back in the opposite direction
+            Direction oppositeDir = DIR_NONE;
+            switch (currentDir) {
+                case DIR_UP: oppositeDir = DIR_DOWN; break;
+                case DIR_DOWN: oppositeDir = DIR_UP; break;
+                case DIR_LEFT: oppositeDir = DIR_RIGHT; break;
+                case DIR_RIGHT: oppositeDir = DIR_LEFT; break;
+                default: break;
             }
+            if (possibleDirs[d] != oppositeDir || validCount == 0) {
+                validDirs[validCount] = d;
+                validCount++;
+            }   
         }
     }
 
@@ -73,7 +71,8 @@ static Direction choose_best_direction(int currentX, int currentY, int targetX, 
             default:
                 break;
         }
-        float dist = sqrtf(powf(newGridX - targetX, 2) + powf(newGridY - targetY, 2));
+        float dist = CalculateDistance(newGridX, targetX, newGridY, targetY);
+        //float dist = sqrtf(powf(newGridX - targetX, 2) + powf(newGridY - targetY, 2));
         if (dist < minDist) {
             minDist = dist;
             bestDir = validDirs[d];
@@ -237,9 +236,8 @@ void update_ghosts(void) {
                             break;
                     }
 
-                    // Ensure the new position is within bounds and not a wall or ghost gate (unless exiting)
-                    if (newGridX >= 0 && newGridX < MAZE_WIDTH && newGridY >= 0 && newGridY < MAZE_HEIGHT &&
-                        (maze[newGridY][newGridX] != WALL && (maze[newGridY][newGridX] != GHOST_GATE))) {
+                    // Use utility function to check if the tile is walkable
+                    if (IsTileWalkable(newGridX, newGridY, false)) {
                         // Avoid moving back in the opposite direction (prevents jittering)
                         Direction oppositeDir = DIR_NONE;
                         switch (ghosts[i].direction) {
@@ -329,7 +327,7 @@ void update_ghosts(void) {
                         
                         case 3:     // Clyde: Chase or scatter based on distance
                         {
-                            float dist = sqrtf(powf(ghosts[i].gridX - pacman.gridX, 2) + powf(ghosts[i].gridY - pacman.gridY, 2));
+                            float dist = CalculateDistance(ghosts[i].gridX, pacman.gridX, ghosts[i].gridY, pacman.gridY);
                             if (dist > 8) {
                                 // Chase Pac-Man
                                 targetX = pacman.gridX;
@@ -423,8 +421,7 @@ void update_ghosts(void) {
         }
 
         // Check collision with Pac-Man
-        float dist = sqrtf(powf(ghosts[i].x - pacman.x, 2) + powf(ghosts[i].y - pacman.y, 2));
-        if (dist < TILE_SIZE / 2.0f) {
+        if (CheckCollision(ghosts[i].x, ghosts[i].y, pacman.x, pacman.y, TILE_SIZE / 2.0f)) {
             if (ghosts[i].state == GHOST_FRIGHTENED) {
                 ghosts[i].state = GHOST_EATEN;
                 pacman.score += 200;
