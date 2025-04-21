@@ -100,11 +100,21 @@ int main(void) {
                         find_pacman_start(&startX, &startY);
                         init_pacman(startX, startY);
                         init_ghosts();
-                        gameState = STATE_PLAYING;
+                        readyTimer = 3.0f;      // Show "READY!" for 3 seconds
+                        gameState = STATE_READY;
+                        isResetting = false;
                     } else {
                         CloseWindow();
                         return 0;
                     }
+                }
+                break;
+            
+            case STATE_READY:
+                readyTimer -= GetFrameTime();
+                if (readyTimer <= 0.0f) {
+                    gameState = STATE_PLAYING;
+                    readyTimer = 0.0f;
                 }
                 break;
 
@@ -127,6 +137,10 @@ int main(void) {
                 if (IsKeyPressed(KEY_R)) {
                     gameState = STATE_MENU;
                     selectedOption = 0;
+                    // Reset score and lives for a new game
+                    pacman.score = 0;
+                    pacman.lives = 3;
+                    init_maze();    // Reset maze with pellets
                 }
                 break;
         
@@ -163,6 +177,15 @@ int main(void) {
                 DrawTextEx(font, "Use UP/DOWN to select, ENTER to confirm", (Vector2){screenWidth / 2 - 120, screenHeight / 2 + 50}, 15, 1, GRAY);
                 break;
 
+            case STATE_READY:
+                ClearBackground(BLACK);
+                render_maze(mazeOffsetX, mazeOffsetY);
+                render_pacman(mazeOffsetX, mazeOffsetY);
+                render_ghosts(mazeOffsetX, mazeOffsetY);
+                DrawTextEx(font, "READY!", (Vector2){screenWidth / 2 - 40, screenHeight / 2}, 30, 1, YELLOW);
+                DrawTextEx(font, TextFormat("Score: %d", pacman.score), (Vector2){mazeOffsetX + 10, 10}, 20, 1, WHITE);
+                DrawTextEx(font, TextFormat("Lives: %d", pacman.lives), (Vector2){mazeOffsetX + mazePixelWidth - 100, screenHeight - 30}, 20, 1, WHITE);
+
             case STATE_PLAYING:
                 ClearBackground(BLACK);
                 render_maze(mazeOffsetX, mazeOffsetY);
@@ -184,6 +207,7 @@ int main(void) {
             case STATE_GAME_OVER:
                 ClearBackground(BLACK);
                 DrawTextEx(font, "Game Over", (Vector2){screenWidth / 2 - 50, screenHeight / 2 - 40}, 20, 1, RED);
+                DrawTextEx(font, TextFormat("Final Score: %d", pacman.score), (Vector2){screenWidth / 2 - 70, screenHeight / 2}, 20, 1, WHITE);
                 DrawTextEx(font, "Press R to Return to Menu", (Vector2){screenWidth / 2 - 90, screenHeight / 2}, 20, 1, WHITE);
                 break;
 

@@ -26,6 +26,7 @@ typedef enum {
     STATE_RAYLIB_LOGO,   // Raylib logo
     STATE_LOGO,          // Game logo
     STATE_MENU,
+    STATE_READY,         // Ready phase before playing
     STATE_PLAYING,
     STATE_PAUSED,
     STATE_GAME_OVER
@@ -45,7 +46,8 @@ typedef enum {
     GHOST_NORMAL,
     GHOST_FRIGHTENED,
     GHOST_EATEN,
-    GHOST_PENNED
+    GHOST_PENNED,
+    GHOST_RETURNING
 } GhostState;
 
 // Ghost mode (for GHOST_NORMAL state)
@@ -82,18 +84,21 @@ typedef struct {
 } Ghost;
 
 // Global Variables (extern to declare them, defined in game.c)
-extern int maze[MAZE_HEIGHT][MAZE_WIDTH];
-extern Player pacman;
-extern Ghost ghosts[MAX_GHOSTS];
 extern GameState gameState;
 extern GhostMode ghostMode;
 extern float modeTimer;
+extern float readyTimer;
+extern bool isResetting;    // Flag to indicate if game is resetting
+extern int maze[MAZE_HEIGHT][MAZE_WIDTH];
+extern Player pacman;
+extern Ghost ghosts[MAX_GHOSTS];
 
 // Function Declarations
 
 // game.c
 void init_maze(void);
 void find_pacman_start(int *startX, int *startY);
+void reset_game_state(void);
 
 // pacman_movement.c
 void init_pacman(int startX, int startY);

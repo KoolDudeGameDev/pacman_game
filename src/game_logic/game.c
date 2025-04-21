@@ -1,9 +1,11 @@
 #include "game_logic.h"
 
 // Game State
-GameState gameState = STATE_MENU; // Initial state
-GhostMode ghostMode = MODE_SCATTER; // Start in Scatter mode
-float modeTimer = 0.0f; // Timer for switching between Chase and Scatter
+GameState gameState = STATE_MENU;       // Initial state
+GhostMode ghostMode = MODE_SCATTER;     // Start in Scatter mode
+float modeTimer = 0.0f;                 // Timer for switching between Chase and Scatter
+float readyTimer = 0.0f;                // Timer for "READY!" phase
+bool isResetting = false;               // Flag to indicate if the game is resetting
 
 // Maze array
 int maze[MAZE_HEIGHT][MAZE_WIDTH];
@@ -96,4 +98,16 @@ void find_pacman_start(int *startX, int *startY) {
         *startX = 14;
         *startY = 23;
     }
+}
+
+void reset_game_state(void) {
+    int startX, startY;
+    find_pacman_start(&startX, &startY);
+    int score = pacman.score;   // Preserve score
+    init_pacman(startX, startY);
+    pacman.score = score;       // Restore score
+    init_ghosts();
+    readyTimer = 3.0f;          // Shpw "READY!" for 3 secs
+    gameState = STATE_READY;
+    isResetting = true;
 }
