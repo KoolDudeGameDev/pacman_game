@@ -26,6 +26,32 @@ void DrawArc(Vector2 center, float radius, float startAngle, float endAngle, int
     }
 }
 
+// Ghost Sprites
+// ----------------------------------------------------------------------------------------
+void LoadGhostTextures(Ghost *ghosts) {
+    for (int i = 0; i < MAX_GHOSTS; i ++) {
+        // Load two frames for normal state animation
+        ghosts[i].normalSprite[0] = LoadTexture("assets/sprites/ghost_normal_1.png");
+        ghosts[i].normalSprite[1] = LoadTexture("assets/sprites/ghost_normal_2.png");
+        ghosts[i].frightenedSprite = LoadTexture("assets/sprites/ghost_frightened.png");
+        ghosts[i].eyeballSprite = LoadTexture("assets/sprites/ghost_eyeballs.png");
+        ghosts[i].animTimer = 0.0f;
+        ghosts[i].currentFrame = 0;
+    }
+}
+
+void UnloadGhostTextures(Ghost *ghosts) {
+    for (int i = 0; i < MAX_GHOSTS; i ++) {
+        UnloadTexture(ghosts[i].normalSprite[0]);
+        UnloadTexture(ghosts[i].normalSprite[1]);
+        UnloadTexture(ghosts[i].frightenedSprite);
+        UnloadTexture(ghosts[i].eyeballSprite);
+    }
+}
+
+
+// Render Maze
+// ----------------------------------------------------------------------------------------
 void render_maze(int offsetX, int offsetY) {
 
     // First pass: Draw pellets, power pellets, and ghost gate
@@ -134,26 +160,40 @@ void render_maze(int offsetX, int offsetY) {
     }
 }
 
+// Render Entities
+// ----------------------------------------------------------------------------------------
+
 void render_pacman(int offsetX, int offsetY) {
     DrawCircle(pacman.x + offsetX, pacman.y + offsetY, TILE_SIZE / 2.0f, YELLOW);
 }
 
 void render_ghosts(int offsetX, int offsetY) {
     for (int i = 0; i < MAX_GHOSTS; i ++) {
-        Color ghostColor;
-        Color LightPink = { 255, 182, 193, 255 }; 
-        Color customCyan = { 0, 255, 255, 255 };
-        if (ghosts[i].state == GHOST_FRIGHTENED) {
-            ghostColor = BLUE;
-        } else {
-            switch (i) {
-            case 0: ghostColor = RED; break;        // Blinky
-            case 1: ghostColor = LightPink; break;  // Pinky
-            case 2: ghostColor = customCyan; break; // Inky
-            case 3: ghostColor = ORANGE; break;     // Clyde
-            default: ghostColor = RED; break;
-            }
+        // Update animation timer
+        ghosts[i].animTimer += GetFrameTime();
+        if (ghosts[i].animTimer >= 0.2f) { // Switch frames every 0.2 seconds
+            ghosts[i].currentFrame = (ghosts[i].currentFrame + 1) % 2;
+            ghosts[i].animTimer = 0.0f;
         }
-        DrawCircle(ghosts[i].x + offsetX, ghosts[i].y + offsetY, TILE_SIZE / 2.0f, ghostColor);
+
+        Texture2D sprite;
+        if (ghosts[i].state == GHOST_RETURNING) {
+            sprite = ghosts[i].eyeballSprite;
+        } else if (ghosts[i].state == GHOST_FRIGHTENED) {
+            sprite = ghosts[i].frightenedSprite;
+        } else {
+            sprite = ghosts[i].normalSprite[ghosts[i].currentFrame];
+        }
+
+        // Draw the sprite centered at the ghost's position
+        Rectangle sourceRec = { 0, 0, (float)sprite.width, (float)sprite.height };
+        Rectangle destRec = {
+            ghosts[i].x + offsetX - TILE_SIZE / 2.0f,
+            ghosts[i].y + offsetY - TILE_SIZE / 2.0f,
+            TILE_SIZE,
+            TILE_SIZE
+        };
+        Vector2 origin = { 0, 0 };
+        DrawTexturePro(sprite, sourceRec, destRec, origin, 0.0f, WHITE);
     }
 }

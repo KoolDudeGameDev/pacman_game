@@ -10,6 +10,7 @@ int main(void) {
     const int screenWidth = 1280;
     const int screenHeight = 720;
     InitWindow(screenWidth, screenHeight, "Pacman v1.0");
+    InitAudioDevice();
     SetTargetFPS(60);
 
     // Load a font
@@ -28,6 +29,9 @@ int main(void) {
     // Logo animation state
     LogoAnimation logoAnim;
     init_kool_dude_logo(&logoAnim, screenWidth, screenHeight);      // First state
+
+    // Load ghost textures
+    LoadGhostTextures(ghosts);
 
     // Fade to black transition variables
     float transitionAlpha = 0.0f;
@@ -182,7 +186,7 @@ int main(void) {
                 render_maze(mazeOffsetX, mazeOffsetY);
                 render_pacman(mazeOffsetX, mazeOffsetY);
                 render_ghosts(mazeOffsetX, mazeOffsetY);
-                DrawTextEx(font, "READY!", (Vector2){screenWidth / 2 - 40, screenHeight / 2}, 30, 1, YELLOW);
+                DrawTextEx(font, "READY!", (Vector2){screenWidth / 2 - 30, mazeOffsetY + (14 * TILE_SIZE + 3)}, 18, 1, YELLOW);     // Position at row 14 (13 in 0-based index)
                 DrawTextEx(font, TextFormat("Score: %d", pacman.score), (Vector2){mazeOffsetX + 10, 10}, 20, 1, WHITE);
                 DrawTextEx(font, TextFormat("Lives: %d", pacman.lives), (Vector2){mazeOffsetX + mazePixelWidth - 100, screenHeight - 30}, 20, 1, WHITE);
 
@@ -220,7 +224,10 @@ int main(void) {
 
         EndDrawing();
     }
-    
+
+    UnloadGhostTextures(ghosts);
+    UnloadFont(font);
+    CloseAudioDevice();
     CloseWindow();
     return 0;
 }

@@ -152,6 +152,7 @@ void update_ghosts(void) {
     update_ghost_mode();
 
     for (int i = 0; i < MAX_GHOSTS; i++) {
+        float currentSpeed = ghosts[i].speed;    // Default speed
 
         // Handle penned state
         if (ghosts[i].state == GHOST_PENNED) {
@@ -186,6 +187,70 @@ void update_ghosts(void) {
             if (ghosts[i].stateTimer <= 0.0f) {
                 ghosts[i].state = GHOST_NORMAL;
             }
+        }
+
+        // Handle returning state (ghost travels back to pen)
+        if (ghosts[i].state == GHOST_RETURNING) {
+            currentSpeed = ghosts[i].speed * 0.5f;      // Slower speed when returning
+            int penX = 14;
+            int penY = 11;
+
+            // Check if ghost has reached pen
+            if (ghosts[i].gridX == penX && ghosts[i].gridY == penY) {
+                ghosts[i].state = GHOST_PENNED;
+                ghosts[i].stateTimer = 2.0f;        // Wait in pen for 2 secs before exiting
+                continue;
+            }
+
+            // Check if ghost is centered in the current tile
+            float centerX = ghosts[i].gridX * TILE_SIZE + TILE_SIZE / 2.0f;
+            float centerY = ghosts[i].gridY * TILE_SIZE + TILE_SIZE / 2.0f;
+            bool atCenter = fabs(ghosts[i].x - centerX) < 1.0f && fabs(ghosts[i].y - centerY) < 1.0f;
+
+            if (atCenter) {
+                ghosts[i].x = centerX;
+                ghosts[i].y = centerY;
+
+                // Choose direction to return to pen
+                ghosts[i].direction = choose_best_direction(ghosts[i].gridX, ghosts[i].gridY, penX, penY, ghosts[i].direction, true);
+
+                // Update grid position based on direction
+                switch (ghosts[i].direction) {
+                    case DIR_UP:
+                        ghosts[i].gridY --;
+                        break;
+                    case DIR_DOWN:
+                        ghosts[i].gridY ++;
+                        break;
+                    case DIR_LEFT:
+                        ghosts[i].gridX --;
+                        break;
+                    case DIR_RIGHT:
+                        ghosts[i].gridX ++;
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            // Move ghost
+            switch (ghosts[i].direction) {
+                case DIR_UP:
+                    ghosts[i].y -= ghosts[i].speed * deltaTime;
+                    break;
+                case DIR_DOWN:
+                    ghosts[i].y += ghosts[i].speed * deltaTime;
+                    break;
+                case DIR_LEFT:
+                    ghosts[i].x -= ghosts[i].speed *deltaTime;
+                    break;
+                case DIR_RIGHT:
+                    ghosts[i].x += ghosts[i].speed * deltaTime;
+                    break;   
+                default:
+                    break;
+            }
+            continue;   // Skip normal movement logic while returning
         }
 
         // Check if ghost is centered in the current tile
@@ -420,26 +485,16 @@ void update_ghosts(void) {
             ghosts[i].gridY = MAZE_HEIGHT - 1;
         }
 
-        // Check collision with Pac-Man
         if (CheckCollision(ghosts[i].x, ghosts[i].y, pacman.x, pacman.y, TILE_SIZE / 2.0f)) {
             if (ghosts[i].state == GHOST_FRIGHTENED) {
-                ghosts[i].state = GHOST_EATEN;
+                ghosts[i].state = GHOST_RETURNING;
                 pacman.score += 200;
-                ghosts[i].gridX = 14;
-                ghosts[i].gridY = 11;
-                ghosts[i].x = ghosts[i].gridX * TILE_SIZE + TILE_SIZE / 2.0f;
-                ghosts[i].y = ghosts[i].gridY * TILE_SIZE + TILE_SIZE / 2.0f;
-                ghosts[i].state = GHOST_NORMAL;
             } else if (ghosts[i].state == GHOST_NORMAL) {
                 pacman.lives--;
                 if (pacman.lives <= 0) {
                     gameState = STATE_GAME_OVER;
                 } else {
-                    // Reset positions
-                    int startX, startY;
-                    find_pacman_start(&startX, &startY);
-                    init_pacman(startX, startY);
-                    init_ghosts();
+                    reset_game_state();
                 }
             }
         }

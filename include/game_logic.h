@@ -81,6 +81,13 @@ typedef struct {
     float stateTimer;
     int scatterTargetX;
     int scatterTargetY;
+
+    // Animation data
+    Texture2D normalSprite[2];  // Two frames for normal state animation
+    Texture2D frightenedSprite; // Frightened sprite
+    Texture2D eyeballSprite;    // Eyeball sprite for returning state
+    float animTimer;            // Timer to control animation frame switching
+    int currentFrame;           // Current animation frame (0 or 1 for normal state)
 } Ghost;
 
 // Global Variables (extern to declare them, defined in game.c)
