@@ -20,10 +20,10 @@ void update_pacman(void) {
     float deltaTime = GetFrameTime();
 
     // Queue the next direction
-    if (IsKeyDown(KEY_RIGHT)) pacman.nextDirection = DIR_RIGHT;
-    if (IsKeyDown(KEY_LEFT)) pacman.nextDirection = DIR_LEFT;
-    if (IsKeyDown(KEY_UP)) pacman.nextDirection = DIR_UP;
-    if (IsKeyDown(KEY_DOWN)) pacman.nextDirection = DIR_DOWN;
+    if (IsKeyDown(KEY_RIGHT) || IsKeyDown(KEY_D)) pacman.nextDirection = DIR_RIGHT;
+    if (IsKeyDown(KEY_LEFT) || IsKeyDown(KEY_A)) pacman.nextDirection = DIR_LEFT;
+    if (IsKeyDown(KEY_UP) || IsKeyDown(KEY_W)) pacman.nextDirection = DIR_UP;
+    if (IsKeyDown(KEY_DOWN) ||  IsKeyDown(KEY_S)) pacman.nextDirection = DIR_DOWN;
 
     // Check if Pac-Man is centered in the current tile
     float centerX = pacman.gridX * TILE_SIZE + TILE_SIZE / 2.0f;
@@ -85,6 +85,17 @@ void update_pacman(void) {
             } else {
                 pacman.direction = DIR_NONE; // Stop if blocked
             }
+        }
+    }
+
+    // Handle tunnel (rows 12 and 13, columns 0 and 27)
+    if ((pacman.gridY == 12 || pacman.gridY == 13)) {
+        if (pacman.gridX <= 0 && pacman.direction == DIR_LEFT) {
+            pacman.gridX = MAZE_WIDTH - 1;      // Teleport to right side
+            pacman.x = pacman.gridX * TILE_SIZE + TILE_SIZE / 2.0f;
+        } else if (pacman.gridX >= MAZE_WIDTH -1 && pacman.direction == DIR_RIGHT) {
+            pacman.gridX = 0;                   // Teleport to left side
+            pacman.x = pacman.gridX * TILE_SIZE + TILE_SIZE / 2.0f;
         }
     }
 
