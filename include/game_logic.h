@@ -67,6 +67,7 @@ typedef struct {
     int lives;     // Player lives
     Direction direction;     // Current direction
     Direction nextDirection; // Queued direction
+    Texture2D sprite;
 } Player;
 
 // Ghost structure
@@ -91,6 +92,7 @@ typedef struct {
 } Ghost;
 
 // Global Variables (extern to declare them, defined in game.c)
+extern Texture2D spriteSheet;
 extern GameState gameState;
 extern GhostMode ghostMode;
 extern float modeTimer;

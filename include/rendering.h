@@ -8,10 +8,10 @@
 void DrawArc(Vector2 center, float radius, float startAngle, float endAngle, int segments, float thickness, Color color);
 
 // Load textures for ghosts
-void LoadGhostTextures(Ghost *ghosts);
+void LoadGhostTextures(Ghost *ghostArray);
 
 // Unload textures for ghosts
-void UnloadGhostTextures(Ghost *ghosts);
+void UnloadGhostTextures(Ghost *ghostArray);
 
 // Rendering functions
 void render_maze(int offsetX, int offsetY);

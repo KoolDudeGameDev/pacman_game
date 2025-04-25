@@ -28,27 +28,28 @@ void DrawArc(Vector2 center, float radius, float startAngle, float endAngle, int
 
 // Ghost Sprites
 // ----------------------------------------------------------------------------------------
-void LoadGhostTextures(Ghost *ghosts) {
+void LoadGhostTextures(Ghost *ghostArray) {
+    // Load sprite sheet
+    spriteSheet = LoadTexture("assets/sprites/pacman_general_sprites.png");
+
+    // Assign Pac-Man sprite
+    pacman.sprite = spriteSheet;
+    
+    // Assign Ghost sprites
     for (int i = 0; i < MAX_GHOSTS; i ++) {
         // Load two frames for normal state animation
-        ghosts[i].normalSprite[0] = LoadTexture("assets/sprites/ghost_normal_1.png");
-        ghosts[i].normalSprite[1] = LoadTexture("assets/sprites/ghost_normal_2.png");
-        ghosts[i].frightenedSprite = LoadTexture("assets/sprites/ghost_frightened.png");
-        ghosts[i].eyeballSprite = LoadTexture("assets/sprites/ghost_eyeballs.png");
-        ghosts[i].animTimer = 0.0f;
-        ghosts[i].currentFrame = 0;
+        ghostArray[i].normalSprite[0] = spriteSheet;
+        ghostArray[i].normalSprite[1] = spriteSheet;
+        ghostArray[i].frightenedSprite = spriteSheet;
+        ghostArray[i].eyeballSprite = spriteSheet;
+        ghostArray[i].animTimer = 0.0f;
+        ghostArray[i].currentFrame = 0;
     }
 }
 
-void UnloadGhostTextures(Ghost *ghosts) {
-    for (int i = 0; i < MAX_GHOSTS; i ++) {
-        UnloadTexture(ghosts[i].normalSprite[0]);
-        UnloadTexture(ghosts[i].normalSprite[1]);
-        UnloadTexture(ghosts[i].frightenedSprite);
-        UnloadTexture(ghosts[i].eyeballSprite);
-    }
+void UnloadGhostTextures(Ghost *ghostArray) {
+    UnloadTexture(spriteSheet);
 }
-
 
 // Render Maze
 // ----------------------------------------------------------------------------------------
@@ -164,36 +165,72 @@ void render_maze(int offsetX, int offsetY) {
 // ----------------------------------------------------------------------------------------
 
 void render_pacman(int offsetX, int offsetY) {
-    DrawCircle(pacman.x + offsetX, pacman.y + offsetY, TILE_SIZE / 2.0f, YELLOW);
+    // Define source rectangle
+    Rectangle sourceRec = { 32.0f, 0.0f, 32.0f, 32.0f};
+
+    // Define destination rectangle
+    float scaleFactor = 1.0f;
+    Rectangle destRec = {
+    pacman.x + offsetX - (TILE_SIZE * scaleFactor) / 2.0f, // Adjust position to keep centered
+    pacman.y + offsetY - (TILE_SIZE * scaleFactor) / 2.0f,
+    TILE_SIZE * scaleFactor,  // Scaled width
+    TILE_SIZE * scaleFactor   // Scaled height
+};
+
+    // Rotate Pac-Man based on direction
+    float rotation = 0.0f;
+    switch (pacman.direction) {
+        case DIR_RIGHT:
+            rotation = 0.0f;
+            break;
+        case DIR_LEFT:
+            rotation = 180.0f;
+            break;
+        case DIR_UP:
+            rotation = 270.0f;
+            break;
+        case DIR_DOWN:
+            rotation = 90.0f;
+            break;
+        default:
+            break;
+    }
+
+    Vector2 origin = { TILE_SIZE * scaleFactor / 2.0f, TILE_SIZE * scaleFactor / 2.0f };
+    DrawTexturePro(pacman.sprite, sourceRec, destRec, origin, rotation, WHITE);
 }
 
 void render_ghosts(int offsetX, int offsetY) {
     for (int i = 0; i < MAX_GHOSTS; i ++) {
         // Update animation timer
         ghosts[i].animTimer += GetFrameTime();
-        if (ghosts[i].animTimer >= 0.2f) { // Switch frames every 0.2 seconds
+        if (ghosts[i].animTimer >= 0.2f) {      // Switch frames every 0.2 seconds
             ghosts[i].currentFrame = (ghosts[i].currentFrame + 1) % 2;
             ghosts[i].animTimer = 0.0f;
         }
 
-        Texture2D sprite;
+        // Define source rectangle based on ghost's type and state
+        Rectangle sourceRec;
         if (ghosts[i].state == GHOST_RETURNING) {
-            sprite = ghosts[i].eyeballSprite;
-        } else if (ghosts[i].state == GHOST_FRIGHTENED) {
-            sprite = ghosts[i].frightenedSprite;
+            sourceRec = (Rectangle){ 0.0f, 96.0f, 32.0f, 32.0f };
+        } else if (ghosts[i].state = GHOST_FRIGHTENED) {
+            sourceRec = (Rectangle){ 0.0f, 64.0f, 32.0f, 32.0f};
         } else {
-            sprite = ghosts[i].normalSprite[ghosts[i].currentFrame];
+            // Normal sprite based on ghost type (Blinky, Pinky, Inky, Clyde)
+            float xOffset = i * 32.0f;      // Each ghost is 32 pixels apart in sprite sheet
+            sourceRec = (Rectangle) { xOffset, 32.0f, 32.0f, 32.0f};
         }
 
-        // Draw the sprite centered at the ghost's position
-        Rectangle sourceRec = { 0, 0, (float)sprite.width, (float)sprite.height };
+        // Draw destination rectangle
+        float ghostScaleFactor = 1.2f; 
         Rectangle destRec = {
-            ghosts[i].x + offsetX - TILE_SIZE / 2.0f,
-            ghosts[i].y + offsetY - TILE_SIZE / 2.0f,
-            TILE_SIZE,
-            TILE_SIZE
+            ghosts[i].x + offsetX - (TILE_SIZE * ghostScaleFactor) / 2.0f,
+            ghosts[i].y + offsetY - (TILE_SIZE * ghostScaleFactor) / 2.0f,
+            TILE_SIZE * ghostScaleFactor,
+            TILE_SIZE * ghostScaleFactor
         };
+
         Vector2 origin = { 0, 0 };
-        DrawTexturePro(sprite, sourceRec, destRec, origin, 0.0f, WHITE);
+        DrawTexturePro(ghosts[i].normalSprite[ghosts[i].currentFrame], sourceRec, destRec, origin, 0.0f, WHITE);
     }
 }

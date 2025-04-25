@@ -41,6 +41,9 @@ int main(void) {
     // Game Loop
     // ----------------------------------------------------------------------------------------
     while (!(shouldExit || WindowShouldClose())) {
+
+        DrawFPS(10,10);
+
         // Fade to black transition
         if (fadingOut) {
             transitionAlpha += 0.05f;
@@ -123,7 +126,6 @@ int main(void) {
                 break;
 
             case STATE_PLAYING:
-                DrawFPS(10,10);
                 update_pacman();
                 update_ghosts();
                 if (IsKeyPressed(KEY_P)) {
