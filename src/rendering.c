@@ -1,6 +1,44 @@
 #include "game_logic.h"
 #include "rendering.h"
 
+
+// Ghost Sprites
+// ----------------------------------------------------------------------------------------
+void LoadGhostTextures(Ghost *ghostArray) {
+    // Load the sprite sheet as an image
+    Image spriteImage = LoadImage("assets/sprites/pacman_general_sprites.png");
+
+    // Replace black (RGB 0,0,0) with transparent (RGBA 0,0,0,0)
+    Color black = { 0, 0, 0, 255 };         // Black color (opaque)
+    Color transparent = { 0, 0, 0, 0 };     // Transparent color
+    ImageColorReplace(&spriteImage, black, transparent);
+
+    // Convert the modified image to a texture
+    spriteSheet = LoadTextureFromImage(spriteImage);
+
+    // Unload the image since we no longer need it
+    UnloadImage(spriteImage);
+
+    // Assign Pac-Man sprite
+    pacman.sprite = spriteSheet;
+    
+    // Assign Ghost sprites
+    for (int i = 0; i < MAX_GHOSTS; i++) {
+        ghostArray[i].normalSprite[0] = spriteSheet;
+        ghostArray[i].normalSprite[1] = spriteSheet;
+        ghostArray[i].frightenedSprite = spriteSheet;
+        ghostArray[i].eyeballSprite = spriteSheet;
+        ghostArray[i].animTimer = 0.0f;
+        ghostArray[i].currentFrame = 0;
+    }
+}
+
+void UnloadGhostTextures(Ghost *ghostArray) {
+    UnloadTexture(spriteSheet);
+}
+
+
+
 void DrawArc(Vector2 center, float radius, float startAngle, float endAngle, int segments, float thickness, Color color) {
     // Convert angles to radians
     float startRad = startAngle * DEG2RAD;
@@ -24,31 +62,6 @@ void DrawArc(Vector2 center, float radius, float startAngle, float endAngle, int
 
         DrawLineEx(point1, point2, thickness, color);
     }
-}
-
-// Ghost Sprites
-// ----------------------------------------------------------------------------------------
-void LoadGhostTextures(Ghost *ghostArray) {
-    // Load sprite sheet
-    spriteSheet = LoadTexture("assets/sprites/pacman_general_sprites.png");
-
-    // Assign Pac-Man sprite
-    pacman.sprite = spriteSheet;
-    
-    // Assign Ghost sprites
-    for (int i = 0; i < MAX_GHOSTS; i ++) {
-        // Load two frames for normal state animation
-        ghostArray[i].normalSprite[0] = spriteSheet;
-        ghostArray[i].normalSprite[1] = spriteSheet;
-        ghostArray[i].frightenedSprite = spriteSheet;
-        ghostArray[i].eyeballSprite = spriteSheet;
-        ghostArray[i].animTimer = 0.0f;
-        ghostArray[i].currentFrame = 0;
-    }
-}
-
-void UnloadGhostTextures(Ghost *ghostArray) {
-    UnloadTexture(spriteSheet);
 }
 
 // Render Maze
@@ -165,8 +178,17 @@ void render_maze(int offsetX, int offsetY) {
 // ----------------------------------------------------------------------------------------
 
 void render_pacman(int offsetX, int offsetY) {
+    // Mouth animation
+    static float animTimer = 0.0f;
+    static int currentFrame = 0;
+    animTimer += GetFrameTime();
+    if (animTimer >= 0.1f) {
+        currentFrame = (currentFrame + 1) % 3;      // 3 frames: closed, half-open, fully open
+        animTimer = 0.0f;
+    }
+
     // Define source rectangle
-    Rectangle sourceRec = { 32.0f, 0.0f, 32.0f, 32.0f};
+    Rectangle sourceRec = { currentFrame * 18.0f, 0.0f, 16.0f, 16.0f};
 
     // Define destination rectangle
     float scaleFactor = 1.0f;
