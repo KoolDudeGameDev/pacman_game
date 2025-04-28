@@ -180,7 +180,7 @@ void update_ghosts(void) {
 
         // Handle returning state (ghost travels back to pen)
         if (ghosts[i].state == GHOST_RETURNING) {
-            currentSpeed *= 1.5f;      // Faster speed when returning
+            currentSpeed *= 1.2f;      // Faster speed when returning
             int penX = 14;
             int penY = 11;
 

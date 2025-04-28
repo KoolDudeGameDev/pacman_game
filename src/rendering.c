@@ -191,39 +191,33 @@ void render_pacman(int offsetX, int offsetY) {
     Rectangle sourceRec = { currentFrame * 18.0f, 0.0f, 16.0f, 16.0f};
 
     // Define destination rectangle
-    float scaleFactor = 1.0f;
-    Rectangle destRec = {
-    pacman.x + offsetX - (TILE_SIZE * scaleFactor) / 2.0f, // Adjust position to keep centered
-    pacman.y + offsetY - (TILE_SIZE * scaleFactor) / 2.0f,
-    TILE_SIZE * scaleFactor,  // Scaled width
-    TILE_SIZE * scaleFactor   // Scaled height
-};
+    float scaleFactor = 16.0f / 32.0f; // 16 / 32 = 0.5
+    float scaledWidth = 32.0f * scaleFactor;  // 16 pixels
+    float scaledHeight = 32.0f * scaleFactor; // 16 pixels
 
-    // Rotate Pac-Man based on direction
+    Rectangle destRec = {
+        pacman.x + offsetX - (scaledWidth / 2.0f),
+        pacman.y + offsetY - (scaledHeight / 2.0f),
+        scaledWidth,
+        scaledHeight
+    };
+
     float rotation = 0.0f;
     switch (pacman.direction) {
-        case DIR_RIGHT:
-            rotation = 0.0f;
-            break;
-        case DIR_LEFT:
-            rotation = 180.0f;
-            break;
-        case DIR_UP:
-            rotation = 270.0f;
-            break;
-        case DIR_DOWN:
-            rotation = 90.0f;
-            break;
-        default:
-            break;
+        case DIR_RIGHT: rotation = 0.0f; break;
+        case DIR_LEFT: rotation = 180.0f; break;
+        case DIR_UP: rotation = 270.0f; break;
+        case DIR_DOWN: rotation = 90.0f; break;
+        default: break;
     }
 
     Vector2 origin = { TILE_SIZE * scaleFactor / 2.0f, TILE_SIZE * scaleFactor / 2.0f };
     DrawTexturePro(pacman.sprite, sourceRec, destRec, origin, rotation, WHITE);
+    DrawRectangleLines(destRec.x, destRec.y, destRec.width, destRec.height, RED);
 }
 
 void render_ghosts(int offsetX, int offsetY) {
-    for (int i = 0; i < MAX_GHOSTS; i ++) {
+    for (int i = 0; i < MAX_GHOSTS; i++) {
         // Update animation timer
         ghosts[i].animTimer += GetFrameTime();
         if (ghosts[i].animTimer >= 0.2f) {      // Switch frames every 0.2 seconds
@@ -233,26 +227,61 @@ void render_ghosts(int offsetX, int offsetY) {
 
         // Define source rectangle based on ghost's type and state
         Rectangle sourceRec;
+        Texture2D texture;
         if (ghosts[i].state == GHOST_RETURNING) {
-            sourceRec = (Rectangle){ 0.0f, 96.0f, 32.0f, 32.0f };
-        } else if (ghosts[i].state = GHOST_FRIGHTENED) {
-            sourceRec = (Rectangle){ 0.0f, 64.0f, 32.0f, 32.0f};
+            float xOffset;
+            switch (ghosts[i].direction) {
+                case DIR_RIGHT: xOffset = 132.0f + ghosts[i].currentFrame * 16.0f; break;       
+                case DIR_LEFT: xOffset = 148.0f + ghosts[i].currentFrame * 16.0f; break; 
+                case DIR_UP: xOffset = 164.0f + ghosts[i].currentFrame * 16.0f; break;  
+                case DIR_DOWN: xOffset = 180.0f + ghosts[i].currentFrame * 16.0f; break;
+                default: xOffset = 132.0f + ghosts[i].currentFrame * 16.0f; break;  
+            }
+            sourceRec = (Rectangle){ xOffset, 80.0f, 16.0f, 16.0f };
+            texture = ghosts[i].eyeballSprite;
+
+        } else if (ghosts[i].state == GHOST_FRIGHTENED) {
+            sourceRec = (Rectangle){ 132.0f, 64.0f, 16.0f, 16.0f };
+            texture = ghosts[i].frightenedSprite;
         } else {
             // Normal sprite based on ghost type (Blinky, Pinky, Inky, Clyde)
-            float xOffset = i * 32.0f;      // Each ghost is 32 pixels apart in sprite sheet
-            sourceRec = (Rectangle) { xOffset, 32.0f, 32.0f, 32.0f};
+            float xOffset;
+            float yOffset;
+            switch (i) {
+                case 0: yOffset = 64.0f; break;  // Blinky (red)
+                case 1: yOffset = 80.0f; break;  // Pinky (pink)
+                case 2: yOffset = 96.0f; break;  // Inky (cyan)
+                case 3: yOffset = 112.0f; break; // Clyde (orange)
+                default: yOffset = 64.0f; break;
+            }
+
+           // Select xOffset based on direction and animation frame
+            switch (ghosts[i].direction) {
+                case DIR_RIGHT: xOffset = 4.0f + ghosts[i].currentFrame * 16.0f; break;       
+                case DIR_LEFT: xOffset = 36.0f + ghosts[i].currentFrame * 16.0f; break; 
+                case DIR_UP: xOffset = 68.0f + ghosts[i].currentFrame * 16.0f; break;  
+                case DIR_DOWN: xOffset = 100.0f + ghosts[i].currentFrame * 16.0f; break;
+                default: xOffset = 4.0f + ghosts[i].currentFrame * 16.0f; break;              
+        }
+            sourceRec = (Rectangle){ xOffset, yOffset, 16.0f, 16.0f };
+            texture = ghosts[i].normalSprite[ghosts[i].currentFrame];
         }
 
-        // Draw destination rectangle
-        float ghostScaleFactor = 1.2f; 
+        // Adjust scale to fit within maze tiles (TILE_SIZE = 20)
+        float ghostScaleFactor = (float)TILE_SIZE / 32.0f; // Scale 32x32 sprite to 20x20
+        float scaledWidth = 32.0f * ghostScaleFactor;
+        float scaledHeight = 32.0f * ghostScaleFactor;
+
+        // Destination rectangle, centered on ghost's position
         Rectangle destRec = {
-            ghosts[i].x + offsetX - (TILE_SIZE * ghostScaleFactor) / 2.0f,
-            ghosts[i].y + offsetY - (TILE_SIZE * ghostScaleFactor) / 2.0f,
-            TILE_SIZE * ghostScaleFactor,
-            TILE_SIZE * ghostScaleFactor
+            ghosts[i].x + offsetX - (scaledWidth / 2.0f),
+            ghosts[i].y + offsetY - (scaledHeight / 2.0f),
+            scaledWidth,
+            scaledHeight
         };
 
-        Vector2 origin = { 0, 0 };
-        DrawTexturePro(ghosts[i].normalSprite[ghosts[i].currentFrame], sourceRec, destRec, origin, 0.0f, WHITE);
+        Vector2 origin = { scaledWidth / 2.0f, scaledHeight / 2.0f };
+        DrawTexturePro(texture, sourceRec, destRec, origin, 0.0f, WHITE);
+        DrawRectangleLines(destRec.x, destRec.y, destRec.width, destRec.height, RED);
     }
 }
