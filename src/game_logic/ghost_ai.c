@@ -207,39 +207,56 @@ void update_ghosts(void) {
                 // Choose direction to return to pen
                 ghosts[i].direction = choose_best_direction(ghosts[i].gridX, ghosts[i].gridY, penX, penY, ghosts[i].direction, true);
 
-                // Update grid position based on direction
+                // Update grid position based on direction, but only if the next tile is walkable
+                int newGridX = ghosts[i].gridX;
+                int newGridY = ghosts[i].gridY;
                 switch (ghosts[i].direction) {
                     case DIR_UP:
-                        ghosts[i].gridY --;
+                        newGridY--;
                         break;
                     case DIR_DOWN:
-                        ghosts[i].gridY ++;
+                        newGridY++;
                         break;
                     case DIR_LEFT:
-                        ghosts[i].gridX --;
+                        newGridX--;
                         break;
                     case DIR_RIGHT:
-                        ghosts[i].gridX ++;
+                        newGridX++;
                         break;
                     default:
                         break;
                 }
+
+                if (IsTileWalkable(newGridX, newGridY, true)) {
+                    ghosts[i].gridX = newGridX;
+                    ghosts[i].gridY = newGridY;
+                } else {
+                    ghosts[i].direction = DIR_NONE;
+                }
             }
 
-            // Move ghost
+            // Move ghost towards the center of the next tile
+            float targetX = ghosts[i].gridX * TILE_SIZE + TILE_SIZE / 2.0f;
+            float targetY = ghosts[i].gridY * TILE_SIZE + TILE_SIZE / 2.0f;
+            float moveDist = currentSpeed * deltaTime;
+
             switch (ghosts[i].direction) {
                 case DIR_UP:
-                    ghosts[i].y -= currentSpeed * deltaTime;
+                    ghosts[i].y -= moveDist;
+                    if (ghosts[i].y < targetY) ghosts[i].y = targetY;
                     break;
                 case DIR_DOWN:
-                    ghosts[i].y += currentSpeed * deltaTime;
+                    ghosts[i].y += moveDist;
+                    if (ghosts[i].y > targetY) ghosts[i].y = targetY;
                     break;
                 case DIR_LEFT:
-                    ghosts[i].x -= currentSpeed *deltaTime;
+                    ghosts[i].x -= moveDist;
+                    if (ghosts[i].x < targetX) ghosts[i].x = targetX;
                     break;
                 case DIR_RIGHT:
-                    ghosts[i].x += currentSpeed * deltaTime;
-                    break;   
+                    ghosts[i].x += moveDist;
+                    if (ghosts[i].x > targetX) ghosts[i].x = targetX;
+                    break;
                 default:
                     break;
             }
@@ -333,7 +350,7 @@ void update_ghosts(void) {
                 }
 
             } else {
-
+                
                 // Normal behavior (Chase or Scatter)
                 if (ghostMode == MODE_SCATTER) {
                     targetX = ghosts[i].scatterTargetX;
@@ -426,25 +443,34 @@ void update_ghosts(void) {
                 ghosts[i].direction = choose_best_direction(ghosts[i].gridX, ghosts[i].gridY, targetX, targetY, ghosts[i].direction, false);
             }
 
-            // Update grid position based on direction
+            // Update grid position based on direction, but only if the next tile is walkable
+            int newGridX = ghosts[i].gridX;
+            int newGridY = ghosts[i].gridY;
             switch (ghosts[i].direction) {
                 case DIR_UP:
-                    ghosts[i].gridY --;
+                    newGridY--;
                     break;
                 case DIR_DOWN:
-                    ghosts[i].gridY ++;
+                    newGridY++;
                     break;
                 case DIR_LEFT:
-                    ghosts[i].gridX --;
+                    newGridX--;
                     break;
                 case DIR_RIGHT:
-                    ghosts[i].gridX ++;
+                    newGridX++;
                     break;
                 default:
                     break;
             }
+
+            if (IsTileWalkable(newGridX, newGridY, false)) {
+                ghosts[i].gridX = newGridX;
+                ghosts[i].gridY = newGridY;
+            } else {
+                ghosts[i].direction = DIR_NONE;
+            }
         }
-        
+
         // Handle tunnel (rows 12 and 13, columns 0 and 27)
         if ((ghosts[i].gridY == 12 || ghosts[i].gridY == 13)) {
             if (ghosts[i].gridX <= 0 && ghosts[i].direction == DIR_LEFT) {
@@ -456,51 +482,32 @@ void update_ghosts(void) {
             }
         }
 
-        // Move ghost
+        // Move ghost towards the center of the next tile
+        float targetX = ghosts[i].gridX * TILE_SIZE + TILE_SIZE / 2.0f;
+        float targetY = ghosts[i].gridY * TILE_SIZE + TILE_SIZE / 2.0f;
+        float moveDist = currentSpeed * deltaTime;
+
         switch (ghosts[i].direction) {
             case DIR_UP:
-                ghosts[i].y -= currentSpeed * deltaTime;
+                ghosts[i].y -= moveDist;
+                if (ghosts[i].y < targetY) ghosts[i].y = targetY;
                 break;
             case DIR_DOWN:
-                ghosts[i].y += currentSpeed * deltaTime;
+                ghosts[i].y += moveDist;
+                if (ghosts[i].y > targetY) ghosts[i].y = targetY;
                 break;
             case DIR_LEFT:
-                ghosts[i].x -= currentSpeed * deltaTime;
+                ghosts[i].x -= moveDist;
+                if (ghosts[i].x < targetX) ghosts[i].x = targetX;
                 break;
             case DIR_RIGHT:
-                ghosts[i].x += currentSpeed * deltaTime;
+                ghosts[i].x += moveDist;
+                if (ghosts[i].x > targetX) ghosts[i].x = targetX;
                 break;
             default:
                 break;
         }
-
-        // Boundary checks to keep ghosts within the maze
-        float minX = TILE_SIZE / 2.0f;
-        float maxX = (MAZE_WIDTH - 1) * TILE_SIZE + TILE_SIZE / 2.0f;
-        float minY = TILE_SIZE / 2.0f;
-        float maxY = (MAZE_HEIGHT - 1) * TILE_SIZE + TILE_SIZE / 2.0f;
-
-        if (ghosts[i].x < minX && ghosts[i].gridY != 12 && ghosts[i].gridY != 13) {
-            ghosts[i].x = minX;
-            ghosts[i].direction = DIR_NONE;
-            ghosts[i].gridX = 0;
-        }
-        if (ghosts[i].x > maxX && ghosts[i].gridY != 12 && ghosts[i].gridY != 13) {
-            ghosts[i].x = maxX;
-            ghosts[i].direction = DIR_NONE;
-            ghosts[i].gridX = MAZE_WIDTH - 1;
-        }
-        if (ghosts[i].y < minY) {
-            ghosts[i].y = minY;
-            ghosts[i].direction = DIR_NONE;
-            ghosts[i].gridY = 0;
-        }
-        if (ghosts[i].y > maxY) {
-            ghosts[i].y = maxY;
-            ghosts[i].direction = DIR_NONE;
-            ghosts[i].gridY = MAZE_HEIGHT - 1;
-        }
-
+  
         // Collision with Pac-Man
         if (collisionCooldown <= 0.0f && CheckCollision(ghosts[i].x, ghosts[i].y, pacman.x, pacman.y, TILE_SIZE / 2.0f)) {
             if (ghosts[i].state == GHOST_FRIGHTENED) {
@@ -521,4 +528,30 @@ void update_ghosts(void) {
             }
         }
     }
+
+    // Boundary check
+    for (int i = 0; i < MAX_GHOSTS; i++) {
+        float minX = TILE_SIZE / 2.0f;
+        float maxX = (MAZE_WIDTH - 1) * TILE_SIZE + TILE_SIZE / 2.0f;
+        float minY = TILE_SIZE / 2.0f;
+        float maxY = (MAZE_HEIGHT - 1) * TILE_SIZE + TILE_SIZE / 2.0f;
+
+        if (ghosts[i].x < minX && ghosts[i].gridY != 12 && ghosts[i].gridY != 13) {
+            ghosts[i].x = minX;
+            ghosts[i].gridX = 0;
+        }
+        if (ghosts[i].x > maxX && ghosts[i].gridY != 12 && ghosts[i].gridY != 13) {
+            ghosts[i].x = maxX;
+            ghosts[i].gridX = MAZE_WIDTH - 1;
+        }
+        if (ghosts[i].y < minY) {
+            ghosts[i].y = minY;
+            ghosts[i].gridY = 0;
+        }
+        if (ghosts[i].y > maxY) {
+            ghosts[i].y = maxY;
+            ghosts[i].gridY = MAZE_HEIGHT - 1;
+        }
+    }
+
 }

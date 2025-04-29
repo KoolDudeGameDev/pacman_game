@@ -193,7 +193,7 @@ void render_pacman(int offsetX, int offsetY) {
     if (animTimer >= 0.1f) {
         currentFrame = (currentFrame + 1) % 3;      // 3 frames: closed, half-open, fully open
         animTimer = 0.0f;
-    }
+    } 
 
     // Define source rectangle
     Rectangle sourceRec = { currentFrame * 18.0f, 0.0f, 16.0f, 16.0f};
@@ -204,8 +204,8 @@ void render_pacman(int offsetX, int offsetY) {
     float scaledHeight = 16.0f * scaleFactor;
 
     Rectangle destRec = {
-        pacman.x + offsetX - (scaledWidth / 2.0f),
-        pacman.y + offsetY - (scaledHeight / 2.0f),
+        pacman.x + offsetX, 
+        pacman.y + offsetY, 
         scaledWidth,
         scaledHeight
     };
@@ -221,7 +221,11 @@ void render_pacman(int offsetX, int offsetY) {
 
     Vector2 origin = { scaledWidth / 2.0f, scaledHeight / 2.0f };
     DrawTexturePro(pacman.sprite, sourceRec, destRec, origin, rotation, WHITE);
-    DrawRectangleLines(destRec.x, destRec.y, destRec.width, destRec.height, RED);
+    
+    // Draw a debugging box around the TILE
+    float tileX = pacman.gridX * TILE_SIZE + offsetX;
+    float tileY = pacman.gridY * TILE_SIZE + offsetY;
+    DrawRectangleLines(tileX, tileY, TILE_SIZE, TILE_SIZE, RED);
 }
 
 void render_pacman_death(int offsetX, int offsetY) {
@@ -234,8 +238,8 @@ void render_pacman_death(int offsetX, int offsetY) {
     float scaledHeight = 16.0f * scaleFactor;
 
     Rectangle destRec = {
-        pacman.x + offsetX - (scaledWidth / 2.0f),
-        pacman.y + offsetY - (scaledHeight / 2.0f),
+        pacman.x + offsetX,
+        pacman.y + offsetY,
         scaledWidth,
         scaledHeight
     };
@@ -321,14 +325,22 @@ void render_ghosts(int offsetX, int offsetY) {
 
         // Destination rectangle, centered on ghost's position
         Rectangle destRec = {
-            ghosts[i].x + offsetX - (scaledWidth / 2.0f),
-            ghosts[i].y + offsetY - (scaledHeight / 2.0f),
+            ghosts[i].x + offsetX,
+            ghosts[i].y + offsetY,
             scaledWidth,
             scaledHeight
         };
 
         Vector2 origin = { scaledWidth / 2.0f, scaledHeight / 2.0f };
         DrawTexturePro(texture, sourceRec, destRec, origin, 0.0f, WHITE);
-        DrawRectangleLines(destRec.x, destRec.y, destRec.width, destRec.height, RED);
+
+        // Adjust the debug rectangle to show the actual tile boundaries
+        Rectangle tileRect = {
+            (ghosts[i].gridX * TILE_SIZE) + offsetX,
+            (ghosts[i].gridY * TILE_SIZE) + offsetY,
+            TILE_SIZE,
+            TILE_SIZE
+        };
+        DrawRectangleLines(tileRect.x, tileRect.y, tileRect.width, tileRect.height, RED);
     }
 }
