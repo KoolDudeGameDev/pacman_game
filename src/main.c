@@ -139,6 +139,20 @@ int main(void) {
                 }
                 break;
 
+            case STATE_DEATH_ANIM:
+                deathAnimTimer -= GetFrameTime();
+                if (deathAnimTimer <= 0.0f) {
+                    reset_game_state();
+                    deathAnimTimer = 0.0f;
+                } else {
+                    // Update death animation frame based on time
+                    // Total animation duration is 2 secs
+                    float frameDuration = 2.0f / PACMAN_DEATH_FRAMES;
+                    int newFrame = (int)((2.0f - deathAnimTimer) / frameDuration);
+                    deathAnimFrame = (newFrame < PACMAN_DEATH_FRAMES) ? newFrame : (PACMAN_DEATH_FRAMES - 1);
+                }
+                break;
+
             case STATE_GAME_OVER:
                 if (IsKeyPressed(KEY_R)) {
                     gameState = STATE_MENU;
@@ -207,8 +221,17 @@ int main(void) {
                 render_maze(mazeOffsetX, mazeOffsetY);
                 render_pacman(mazeOffsetX, mazeOffsetY);
                 render_pacman(mazeOffsetX, mazeOffsetY);
+                render_ghosts(mazeOffsetX, mazeOffsetY);
                 DrawTextEx(font, "Paused", (Vector2){screenWidth / 2 - 30, screenHeight / 2}, 20, 1, WHITE);
                 DrawTextEx(font, "Press P to Resume", (Vector2){screenWidth / 2 - 70, screenHeight / 2 + 30}, 20, 1, WHITE);
+                break;
+
+            case STATE_DEATH_ANIM:
+                ClearBackground(BLACK);
+                render_maze(mazeOffsetX, mazeOffsetY);
+                render_pacman_death(mazeOffsetX, mazeOffsetY);
+                DrawTextEx(font, TextFormat("Score: %d", pacman.score), (Vector2){mazeOffsetX + 10, 10}, 20, 1, WHITE);
+                DrawTextEx(font, TextFormat("Lives: %d", pacman.lives), (Vector2){mazeOffsetX + mazePixelWidth - 100, screenHeight - 30}, 20, 1, WHITE);
                 break;
 
             case STATE_GAME_OVER:

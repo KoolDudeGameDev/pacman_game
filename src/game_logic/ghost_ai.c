@@ -93,6 +93,7 @@ void init_ghosts(void) {
         ghosts[i].scatterTargetX = scatterTargets[i][0];
         ghosts[i].scatterTargetY = scatterTargets[i][1];
         ghosts[i].stateTimer = i * 5.0f;    // Staggered release times (0, 5, 10, 15 seconds)
+        ghosts[i].frightenedBlinkTimer = 0.0f;  // Initialize blinking timer
         if (i == 0) {
             // Blinky starts outside the pen
             ghosts[i].state = GHOST_NORMAL;
@@ -174,13 +175,14 @@ void update_ghosts(void) {
             ghosts[i].stateTimer -= deltaTime;
             if (ghosts[i].stateTimer <= 0.0f) {
                 ghosts[i].state = GHOST_NORMAL;
+                ghosts[i].frightenedBlinkTimer = 0.0f;
             }
-            currentSpeed *= 0.5f;   // Slower when frightened
+            currentSpeed *= 0.8f;   // Slower when frightened
         }
 
         // Handle returning state (ghost travels back to pen)
         if (ghosts[i].state == GHOST_RETURNING) {
-            currentSpeed *= 1.2f;      // Faster speed when returning
+            currentSpeed *= 1.5f;      // Faster speed when returning
             int penX = 14;
             int penY = 11;
 
@@ -511,7 +513,9 @@ void update_ghosts(void) {
                 if (pacman.lives <= 0) {
                     gameState = STATE_GAME_OVER;
                 } else {
-                    reset_game_state();
+                    gameState = STATE_DEATH_ANIM;
+                    deathAnimTimer = 2.0f;
+                    deathAnimFrame = 0;
                     break;
                 }
             }

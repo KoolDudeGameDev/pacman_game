@@ -7,6 +7,9 @@ GameState gameState = STATE_MENU;       // Initial state
 GhostMode ghostMode = MODE_SCATTER;     // Start in Scatter mode
 float modeTimer = 0.0f;                 // Timer for switching between Chase and Scatter
 float readyTimer = 0.0f;                // Timer for "READY!" phase
+float deathAnimTimer = 0.0f;            // Timer for death animation
+float blinkTimer = 0.0f;                // Timer for blinking animation
+int deathAnimFrame = 0;                 // Current frame of death animation
 bool isResetting = false;               // Flag to indicate if the game is resetting
 
 // Maze array
@@ -114,4 +117,5 @@ void reset_game_state(void) {
     readyTimer = 3.0f;          // Show "READY!" for 3 secs
     gameState = STATE_READY;
     isResetting = true;
+    deathAnimFrame = 0;
 }

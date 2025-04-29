@@ -67,6 +67,12 @@ void DrawArc(Vector2 center, float radius, float startAngle, float endAngle, int
 // Render Maze
 // ----------------------------------------------------------------------------------------
 void render_maze(int offsetX, int offsetY) {
+    // Update global blink timer
+    blinkTimer += GetFrameTime();
+    if (blinkTimer >= 1.0f) { // Reset every 1 second (0.5s on, 0.5s off)
+        blinkTimer = 0.0f;
+    }
+    bool powerPelletVisible = (blinkTimer < 0.5f); // Visible for first 0.5 seconds
 
     // First pass: Draw pellets, power pellets, and ghost gate
     for (int y = 0; y < MAZE_HEIGHT; y++) {
@@ -79,7 +85,9 @@ void render_maze(int offsetX, int offsetY) {
                     DrawCircle(posX + TILE_SIZE / 2, posY + TILE_SIZE / 2, 2, YELLOW); // Smaller pellets
                     break;
                 case POWER_PELLET:
-                    DrawCircle(posX + TILE_SIZE / 2, posY + TILE_SIZE / 2, 5, ORANGE); // Larger power pellets
+                    if (powerPelletVisible) {
+                        DrawCircle(posX + TILE_SIZE / 2, posY + TILE_SIZE / 2, 5, ORANGE); // Larger power pellets
+                    }
                     break;
                 case GHOST_GATE:
                     DrawRectangle(posX, posY + TILE_SIZE / 2 - 2, TILE_SIZE, 4, WHITE); // Horizontal gate
@@ -191,9 +199,9 @@ void render_pacman(int offsetX, int offsetY) {
     Rectangle sourceRec = { currentFrame * 18.0f, 0.0f, 16.0f, 16.0f};
 
     // Define destination rectangle
-    float scaleFactor = 16.0f / 32.0f; // 16 / 32 = 0.5
-    float scaledWidth = 32.0f * scaleFactor;  // 16 pixels
-    float scaledHeight = 32.0f * scaleFactor; // 16 pixels
+    float scaleFactor = (float)TILE_SIZE / 16.0f; // Scale 16x16 sprite to 20x20
+    float scaledWidth = 16.0f * scaleFactor;
+    float scaledHeight = 16.0f * scaleFactor;
 
     Rectangle destRec = {
         pacman.x + offsetX - (scaledWidth / 2.0f),
@@ -211,23 +219,55 @@ void render_pacman(int offsetX, int offsetY) {
         default: break;
     }
 
-    Vector2 origin = { TILE_SIZE * scaleFactor / 2.0f, TILE_SIZE * scaleFactor / 2.0f };
+    Vector2 origin = { scaledWidth / 2.0f, scaledHeight / 2.0f };
     DrawTexturePro(pacman.sprite, sourceRec, destRec, origin, rotation, WHITE);
     DrawRectangleLines(destRec.x, destRec.y, destRec.width, destRec.height, RED);
 }
 
+void render_pacman_death(int offsetX, int offsetY) {
+    // Define source rectangle
+    Rectangle sourceRec = { (deathAnimFrame * 16.0f) + 51.0f, 0.0f, 16.0f, 16.0f};
+
+    // Define destination rectangle
+    float scaleFactor = (float)TILE_SIZE / 16.0f * (deathAnimTimer / 2.0f);     // Shrinks for 2 seconds
+    float scaledWidth = 16.0f * scaleFactor;
+    float scaledHeight = 16.0f * scaleFactor;
+
+    Rectangle destRec = {
+        pacman.x + offsetX - (scaledWidth / 2.0f),
+        pacman.y + offsetY - (scaledHeight / 2.0f),
+        scaledWidth,
+        scaledHeight
+    };
+
+    Vector2 origin = { scaledWidth / 2.0f, scaledHeight / 2.0f};
+    DrawTexturePro(pacman.sprite, sourceRec, destRec, origin, 0.0f, WHITE);
+}
+
 void render_ghosts(int offsetX, int offsetY) {
     for (int i = 0; i < MAX_GHOSTS; i++) {
-        // Update animation timer
+        // Update animation timer for normal ghost animation
         ghosts[i].animTimer += GetFrameTime();
         if (ghosts[i].animTimer >= 0.2f) {      // Switch frames every 0.2 seconds
             ghosts[i].currentFrame = (ghosts[i].currentFrame + 1) % 2;
             ghosts[i].animTimer = 0.0f;
         }
 
+        // Update frightened blink timer for ghost
+        if (ghosts[i].state == GHOST_FRIGHTENED) {
+            ghosts[i].frightenedBlinkTimer += GetFrameTime();
+            if (ghosts[i].frightenedBlinkTimer >= 0.4f) { // Reset every 0.4 seconds (0.2s per texture)
+                ghosts[i].frightenedBlinkTimer = 0.0f;
+            }
+        }
+
+        // Determine if we should use the white frightened sprite
+        bool useWhiteFrightenedSprite = (ghosts[i].frightenedBlinkTimer < 0.2f); // Use white sprite for first 0.2 seconds
+
         // Define source rectangle based on ghost's type and state
         Rectangle sourceRec;
         Texture2D texture;
+
         if (ghosts[i].state == GHOST_RETURNING) {
             float xOffset;
             switch (ghosts[i].direction) {
@@ -241,8 +281,15 @@ void render_ghosts(int offsetX, int offsetY) {
             texture = ghosts[i].eyeballSprite;
 
         } else if (ghosts[i].state == GHOST_FRIGHTENED) {
-            sourceRec = (Rectangle){ 132.0f, 64.0f, 16.0f, 16.0f };
+            // Default to blue frightened sprite
+            float xOffset = 132.0f; // Blue frightened sprite
+            // Blinking effect when frightened timer is low (last 2 seconds)
+            if (ghosts[i].stateTimer <= 2.0f) {
+                xOffset = useWhiteFrightenedSprite ? 164.0f : 132.0f; // Switch between white and blue
+            }
+            sourceRec = (Rectangle){ xOffset, 64.0f, 16.0f, 16.0f };
             texture = ghosts[i].frightenedSprite;
+
         } else {
             // Normal sprite based on ghost type (Blinky, Pinky, Inky, Clyde)
             float xOffset;
@@ -268,9 +315,9 @@ void render_ghosts(int offsetX, int offsetY) {
         }
 
         // Adjust scale to fit within maze tiles (TILE_SIZE = 20)
-        float ghostScaleFactor = (float)TILE_SIZE / 32.0f; // Scale 32x32 sprite to 20x20
-        float scaledWidth = 32.0f * ghostScaleFactor;
-        float scaledHeight = 32.0f * ghostScaleFactor;
+        float ghostScaleFactor = (float)TILE_SIZE / 16.0f; // Scale 16x16 sprite to 20x20
+        float scaledWidth = 16.0f * ghostScaleFactor;
+        float scaledHeight = 16.0f * ghostScaleFactor;
 
         // Destination rectangle, centered on ghost's position
         Rectangle destRec = {

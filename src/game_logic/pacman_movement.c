@@ -130,9 +130,9 @@ void update_pacman(void) {
         maze[pacman.gridY][pacman.gridX] = EMPTY;
         // Make ghosts frightened
         for (int i = 0; i < MAX_GHOSTS; i++) {
-            if (ghosts[i].state == GHOST_NORMAL) {
+            if (ghosts[i].state != GHOST_RETURNING) {
                 ghosts[i].state = GHOST_FRIGHTENED;
-                ghosts[i].stateTimer = 7.0f; // Frightened for 7 seconds
+                ghosts[i].stateTimer = 10.0f; // Frightened for 10 seconds
             }
         }
     }

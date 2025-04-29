@@ -9,6 +9,7 @@
 #define MAZE_HEIGHT 31
 #define TILE_SIZE 20
 #define MAX_GHOSTS 4
+#define PACMAN_DEATH_FRAMES 11
 
 // Tile types
 typedef enum {
@@ -29,6 +30,7 @@ typedef enum {
     STATE_READY,         // Ready phase before playing
     STATE_PLAYING,
     STATE_PAUSED,
+    STATE_DEATH_ANIM,
     STATE_GAME_OVER
 } GameState;
 
@@ -89,6 +91,7 @@ typedef struct {
     Texture2D eyeballSprite;    // Eyeball sprite for returning state
     float animTimer;            // Timer to control animation frame switching
     int currentFrame;           // Current animation frame (0 or 1 for normal state)
+    float frightenedBlinkTimer; // Timer for frightened state blinking
 } Ghost;
 
 // Global Variables (extern to declare them, defined in game.c)
@@ -97,7 +100,10 @@ extern GameState gameState;
 extern GhostMode ghostMode;
 extern float modeTimer;
 extern float readyTimer;
-extern bool isResetting;    // Flag to indicate if game is resetting
+extern float deathAnimTimer;  // Timer for death animation
+extern float blinkTimer;      // Timer for blinking animations (power pellets)
+extern int deathAnimFrame;    // Current frame of death animation
+extern bool isResetting;      // Flag to indicate if game is resetting
 extern int maze[MAZE_HEIGHT][MAZE_WIDTH];
 extern Player pacman;
 extern Ghost ghosts[MAX_GHOSTS];

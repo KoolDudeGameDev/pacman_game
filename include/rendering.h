@@ -16,6 +16,7 @@ void UnloadGhostTextures(Ghost *ghostArray);
 // Rendering functions
 void render_maze(int offsetX, int offsetY);
 void render_pacman(int offsetX, int offsetY);
+void render_pacman_death(int offsetX, int offsetY); 
 void render_ghosts(int offsetX, int offsetY);
 
 #endif // RENDERING_H
