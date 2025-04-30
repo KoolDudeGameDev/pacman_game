@@ -88,7 +88,7 @@ void init_ghosts(void) {
         ghosts[i].gridY = startPositions[i][1];
         ghosts[i].x = ghosts[i].gridX * TILE_SIZE + TILE_SIZE / 2.0f;
         ghosts[i].y = ghosts[i].gridY * TILE_SIZE + TILE_SIZE / 2.0f;
-        ghosts[i].speed = 100.0f;   // Slightly slower than Pac-Man
+        ghosts[i].speed = 100.0f + (level - 1) * 5.0f;   // Increase speed slightly with level
         ghosts[i].direction = DIR_UP;   // Initial direction
         ghosts[i].scatterTargetX = scatterTargets[i][0];
         ghosts[i].scatterTargetY = scatterTargets[i][1];
@@ -110,9 +110,25 @@ void init_ghosts(void) {
 // Update Ghost Mode (Chase/Scatter switching)
 // ----------------------------------------------------------------------------------------
 void update_ghost_mode(void) {
-    static float chaseTimes[] = {20.0f, 20.0f, 20.0f, 9999.0f};     // Chase durations
-    static float scatterTimes[] = {7.0f, 7.0f, 5.0f, 5.0f};         // Scatter durations
+    /*
+    Adjust scatter and chase durations based on level
+        Level 1: Chase 20s, Scatter 7s
+        Level 2: Chase 20s,  Scatter 5s
+        Level 3+: Chase 30s, Scatter 3s
+    */
+
+    float chaseDuration = (level >= 3) ? 30.0f : 20.0f;
+    float scatterDuration = (level == 1) ? 7.0f : (level == 2) ? 5.0f : 3.0f;
+
+    static float chaseTimes[4];
+    static float scatterTimes[4];
     static int phase = 0;   // Current phase (0-3)
+
+    // Set durations for all phases
+    for (int i = 0; i < 4; i ++) {
+        chaseTimes[i] = (i == 3) ? 9999.0f : chaseDuration;     // Last phase is infinite chase
+        scatterTimes[i] = (i == 3) ? 0.0f : scatterDuration;  // No scatter in last phase
+    }
 
     modeTimer += GetFrameTime();
 
@@ -352,7 +368,13 @@ void update_ghosts(void) {
             } else {
                 
                 // Normal behavior (Chase or Scatter)
-                if (ghostMode == MODE_SCATTER) {
+                bool isBlinky = (i == 0);       // Blinky is ghost 0
+                float pelletRatio = (float)remainingPelletCount / initialPelletCount;
+
+                if (isBlinky && (level >= 3 || pelletRatio < 0.2f)) {
+                    targetX = pacman.gridX;
+                    targetY = pacman.gridY;
+                } else if (ghostMode == MODE_SCATTER) {
                     targetX = ghosts[i].scatterTargetX;
                     targetY = ghosts[i].scatterTargetY;
                 } else {    // MODE_CHASE
@@ -553,5 +575,4 @@ void update_ghosts(void) {
             ghosts[i].gridY = MAZE_HEIGHT - 1;
         }
     }
-
 }

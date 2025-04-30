@@ -125,15 +125,29 @@ void update_pacman(void) {
     if (maze[pacman.gridY][pacman.gridX] == PELLET) {
         pacman.score += 10;
         maze[pacman.gridY][pacman.gridX] = EMPTY;
+        update_pellet_count();
+        if (is_maze_cleared()) {        // Check if maze is cleared after collecting pellet
+            level ++;                   // Increment level
+            init_maze();                // Reset maze with pellets
+            reset_game_state();         // Reset Pac-Man and ghosts
+            return;
+        }
     } else if (maze[pacman.gridY][pacman.gridX] == POWER_PELLET) {
         pacman.score += 50;
         maze[pacman.gridY][pacman.gridX] = EMPTY;
+        update_pellet_count();
         // Make ghosts frightened
         for (int i = 0; i < MAX_GHOSTS; i++) {
             if (ghosts[i].state == GHOST_NORMAL) {
                 ghosts[i].state = GHOST_FRIGHTENED;
                 ghosts[i].stateTimer = 10.0f; // Frightened for 10 seconds
             }
+        }
+        if (is_maze_cleared()) {       
+            level ++;                   
+            init_maze();                
+            reset_game_state();        
+            return;
         }
     }
 }

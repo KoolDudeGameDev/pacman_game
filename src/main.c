@@ -110,6 +110,7 @@ int main(void) {
                         readyTimer = 3.0f;      // Show "READY!" for 3 seconds
                         gameState = STATE_READY;
                         isResetting = false;
+                        level = 1;      // Reset level to 1 when starting a new game
                     } else {
                         CloseWindow();
                         return 0;
@@ -157,9 +158,10 @@ int main(void) {
                 if (IsKeyPressed(KEY_R)) {
                     gameState = STATE_MENU;
                     selectedOption = 0;
-                    // Reset score and lives for a new game
+                    // Reset score, lives, and level for a new game
                     pacman.score = 0;
                     pacman.lives = 3;
+                    level = 1;
                     init_maze();    // Reset maze with pellets
                 }
                 break;
@@ -204,6 +206,7 @@ int main(void) {
                 render_ghosts(mazeOffsetX, mazeOffsetY);
                 DrawTextEx(font, "READY!", (Vector2){screenWidth / 2 - 30, mazeOffsetY + (14 * TILE_SIZE + 3)}, 18, 1, YELLOW);     // Position at row 14 (13 in 0-based index)
                 DrawTextEx(font, TextFormat("Score: %d", pacman.score), (Vector2){mazeOffsetX + 10, 10}, 20, 1, WHITE);
+                DrawTextEx(font, TextFormat("Level: %d", level), (Vector2){mazeOffsetX + mazePixelWidth - 100, 10}, 20, 1, WHITE);
                 DrawTextEx(font, TextFormat("Lives: %d", pacman.lives), (Vector2){mazeOffsetX + mazePixelWidth - 100, screenHeight - 30}, 20, 1, WHITE);
                 break;
 
@@ -213,6 +216,7 @@ int main(void) {
                 render_pacman(mazeOffsetX, mazeOffsetY);
                 render_ghosts(mazeOffsetX, mazeOffsetY);
                 DrawTextEx(font, TextFormat("Score: %d", pacman.score), (Vector2){mazeOffsetX + 10, 10}, 20, 1, WHITE);
+                DrawTextEx(font, TextFormat("Level: %d", level), (Vector2){mazeOffsetX + mazePixelWidth - 100, 10}, 20, 1, WHITE);
                 DrawTextEx(font, TextFormat("Lives: %d", pacman.lives), (Vector2){mazeOffsetX + mazePixelWidth - 100, screenHeight - 30}, 20, 1, WHITE);
                 break;
             

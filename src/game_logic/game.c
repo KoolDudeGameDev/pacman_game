@@ -11,6 +11,9 @@ float deathAnimTimer = 0.0f;            // Timer for death animation
 float blinkTimer = 0.0f;                // Timer for blinking animation
 int deathAnimFrame = 0;                 // Current frame of death animation
 bool isResetting = false;               // Flag to indicate if the game is resetting
+int level = 1;                          // Start at level 1
+int initialPelletCount = 0;             // Total number of pellets at the start
+int remainingPelletCount = 0;           // Number of pellets remaining
 
 // Maze array
 int maze[MAZE_HEIGHT][MAZE_WIDTH];
@@ -36,7 +39,7 @@ static char game_maze[MAZE_HEIGHT][MAZE_WIDTH] = {
     "######.##          ##.######",     //  14
     "#......## ######## ##......#",     //  15
     "#.####.......##.......####.#",     //  16
-    "#......#####.##.#####.... .#",     //  17
+    "#......#####.##.#####......#",     //  17
     "######.#####.##.#####.######",     //  18
     "     #.##..........##.#     ",     //  19
     "     #.##.########.##.#     ",     //  20
@@ -58,6 +61,8 @@ static char game_maze[MAZE_HEIGHT][MAZE_WIDTH] = {
 // Initialize maze
 
 void init_maze(void) {
+    initialPelletCount = 0;
+    remainingPelletCount = 0;
 
     for (int y = 0; y < MAZE_HEIGHT; y ++) {
         for (int x = 0; x < MAZE_WIDTH; x ++) {
@@ -67,9 +72,13 @@ void init_maze(void) {
                 break;
             case '.':
                 maze[y][x] = PELLET;
+                initialPelletCount ++;
+                remainingPelletCount ++;
                 break;
             case 'O':
                 maze[y][x] = POWER_PELLET;
+                initialPelletCount ++;
+                remainingPelletCount ++;
                 break;
             case '|':
                 maze[y][x] = GHOST_GATE;
@@ -118,4 +127,26 @@ void reset_game_state(void) {
     gameState = STATE_READY;
     isResetting = true;
     deathAnimFrame = 0;
+}
+
+bool is_maze_cleared(void) {
+    for (int y = 0; y < MAZE_HEIGHT; y ++) {
+        for (int x = 0; x < MAZE_WIDTH; x ++) {
+            if (maze[y][x] == PELLET || maze[y][x] == POWER_PELLET) {
+                return false;  // Found a pellet or power pellet, maze not cleared
+            }
+        }
+    }
+    return true;               // No pellets or power pellets found, maze is cleared
+}
+
+void update_pellet_count(void) {
+    remainingPelletCount = 0;
+    for (int y = 0; y < MAZE_HEIGHT; y ++) {
+        for (int x = 0; x < MAZE_WIDTH; x ++) {
+            if (maze[y][x] == PELLET || maze[y][x] == POWER_PELLET) {
+                remainingPelletCount ++;
+            }
+        }
+    }
 }

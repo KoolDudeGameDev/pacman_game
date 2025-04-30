@@ -104,6 +104,9 @@ extern float deathAnimTimer;  // Timer for death animation
 extern float blinkTimer;      // Timer for blinking animations (power pellets)
 extern int deathAnimFrame;    // Current frame of death animation
 extern bool isResetting;      // Flag to indicate if game is resetting
+extern int level;             // Current level
+extern int initialPelletCount;  // Total number of pellets at the start
+extern int remainingPelletCount;  // Number of pellets remaining
 extern int maze[MAZE_HEIGHT][MAZE_WIDTH];
 extern Player pacman;
 extern Ghost ghosts[MAX_GHOSTS];
@@ -114,6 +117,8 @@ extern Ghost ghosts[MAX_GHOSTS];
 void init_maze(void);
 void find_pacman_start(int *startX, int *startY);
 void reset_game_state(void);
+bool is_maze_cleared(void);
+void update_pellet_count(void);
 
 // pacman_movement.c
 void init_pacman(int startX, int startY);
