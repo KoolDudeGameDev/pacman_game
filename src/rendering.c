@@ -1,6 +1,7 @@
 #include "game_logic.h"
 #include "rendering.h"
 
+#include <stdio.h>
 
 // Ghost Sprites
 // ----------------------------------------------------------------------------------------
@@ -186,6 +187,7 @@ void render_maze(int offsetX, int offsetY) {
 
     // Render fruit if active
     if (fruit.active) {
+        printf("Rendering fruit at gridX: %d, gridY: %d\n", fruit.gridX, fruit.gridY); // Add this line
         float scaleFactor = (float)TILE_SIZE / 16.0f;
         float scaledWidth = 16.0f * scaleFactor;
         float scaledHeight = 16.0f * scaleFactor;
@@ -193,7 +195,7 @@ void render_maze(int offsetX, int offsetY) {
 
         float tileCenterX = fruit.gridX * TILE_SIZE + offsetX + (TILE_SIZE / 2.0f);
         float tileCenterY = fruit.gridY * TILE_SIZE + offsetY + (TILE_SIZE / 2.0f);
-        
+
         // Position the sprite so its center is at the tile's center
         Rectangle destRec = {
             tileCenterX - (scaledWidth / 2.0f),  // Top-left x

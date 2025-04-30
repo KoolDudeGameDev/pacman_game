@@ -123,8 +123,9 @@ void update_pacman(void) {
 
     // Handle pellet collection
     if (maze[pacman.gridY][pacman.gridX] == PELLET) {
-        pacman.score += 10;
         maze[pacman.gridY][pacman.gridX] = EMPTY;
+        pacman.score += 10;
+        pelletsEaten ++;
         update_pellet_count();
         if (is_maze_cleared()) {        // Check if maze is cleared after collecting pellet
             level ++;                   // Increment level
@@ -132,8 +133,9 @@ void update_pacman(void) {
             return;
         }
     } else if (maze[pacman.gridY][pacman.gridX] == POWER_PELLET) {
-        pacman.score += 50;
         maze[pacman.gridY][pacman.gridX] = EMPTY;
+        pacman.score += 50;
+        pelletsEaten ++;
         update_pellet_count();
         // Make ghosts frightened
         for (int i = 0; i < MAX_GHOSTS; i++) {

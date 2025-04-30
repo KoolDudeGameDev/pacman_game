@@ -26,6 +26,11 @@ Player pacman;
 Ghost ghosts[MAX_GHOSTS];
 
 // Maze Layout
+
+/*  No. of pellets = 240
+    No. of power pellets = 4
+*/
+
 static char game_maze[MAZE_HEIGHT][MAZE_WIDTH] = {
     "############################",     //  0     
     "#............##............#",     //  1
@@ -128,6 +133,8 @@ void reset_game_state(void) {
     pacman.score = score;       // Restore score
     pacman.lives = lives;       // Restore lives
     init_ghosts();
+    init_fruit();
+    pelletsEaten = 0;
     readyTimer = 3.0f;          // Show "READY!" for 3 secs
     gameState = STATE_READY;
     isResetting = true;
@@ -163,7 +170,7 @@ void init_fruit(void) {
     fruit.active = false;
     fruit.timer = 0.0f;
     fruit.gridX = 14;   // Center of the maze, near Pac-Man's start (row 17, col 14)
-    fruit.gridY = 17;
+    fruit.gridY = 19;
     fruit.points = 100;
 }
 
@@ -172,7 +179,7 @@ void update_fruit(void) {
     float deltaTime = GetFrameTime();
 
     // Check if fruit should spawn (after 70 or 170 pellets eaten)
-    if (!fruit.active && (pelletsEaten == 0 || pelletsEaten == 170)) {
+    if (!fruit.active && (pelletsEaten == 10 || pelletsEaten == 170)) {
         fruit.active = true;
         fruit.timer = 10.0f;    // Fruit only available for 10 secs
     }

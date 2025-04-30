@@ -2,6 +2,8 @@
 #include "logo_animation.h"
 #include "rendering.h"
 
+#include <stdio.h>
+
 int main(void) {
     // Seed random number generator
     SetRandomSeed((unsigned int)time(NULL));
@@ -32,6 +34,9 @@ int main(void) {
 
     // Load ghost textures
     LoadGhostTextures(ghosts);
+
+    // Initialize fruit
+    init_fruit();
 
     // Fade to black transition variables
     float transitionAlpha = 0.0f;
@@ -137,6 +142,7 @@ int main(void) {
                 update_pacman();
                 update_ghosts();
                 update_fruit();
+                printf("pelletsEaten = %d, fruit.active = %d\n", pelletsEaten, fruit.active); // Debug print
                 if (IsKeyPressed(KEY_P)) {
                     gameState = STATE_PAUSED;
                 }
@@ -202,8 +208,8 @@ int main(void) {
         float livesStartX = mazeOffsetX + mazePixelWidth - 80;
 
         // Render collected fruits
-        Rectangle fruitSourceRec = { 0.0f, 48.0f, 16.0f, 16.0f};
-        float fruitsStartX = mazeOffsetX;
+        Rectangle fruitSourceRec = { 35.0f, 48.0f, 16.0f, 16.0f};
+        float fruitsStartX = mazeOffsetX + 50;
 
         switch (gameState) {
             case STATE_KOOLDUDE_LOGO:
@@ -254,7 +260,7 @@ int main(void) {
                 for (int i = 0; i < totalFruitsCollected; i++) {
                     Rectangle destRec = {
                         fruitsStartX + (i * (scaledWidth + 5)),
-                        screenHeight - 60,
+                        screenHeight - 30, // Same row as lives
                         scaledWidth,
                         scaledHeight
                     };
@@ -286,7 +292,7 @@ int main(void) {
                 for (int i = 0; i < totalFruitsCollected; i++) {
                     Rectangle destRec = {
                         fruitsStartX + (i * (scaledWidth + 5)),
-                        screenHeight - 60,
+                        screenHeight - 30, // Same row as lives
                         scaledWidth,
                         scaledHeight
                     };
@@ -315,11 +321,11 @@ int main(void) {
                     DrawTexturePro(pacman.sprite, sourceRec, destRec, origin, 0.0f, WHITE);
                 }
 
-                // Draw collected fruits
-                for (int i = 0; i < totalFruitsCollected; i++) {
+                 // Draw collected fruits
+                 for (int i = 0; i < totalFruitsCollected; i++) {
                     Rectangle destRec = {
                         fruitsStartX + (i * (scaledWidth + 5)),
-                        screenHeight - 60,
+                        screenHeight - 30, // Same row as lives
                         scaledWidth,
                         scaledHeight
                     };
@@ -349,7 +355,7 @@ int main(void) {
                 for (int i = 0; i < totalFruitsCollected; i++) {
                     Rectangle destRec = {
                         fruitsStartX + (i * (scaledWidth + 5)),
-                        screenHeight - 60,
+                        screenHeight - 30, // Same row as lives
                         scaledWidth,
                         scaledHeight
                     };
@@ -378,11 +384,11 @@ int main(void) {
                     DrawTexturePro(pacman.sprite, sourceRec, destRec, origin, 0.0f, WHITE);
                 }
 
-                // Draw collected fruits
+                 // Draw collected fruits
                 for (int i = 0; i < totalFruitsCollected; i++) {
                     Rectangle destRec = {
                         fruitsStartX + (i * (scaledWidth + 5)),
-                        screenHeight - 60,
+                        screenHeight - 30, // Same row as lives
                         scaledWidth,
                         scaledHeight
                     };
