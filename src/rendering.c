@@ -180,6 +180,23 @@ void render_maze(int offsetX, int offsetY) {
             }
         }
     }
+
+    // Render fruit if active
+    if (fruit.active) {
+        float scaleFactor = (float)TILE_SIZE / 16.0f;
+        float scaledWidth = 16.0f * scaleFactor;
+        float scaledHeight = 16.0f * scaleFactor;
+        Rectangle sourceRec = { 0.0f, 48.0f, 16.0f, 16.0f };
+        Rectangle destRec = {
+            fruit.gridX * TILE_SIZE + offsetX,
+            fruit.gridY * TILE_SIZE + offsetY,
+            scaledWidth,
+            scaledHeight
+        };
+        Vector2 origin = { scaledWidth / 2.0f, scaledHeight / 2.0f };
+        DrawTexturePro(fruit.sprite, sourceRec, destRec, origin, 0.0f, WHITE);
+    }
+    
 }
 
 // Render Entities
