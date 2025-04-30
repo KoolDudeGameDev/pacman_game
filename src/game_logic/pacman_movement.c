@@ -128,8 +128,7 @@ void update_pacman(void) {
         update_pellet_count();
         if (is_maze_cleared()) {        // Check if maze is cleared after collecting pellet
             level ++;                   // Increment level
-            init_maze();                // Reset maze with pellets
-            reset_game_state();         // Reset Pac-Man and ghosts
+            gameState = STATE_LEVEL_COMPLETE;
             return;
         }
     } else if (maze[pacman.gridY][pacman.gridX] == POWER_PELLET) {
@@ -145,8 +144,7 @@ void update_pacman(void) {
         }
         if (is_maze_cleared()) {       
             level ++;                   
-            init_maze();                
-            reset_game_state();        
+            gameState = STATE_LEVEL_COMPLETE;     
             return;
         }
     }

@@ -1,6 +1,6 @@
 #include "game_logic.h"
 
-// Game State
+// Global Variables
 // In game.c
 Texture2D spriteSheet;
 GameState gameState = STATE_MENU;       // Initial state
@@ -12,8 +12,13 @@ float blinkTimer = 0.0f;                // Timer for blinking animation
 int deathAnimFrame = 0;                 // Current frame of death animation
 bool isResetting = false;               // Flag to indicate if the game is resetting
 int level = 1;                          // Start at level 1
+
 int initialPelletCount = 0;             // Total number of pellets at the start
 int remainingPelletCount = 0;           // Number of pellets remaining
+int pelletsEaten = 0;                   // Number of pellets eaten in the current level
+
+Fruit fruit;                            // Bonus fruit
+int totalFruitsCollected = 0;           // Total number of fruits collected across levels
 
 // Maze array
 int maze[MAZE_HEIGHT][MAZE_WIDTH];
@@ -129,6 +134,7 @@ void reset_game_state(void) {
     deathAnimFrame = 0;
 }
 
+// Check if the maze is cleared (no pellets or power pellets remain)
 bool is_maze_cleared(void) {
     for (int y = 0; y < MAZE_HEIGHT; y ++) {
         for (int x = 0; x < MAZE_WIDTH; x ++) {
@@ -140,6 +146,7 @@ bool is_maze_cleared(void) {
     return true;               // No pellets or power pellets found, maze is cleared
 }
 
+// Update remaining pellet count (called from update_pacman)
 void update_pellet_count(void) {
     remainingPelletCount = 0;
     for (int y = 0; y < MAZE_HEIGHT; y ++) {
@@ -147,6 +154,43 @@ void update_pellet_count(void) {
             if (maze[y][x] == PELLET || maze[y][x] == POWER_PELLET) {
                 remainingPelletCount ++;
             }
+        }
+    }
+}
+
+// Initialize fruit
+void init_fruit(void) {
+    fruit.active = false;
+    fruit.timer = 0.0f;
+    fruit.gridX = 14;   // Center of the maze, near Pac-Man's start (row 17, col 14)
+    fruit.gridY = 17;
+    fruit.points = 100;
+}
+
+// Update fruit state
+void update_fruit(void) {
+    float deltaTime = GetFrameTime();
+
+    // Check if fruit should spawn (after 70 or 170 pellets eaten)
+    if (!fruit.active && (pelletsEaten == 0 || pelletsEaten == 170)) {
+        fruit.active = true;
+        fruit.timer = 10.0f;    // Fruit only available for 10 secs
+    }
+
+    // Update fruit timer
+    if (fruit.active) {
+        fruit.timer -= deltaTime;
+        if (fruit.timer <= 0.0f) {
+            fruit.active = false;
+            fruit.timer = 0.0f;
+        }
+
+        // Check for collection by Pac-Man
+        if (pacman.gridX == fruit.gridX && pacman.gridY == fruit.gridY) {
+            pacman.score += fruit.points;
+            totalFruitsCollected ++;
+            fruit.active = false;
+            fruit.timer = 0.0f;
         }
     }
 }

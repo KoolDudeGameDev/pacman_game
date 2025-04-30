@@ -21,6 +21,9 @@ void LoadGhostTextures(Ghost *ghostArray) {
 
     // Assign Pac-Man sprite
     pacman.sprite = spriteSheet;
+
+    // Assign fruit sprite
+    fruit.sprite = spriteSheet;
     
     // Assign Ghost sprites
     for (int i = 0; i < MAX_GHOSTS; i++) {
@@ -186,15 +189,29 @@ void render_maze(int offsetX, int offsetY) {
         float scaleFactor = (float)TILE_SIZE / 16.0f;
         float scaledWidth = 16.0f * scaleFactor;
         float scaledHeight = 16.0f * scaleFactor;
-        Rectangle sourceRec = { 0.0f, 48.0f, 16.0f, 16.0f };
+        Rectangle sourceRec = { 35.0f, 48.0f, 16.0f, 16.0f };
+
+        float tileCenterX = fruit.gridX * TILE_SIZE + offsetX + (TILE_SIZE / 2.0f);
+        float tileCenterY = fruit.gridY * TILE_SIZE + offsetY + (TILE_SIZE / 2.0f);
+        
+        // Position the sprite so its center is at the tile's center
         Rectangle destRec = {
-            fruit.gridX * TILE_SIZE + offsetX,
-            fruit.gridY * TILE_SIZE + offsetY,
+            tileCenterX - (scaledWidth / 2.0f),  // Top-left x
+            tileCenterY - (scaledHeight / 2.0f), // Top-left y
             scaledWidth,
             scaledHeight
         };
-        Vector2 origin = { scaledWidth / 2.0f, scaledHeight / 2.0f };
+        Vector2 origin = { 0.0f, 0.0f }; // Origin at top-left for precise positioning
         DrawTexturePro(fruit.sprite, sourceRec, destRec, origin, 0.0f, WHITE);
+
+        // Debug: Draw a rectangle around the tile to confirm position
+        Rectangle tileRect = {
+            fruit.gridX * TILE_SIZE + offsetX,
+            fruit.gridY * TILE_SIZE + offsetY,
+            TILE_SIZE,
+            TILE_SIZE
+        };
+        DrawRectangleLines(tileRect.x, tileRect.y, tileRect.width, tileRect.height, GREEN);
     }
     
 }
