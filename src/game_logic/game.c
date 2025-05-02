@@ -92,6 +92,8 @@ void load_high_scores(void) {
             }
         }
         fclose(file);
+    } else {
+        printf("Warning: Could not open highscores.txt for reading. Using default scores.\n");
     }
 }
 
@@ -103,6 +105,8 @@ void save_high_scores(void) {
             fprintf(file, "%s %d\n", highscores[i].name, highscores[i].score);
         }
         fclose(file);
+    } else {
+        printf("Error: Could not open highscores.txt for writing.\n");
     }
 }
 

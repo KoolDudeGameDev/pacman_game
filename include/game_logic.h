@@ -29,6 +29,8 @@ typedef enum {
     STATE_RAYLIB_LOGO,   // Raylib logo
     STATE_LOGO,          // Game logo
     STATE_MENU,
+    STATE_HIGHSCORES,
+    STATE_ABOUT,
     STATE_READY,         // Ready phase before playing
     STATE_PLAYING,
     STATE_PAUSED,

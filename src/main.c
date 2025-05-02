@@ -113,27 +113,45 @@ int main(void) {
             case STATE_MENU:
                 // Navigate menu options
                 if (IsKeyPressed(KEY_DOWN)) {
-                    selectedOption = (selectedOption + 1) % 2;
+                    selectedOption = (selectedOption + 1) % 4;
                 }
                 if (IsKeyPressed(KEY_UP)) {
-                    selectedOption = (selectedOption - 1 + 2) % 2;
+                    selectedOption = (selectedOption - 1 + 4) % 4;
                 }
                 if (IsKeyPressed(KEY_ENTER)) {
-                    if (selectedOption == 0) {
+                    if (selectedOption == 0) {      // START
                         init_maze();
                         int startX, startY;
                         find_pacman_start(&startX, &startY);
                         init_pacman(startX, startY);
                         init_ghosts();
-                        readyTimer = 3.0f;      // Show "READY!" for 3 seconds
+                        readyTimer = 3.0f;          // Show "READY!" for 3 seconds
                         gameState = STATE_READY;
                         isResetting = false;
-                        level = 1;      // Reset level to 1 when starting a new game
+                        level = 1;                  // Reset level to 1 when starting a new game
                         totalFruitsCollected = 0;   // Reset fruit count
-                    } else {
+                    } else if (selectedOption == 1) { // HIGHSCORES
+                        gameState = STATE_HIGHSCORES;
+                    } else if (selectedOption == 2) {
+                        gameState = STATE_ABOUT;    // ABOUT
+                    } else {                        // EXIT
                         CloseWindow();
                         return 0;
                     }
+                }
+                break;
+
+            case STATE_HIGHSCORES:
+                if (IsKeyPressed(KEY_ESCAPE) || IsKeyPressed(KEY_ENTER)) {
+                    gameState = STATE_MENU;
+                    selectedOption = 1;
+                }
+                break;
+
+            case STATE_ABOUT:
+                if (IsKeyPressed(KEY_ESCAPE) || IsKeyPressed(KEY_ENTER)) {
+                    gameState = STATE_MENU;
+                    selectedOption = 2;
                 }
                 break;
             
@@ -248,17 +266,32 @@ int main(void) {
 
             case STATE_MENU:
                 ClearBackground(BLACK);
-                DrawTextEx(font, "Pac-Man", (Vector2){screenWidth / 2 - 50, screenHeight / 2 - 60}, 30, 1, YELLOW);
-                DrawTextEx(font, "Start", (Vector2){screenWidth / 2 - 20, screenHeight / 2 - 20}, 20, 1, selectedOption == 0 ? YELLOW : WHITE);
-                DrawTextEx(font, "Exit", (Vector2){screenWidth / 2 - 20, screenHeight / 2 + 10}, 20, 1, selectedOption == 1 ? YELLOW : WHITE);
-                DrawTextEx(font, "Use UP/DOWN to select, ENTER to confirm", (Vector2){screenWidth / 2 - 120, screenHeight / 2 + 50}, 15, 1, GRAY);
-                // Display high scores
-                DrawTextEx(font, "High Scores", (Vector2){screenWidth / 2 - 50, screenHeight / 2 - 60}, 20, 1, WHITE);
-                for (int i = 0; i < MAX_HIGH_SCORES; i++) {
+                DrawTextEx(font, "Pac-Man", (Vector2){screenWidth / 2 - 50, screenHeight / 2 - 100}, 30, 1, YELLOW);
+                DrawTextEx(font, "Start", (Vector2){screenWidth / 2 - 20, screenHeight / 2 - 40}, 20, 1, selectedOption == 0 ? YELLOW : WHITE);
+                DrawTextEx(font, "Highscores", (Vector2){screenWidth / 2 - 40, screenHeight / 2 - 10}, 20, 1, selectedOption == 1 ? YELLOW : WHITE);
+                DrawTextEx(font, "About", (Vector2){screenWidth / 2 - 20, screenHeight / 2 + 20}, 20, 1, selectedOption == 2 ? YELLOW : WHITE);
+                DrawTextEx(font, "Exit", (Vector2){screenWidth / 2 - 20, screenHeight / 2 + 50}, 20, 1, selectedOption == 3 ? YELLOW : WHITE);
+                DrawTextEx(font, "Use UP/DOWN to select, ENTER to confirm", (Vector2){screenWidth / 2 - 120, screenHeight / 2 + 80}, 15, 1, GRAY);
+                break;
+
+            case STATE_HIGHSCORES:
+                ClearBackground(BLACK);
+                DrawTextEx(font, "High Scores", (Vector2){screenWidth / 2 - 50, screenHeight / 2 - 100}, 30, 1, YELLOW);
+                for (int i = 0; i < MAX_HIGH_SCORES; i ++) {
                     char scoreText[32];
                     sprintf(scoreText, "%d. %s - %d", i + 1, highscores[i].name, highscores[i].score);
-                    DrawTextEx(font, scoreText, (Vector2){screenWidth / 2 - 50, screenHeight / 2 - 40 + i * 20}, 15, 1, WHITE);
+                    DrawTextEx(font, scoreText, (Vector2){screenWidth / 2 - 50, screenHeight / 2 - 60 + i * 30}, 20, 1, WHITE);
                 }
+                DrawTextEx(font, "Press ENTER or ESC to return", (Vector2){screenWidth / 2 - 100, screenHeight / 2 + 100}, 15, 1, GRAY);
+                break;
+
+            case STATE_ABOUT:
+                ClearBackground(BLACK);
+                DrawTextEx(font, "About Pac-Man Remake ", (Vector2){screenWidth / 2 - 70, screenHeight / 2 - 100}, 30, 1, YELLOW);
+                DrawTextEx(font, "Developed by Kyle Ibo", (Vector2){screenWidth / 2 - 80, screenHeight / 2 - 40}, 20, 1, WHITE);
+                DrawTextEx(font, "Powered by Raylib", (Vector2){screenWidth / 2 - 60, screenHeight / 2 - 10}, 20, 1, WHITE);
+                DrawTextEx(font, "Version 1.0", (Vector2){screenWidth / 2 - 40, screenHeight / 2 + 20}, 20, 1, WHITE);
+                DrawTextEx(font, "Press ENTER or ESC to return", (Vector2){screenWidth / 2 - 100, screenHeight / 2 + 80}, 15, 1, GRAY);
                 break;
 
             case STATE_READY:
@@ -301,6 +334,7 @@ int main(void) {
                 render_ghosts(mazeOffsetX, mazeOffsetY);
                 DrawTextEx(font, TextFormat("Score: %d", pacman.score), (Vector2){mazeOffsetX + 10, 10}, 20, 1, WHITE);
                 DrawTextEx(font, TextFormat("Level: %d", level), (Vector2){mazeOffsetX + mazePixelWidth - 100, 10}, 20, 1, WHITE);
+                DrawTextEx(font, TextFormat("Top Score: %d", highscores[0].score), (Vector2){screenWidth / 2 - 50, 10}, 20, 1, WHITE);
                 DrawTextEx(font, "Lives: ", (Vector2){mazeOffsetX + mazePixelWidth - 150, screenHeight - 40}, 20, 1, WHITE);
                 
                 // Draw lives as Pac-Man sprites
