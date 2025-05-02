@@ -1,5 +1,8 @@
 #include "game_logic.h"
 
+#include <stdio.h>
+#include <string.h>
+
 // Global Variables
 // In game.c
 Texture2D spriteSheet;
@@ -9,6 +12,7 @@ float modeTimer = 0.0f;                 // Timer for switching between Chase and
 float readyTimer = 0.0f;                // Timer for "READY!" phase
 float deathAnimTimer = 0.0f;            // Timer for death animation
 float blinkTimer = 0.0f;                // Timer for blinking animation
+float ghostEatenTimer = 0.0f;           // Timer for ghost eaten
 int deathAnimFrame = 0;                 // Current frame of death animation
 bool isResetting = false;               // Flag to indicate if the game is resetting
 int level = 1;                          // Start at level 1
@@ -17,8 +21,13 @@ int initialPelletCount = 0;             // Total number of pellets at the start
 int remainingPelletCount = 0;           // Number of pellets remaining
 int pelletsEaten = 0;                   // Number of pellets eaten in the current level
 
+int eatenGhostCount = 0;                // Number of ghosts eaten in current power pellet
+int eatenGhostIndex = -1;               // Index of the ghost being animated
+
 Fruit fruit;                            // Bonus fruit
 int totalFruitsCollected = 0;           // Total number of fruits collected across levels
+
+HighScore highscores[MAX_HIGH_SCORES];  // High scores array
 
 // Maze array
 int maze[MAZE_HEIGHT][MAZE_WIDTH];
@@ -68,7 +77,60 @@ static char game_maze[MAZE_HEIGHT][MAZE_WIDTH] = {
 // Function Definitions
 // --------------------------------------------------------------------------------------------------------------------------
 
+// Load high scores from file
+void load_high_scores(void) {
+    for (int i = 0; i < MAX_HIGH_SCORES; i++) {
+        highscores[i].score = 0;
+        strcpy(highscores[i].name, "AAA");
+    }
+
+    FILE *file = fopen("highscores.txt", "r");
+    if (file) {
+        for (int i = 0; i < MAX_HIGH_SCORES; i++) {
+            if (fscanf(file, "%3s %d\n", highscores[i].name, &highscores[i].score) != 2) {
+                break;
+            }
+        }
+        fclose(file);
+    }
+}
+
+// Save high scores to file
+void save_high_scores(void) {
+    FILE *file = fopen("highscores.txt", "w");
+    if (file) {
+        for (int i = 0; i < MAX_HIGH_SCORES; i ++) {
+            fprintf(file, "%s %d\n", highscores[i].name, highscores[i].score);
+        }
+        fclose(file);
+    }
+}
+
+// Checl and update high scores
+void check_and_update_high_scores(int score) {
+    int insertIndex = -1;
+    for (int i = 0; i < MAX_HIGH_SCORES; i ++) {
+        if (score > highscores[i].score) {
+            insertIndex = i;
+            break;
+        }
+    }
+
+    if (insertIndex >= 0) {
+        // Shift lower scores down
+        for (int i = MAX_HIGH_SCORES - 1; i > insertIndex; i --) {
+            highscores[i] = highscores[i - 1];
+        }
+        // Insert new score
+        highscores[insertIndex].score = score;
+        strcpy(highscores[insertIndex].name, "NEW");       // PLace holderr
+    }
+}
+
+
+
 // Initialize maze
+// --------------------------------------------------------------------------------------------------------------------------
 
 void init_maze(void) {
     initialPelletCount = 0;
@@ -138,6 +200,8 @@ void reset_game_state(void) {
     gameState = STATE_READY;
     isResetting = true;
     deathAnimFrame = 0;
+    eatenGhostCount = 0;
+    eatenGhostIndex = -1;
 }
 
 // Check if the maze is cleared (no pellets or power pellets remain)
@@ -168,7 +232,7 @@ void update_pellet_count(void) {
 void init_fruit(void) {
     fruit.active = false;
     fruit.timer = 0.0f;
-    fruit.gridX = 14;   // Center of the maze, near Pac-Man's start (row 17, col 14)
+    fruit.gridX = 14;   // Center of the maze, near Pac-Man's start (row 19, col 14)
     fruit.gridY = 19;
     fruit.points = 100;
 }

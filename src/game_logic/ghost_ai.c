@@ -89,16 +89,16 @@ void init_ghosts(void) {
         ghosts[i].x = ghosts[i].gridX * TILE_SIZE + TILE_SIZE / 2.0f;
         ghosts[i].y = ghosts[i].gridY * TILE_SIZE + TILE_SIZE / 2.0f;
         ghosts[i].speed = 100.0f + (level - 1) * 5.0f;   // Increase speed slightly with level
-        ghosts[i].direction = DIR_UP;   // Initial direction
+        ghosts[i].direction = DIR_UP;                    // Initial direction
         ghosts[i].scatterTargetX = scatterTargets[i][0];
         ghosts[i].scatterTargetY = scatterTargets[i][1];
-        ghosts[i].stateTimer = i * 5.0f;    // Staggered release times (0, 5, 10, 15 seconds)
-        ghosts[i].frightenedBlinkTimer = 0.0f;  // Initialize blinking timer
+        ghosts[i].stateTimer = i * 5.0f;                 // Staggered release times (0, 5, 10, 15 seconds)
+        ghosts[i].frightenedBlinkTimer = 0.0f;           // Initialize blinking timer
         if (i == 0) {
             // Blinky starts outside the pen
             ghosts[i].state = GHOST_NORMAL;
             ghosts[i].gridX = 14;
-            ghosts[i].gridY = 11 - 2; // Above the pen
+            ghosts[i].gridY = 11 - 2;   // Above the pen
             ghosts[i].x = ghosts[i].gridX * TILE_SIZE + TILE_SIZE / 2.0f;
             ghosts[i].y = ghosts[i].gridY * TILE_SIZE + TILE_SIZE / 2.0f;
         } else {
@@ -127,7 +127,7 @@ void update_ghost_mode(void) {
     // Set durations for all phases
     for (int i = 0; i < 4; i ++) {
         chaseTimes[i] = (i == 3) ? 9999.0f : chaseDuration;     // Last phase is infinite chase
-        scatterTimes[i] = (i == 3) ? 0.0f : scatterDuration;  // No scatter in last phase
+        scatterTimes[i] = (i == 3) ? 0.0f : scatterDuration;    // No scatter in last phase
     }
 
     modeTimer += GetFrameTime();
@@ -148,12 +148,48 @@ void update_ghosts(void) {
     float deltaTime = GetFrameTime();
     static float collisionCooldown = 0.0f;      // Cooldown to prevent multiple collisions in single frame
 
+    // Skip updates during ghost eaten animation
+    if (gameState == STATE_GHOST_EATEN) {
+        return;
+    }
+
     // Update Chase/Scatter mode
     update_ghost_mode();
 
     // Update collision cooldown
     if (collisionCooldown > 0.0f) {
         collisionCooldown -= deltaTime;
+    }
+
+    // Check for collisions first to handle multiple simultaneous ghost collisions
+    bool ghostsToEat[MAX_GHOSTS] = {false};
+    int numGhostsToEat = 0;
+    if (collisionCooldown <= 0.0f) {
+        for (int i = 0; i < MAX_GHOSTS; i ++) {
+            if (ghosts[i].state == GHOST_FRIGHTENED && 
+                CheckCollision(ghosts[i].x, ghosts[i].y, pacman.x, pacman.y, TILE_SIZE / 2.0f)) {
+                ghostsToEat[i] = true;
+                numGhostsToEat ++;
+            }
+        }
+    }
+
+    // Process eaten ghosts
+    if (numGhostsToEat > 0) {
+        for (int i = 0; i < MAX_GHOSTS; i ++) {
+            if (ghostsToEat[i]) {
+                ghosts[i].state = GHOST_RETURNING;
+                eatenGhostCount ++;
+                int points = 200 * (1 << (eatenGhostCount - 1));    // 200, 400, 800, 1600
+                pacman.score += points;
+                eatenGhostIndex = i;
+                gameState = STATE_GHOST_EATEN;
+                ghostEatenTimer = 0.5f;     // 0.5 sec pause
+                collisionCooldown = 0.5f;   // Preven immediate re-collision
+                break;
+            }
+        }
+        return;     // Exit update to ensure animation state takes precedence
     }
 
     for (int i = 0; i < MAX_GHOSTS; i++) {
@@ -530,23 +566,18 @@ void update_ghosts(void) {
                 break;
         }
   
-        // Collision with Pac-Man
-        if (collisionCooldown <= 0.0f && CheckCollision(ghosts[i].x, ghosts[i].y, pacman.x, pacman.y, TILE_SIZE / 2.0f)) {
-            if (ghosts[i].state == GHOST_FRIGHTENED) {
-                ghosts[i].state = GHOST_RETURNING;
-                pacman.score += 200;
-                collisionCooldown = 0.5f;   // Prevent immediate re-collision
-            } else if (ghosts[i].state == GHOST_NORMAL) {
-                pacman.lives--;
-                collisionCooldown = 1.0f;   // Longer cooldown for death
-                if (pacman.lives <= 0) {
-                    gameState = STATE_GAME_OVER;
-                } else {
-                    gameState = STATE_DEATH_ANIM;
-                    deathAnimTimer = 2.0f;
-                    deathAnimFrame = 0;
-                    break;
-                }
+        // Collision with Pac-Man (handled above for frightened ghosts)
+        if (collisionCooldown <= 0.0f && ghosts[i].state == GHOST_NORMAL &&
+            CheckCollision(ghosts[i].x, ghosts[i].y, pacman.x, pacman.y, TILE_SIZE / 2.0f)) {
+            pacman.lives--;
+            collisionCooldown = 1.0f;   // Longer cooldown for death
+            if (pacman.lives <= 0) {
+                gameState = STATE_GAME_OVER;
+            } else {
+                gameState = STATE_DEATH_ANIM;
+                deathAnimTimer = 2.0f;
+                deathAnimFrame = 0;
+                break;
             }
         }
     }

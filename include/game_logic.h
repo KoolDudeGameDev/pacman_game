@@ -10,6 +10,8 @@
 #define TILE_SIZE 20
 #define MAX_GHOSTS 4
 #define PACMAN_DEATH_FRAMES 11
+#define MAX_HIGH_SCORES 5
+#define MAX_NAME_LENGTH 4   // 3 initials + null terminator
 
 // Tile types
 typedef enum {
@@ -31,6 +33,7 @@ typedef enum {
     STATE_PLAYING,
     STATE_PAUSED,
     STATE_DEATH_ANIM,
+    STATE_GHOST_EATEN,
     STATE_LEVEL_COMPLETE,
     STATE_GAME_OVER
 } GameState;
@@ -58,6 +61,12 @@ typedef enum {
     MODE_CHASE,
     MODE_SCATTER
 } GhostMode;
+
+// High score structure
+typedef struct {
+    char name[MAX_NAME_LENGTH];
+    int score;
+} HighScore;
 
 // Fruit structure
 typedef struct {
@@ -112,15 +121,19 @@ extern GameState gameState;
 extern GhostMode ghostMode;
 extern float modeTimer;
 extern float readyTimer;
-extern float deathAnimTimer;  // Timer for death animation
-extern float blinkTimer;      // Timer for blinking animations (power pellets)
-extern int deathAnimFrame;    // Current frame of death animation
-extern bool isResetting;      // Flag to indicate if game is resetting
-extern int level;             // Current level
+extern float deathAnimTimer;      // Timer for death animation
+extern float blinkTimer;          // Timer for blinking animations (power pellets)
+extern float ghostEatenTimer;     // Timer for ghost eaten animation
+extern int deathAnimFrame;        // Current frame of death animation
+extern bool isResetting;          // Flag to indicate if game is resetting
+extern int level;                 // Current level
 
 extern int initialPelletCount;    // Total number of pellets at the start
 extern int remainingPelletCount;  // Number of pellets remaining
 extern int pelletsEaten;          // Number of pellets eaten in the current level
+
+extern int eatenGhostCount;       // Number of ghosts eaten in current power pellet
+extern int eatenGhostIndex;       // Index of the ghost being animated
 
 extern Fruit fruit;               // Bonus fruit
 extern int totalFruitsCollected;  // Total number of fruits collected across levels
@@ -128,6 +141,8 @@ extern int totalFruitsCollected;  // Total number of fruits collected across lev
 extern int maze[MAZE_HEIGHT][MAZE_WIDTH];
 extern Player pacman;
 extern Ghost ghosts[MAX_GHOSTS];
+
+extern HighScore highscores[MAX_HIGH_SCORES];       // High score array
 
 // Function Declarations
 
@@ -139,6 +154,9 @@ bool is_maze_cleared(void);
 void update_pellet_count(void);
 void init_fruit(void);
 void update_fruit(void);
+void load_high_scores(void);
+void save_high_scores(void);
+void check_and_update_high_scores(int score);
 
 // pacman_movement.c
 void init_pacman(int startX, int startY);

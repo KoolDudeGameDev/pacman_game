@@ -17,7 +17,7 @@ void LoadGhostTextures(Ghost *ghostArray) {
     // Convert the modified image to a texture
     spriteSheet = LoadTextureFromImage(spriteImage);
 
-    // Unload the image since we no longer need it
+    // Unload the image
     UnloadImage(spriteImage);
 
     // Assign Pac-Man sprite

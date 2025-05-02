@@ -38,6 +38,9 @@ int main(void) {
     // Initialize fruit
     init_fruit();
 
+    // Load high scores
+    load_high_scores();
+
     // Fade to black transition variables
     float transitionAlpha = 0.0f;
     bool fadingOut = false;
@@ -158,6 +161,14 @@ int main(void) {
                 }
                 break;
 
+            case STATE_GHOST_EATEN:
+                ghostEatenTimer -= GetFrameTime();
+                if (ghostEatenTimer <= 0.0f) {
+                    eatenGhostIndex = -1;   // Reset for next ghost
+                    gameState = STATE_PLAYING;
+                }
+                break;
+
             case STATE_DEATH_ANIM:
                 deathAnimTimer -= GetFrameTime();
                 if (deathAnimTimer <= 0.0f) {
@@ -178,11 +189,14 @@ int main(void) {
                 if (deathAnimTimer <= 0.0f) {
                     fadingOut = true;
                     nextState = STATE_READY;
-                    deathAnimTimer = 2.0f;      // Reset timer
+                    deathAnimTimer = 3.0f;      // Reset timer
                 }
                 break;
 
             case STATE_GAME_OVER:
+                // Update high scores before returning to menu
+                check_and_update_high_scores(pacman.score);
+                save_high_scores();
                 if (IsKeyPressed(KEY_R)) {
                     gameState = STATE_MENU;
                     selectedOption = 0;
@@ -190,7 +204,6 @@ int main(void) {
                     pacman.score = 0;
                     pacman.lives = 3;
                     level = 1;
-                    //init_maze();    // Reset maze with pellets
                     pelletsEaten = 0;
                 }
                 break;
@@ -239,6 +252,13 @@ int main(void) {
                 DrawTextEx(font, "Start", (Vector2){screenWidth / 2 - 20, screenHeight / 2 - 20}, 20, 1, selectedOption == 0 ? YELLOW : WHITE);
                 DrawTextEx(font, "Exit", (Vector2){screenWidth / 2 - 20, screenHeight / 2 + 10}, 20, 1, selectedOption == 1 ? YELLOW : WHITE);
                 DrawTextEx(font, "Use UP/DOWN to select, ENTER to confirm", (Vector2){screenWidth / 2 - 120, screenHeight / 2 + 50}, 15, 1, GRAY);
+                // Display high scores
+                DrawTextEx(font, "High Scores", (Vector2){screenWidth / 2 - 50, screenHeight / 2 - 60}, 20, 1, WHITE);
+                for (int i = 0; i < MAX_HIGH_SCORES; i++) {
+                    char scoreText[32];
+                    sprintf(scoreText, "%d. %s - %d", i + 1, highscores[i].name, highscores[i].score);
+                    DrawTextEx(font, scoreText, (Vector2){screenWidth / 2 - 50, screenHeight / 2 - 40 + i * 20}, 15, 1, WHITE);
+                }
                 break;
 
             case STATE_READY:
@@ -274,6 +294,7 @@ int main(void) {
                 break;
 
             case STATE_PLAYING:
+            case STATE_GHOST_EATEN:
                 ClearBackground(BLACK);
                 render_maze(mazeOffsetX, mazeOffsetY);
                 render_pacman(mazeOffsetX, mazeOffsetY);
