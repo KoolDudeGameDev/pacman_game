@@ -134,7 +134,6 @@ void reset_game_state(void) {
     pacman.lives = lives;       // Restore lives
     init_ghosts();
     init_fruit();
-    pelletsEaten = 0;
     readyTimer = 3.0f;          // Show "READY!" for 3 secs
     gameState = STATE_READY;
     isResetting = true;
@@ -179,7 +178,7 @@ void update_fruit(void) {
     float deltaTime = GetFrameTime();
 
     // Check if fruit should spawn (after 70 or 170 pellets eaten)
-    if (!fruit.active && (pelletsEaten == 10 || pelletsEaten == 170)) {
+    if (!fruit.active && (pelletsEaten == 70 || pelletsEaten == 170)) {
         fruit.active = true;
         fruit.timer = 10.0f;    // Fruit only available for 10 secs
     }

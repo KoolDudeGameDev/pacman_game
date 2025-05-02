@@ -42,6 +42,7 @@ int main(void) {
     float transitionAlpha = 0.0f;
     bool fadingOut = false;
     GameState nextState = STATE_KOOLDUDE_LOGO;
+    GameState prevState = STATE_MENU;
 
     // Game Loop
     // ----------------------------------------------------------------------------------------
@@ -62,6 +63,9 @@ int main(void) {
                 if (gameState == STATE_READY && nextState == STATE_READY) {
                     init_maze();
                     reset_game_state();
+                    if (prevState == STATE_LEVEL_COMPLETE || prevState == STATE_MENU) {
+                        pelletsEaten = 0;
+                    }
                 }
             }
         } else if (transitionAlpha > 0.0f) {
@@ -186,7 +190,8 @@ int main(void) {
                     pacman.score = 0;
                     pacman.lives = 3;
                     level = 1;
-                    init_maze();    // Reset maze with pellets
+                    //init_maze();    // Reset maze with pellets
+                    pelletsEaten = 0;
                 }
                 break;
         
