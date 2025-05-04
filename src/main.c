@@ -12,6 +12,7 @@ int main(void) {
     const int screenWidth = 1280;
     const int screenHeight = 720;
     InitWindow(screenWidth, screenHeight, "Pacman v1.0");
+    //ToggleFullscreen();
     InitAudioDevice();
     SetTargetFPS(60);
 
@@ -167,7 +168,7 @@ int main(void) {
                 update_pacman();
                 update_ghosts();
                 update_fruit();
-                printf("pelletsEaten = %d, fruit.active = %d\n", pelletsEaten, fruit.active); // Debug print
+                //printf("pelletsEaten = %d, fruit.active = %d\n", pelletsEaten, fruit.active); // Debug print
                 if (IsKeyPressed(KEY_P)) {
                     gameState = STATE_PAUSED;
                 }

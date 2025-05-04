@@ -136,6 +136,7 @@ extern int pelletsEaten;          // Number of pellets eaten in the current leve
 
 extern int eatenGhostCount;       // Number of ghosts eaten in current power pellet
 extern int eatenGhostIndex;       // Index of the ghost being animated
+extern float powerPelletTimer;    // Timer to track power pellet duration
 
 extern Fruit fruit;               // Bonus fruit
 extern int totalFruitsCollected;  // Total number of fruits collected across levels

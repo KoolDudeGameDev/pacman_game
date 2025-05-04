@@ -187,7 +187,7 @@ void render_maze(int offsetX, int offsetY) {
 
     // Render fruit if active
     if (fruit.active) {
-        printf("Rendering fruit at gridX: %d, gridY: %d\n", fruit.gridX, fruit.gridY); // Add this line
+        //printf("Rendering fruit at gridX: %d, gridY: %d\n", fruit.gridX, fruit.gridY);
         float scaleFactor = (float)TILE_SIZE / 16.0f;
         float scaledWidth = 16.0f * scaleFactor;
         float scaledHeight = 16.0f * scaleFactor;
@@ -304,9 +304,44 @@ void render_ghosts(int offsetX, int offsetY) {
         // Determine if we should use the white frightened sprite
         bool useWhiteFrightenedSprite = (ghosts[i].frightenedBlinkTimer < 0.2f); // Use white sprite for first 0.2 seconds
 
+        // Adjust scale to fit within maze tiles (TILE_SIZE = 20)
+        float ghostScaleFactor = (float)TILE_SIZE / 16.0f; // Scale 16x16 sprite to 20x20
+        float scaledWidth = 16.0f * ghostScaleFactor;
+        float scaledHeight = 16.0f * ghostScaleFactor;
+
+        // Destination rectangle, centered on ghost's position
+        Rectangle destRec = {
+            ghosts[i].x + offsetX,
+            ghosts[i].y + offsetY,
+            scaledWidth,
+            scaledHeight
+        };
+
+        Vector2 origin = { scaledWidth / 2.0f, scaledHeight / 2.0f };
+
+        // If in STATE_GHOST_EATEN and this is the eaten ghost, show the score sprite
+        if (gameState == STATE_GHOST_EATEN && i == eatenGhostIndex) {
+            // Calculate points based on eatenGhostCount (from ghost_ai.c: 200, 400, 800, 1600)
+            int points = 200 * (1 << (eatenGhostCount - 1));
+            Rectangle scoreSourceRec;
+
+            // Map points to sprite coordinates
+            switch (points) {
+                case 200:  scoreSourceRec = (Rectangle){ 0.0f, 130.0f, 16.0f, 16.0f }; break;
+                case 400:  scoreSourceRec = (Rectangle){ 0.0f, 138.0f, 16.0f, 16.0f }; break;
+                case 800:  scoreSourceRec = (Rectangle){ 0.0f, 146.0f, 16.0f, 16.0f }; break;
+                case 1600: scoreSourceRec = (Rectangle){ 0.0f, 154.0f, 16.0f, 16.0f }; break;
+                default:   scoreSourceRec = (Rectangle){ 0.0f, 130.0f, 16.0f, 16.0f }; break;
+            }
+
+            DrawTexturePro(spriteSheet, scoreSourceRec, destRec, origin, 0.0f, WHITE);
+            continue; // Skip rendering the ghost itself while showing the score
+        }
+        
         // Define source rectangle based on ghost's type and state
         Rectangle sourceRec;
         Texture2D texture;
+        
 
         if (ghosts[i].state == GHOST_RETURNING) {
             float xOffset;
@@ -354,20 +389,6 @@ void render_ghosts(int offsetX, int offsetY) {
             texture = ghosts[i].normalSprite[ghosts[i].currentFrame];
         }
 
-        // Adjust scale to fit within maze tiles (TILE_SIZE = 20)
-        float ghostScaleFactor = (float)TILE_SIZE / 16.0f; // Scale 16x16 sprite to 20x20
-        float scaledWidth = 16.0f * ghostScaleFactor;
-        float scaledHeight = 16.0f * ghostScaleFactor;
-
-        // Destination rectangle, centered on ghost's position
-        Rectangle destRec = {
-            ghosts[i].x + offsetX,
-            ghosts[i].y + offsetY,
-            scaledWidth,
-            scaledHeight
-        };
-
-        Vector2 origin = { scaledWidth / 2.0f, scaledHeight / 2.0f };
         DrawTexturePro(texture, sourceRec, destRec, origin, 0.0f, WHITE);
 
         // Adjust the debug rectangle to show the actual tile boundaries

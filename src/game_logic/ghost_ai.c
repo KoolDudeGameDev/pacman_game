@@ -1,6 +1,8 @@
 #include "game_logic.h"
 #include "utils.h"
 
+#include <stdio.h>
+
 // Function to choose best direction toward target
 static Direction choose_best_direction(int currentX, int currentY, int targetX, int targetY, Direction currentDir, bool canPassGate) {
     Direction possibleDirs[4] = {DIR_UP, DIR_DOWN, DIR_LEFT, DIR_RIGHT};
@@ -161,6 +163,21 @@ void update_ghosts(void) {
         collisionCooldown -= deltaTime;
     }
 
+    // Update power pellet timer to keep track of frightened duration
+    if (powerPelletTimer > 0.0f) {
+        powerPelletTimer -= deltaTime;
+        if (powerPelletTimer <= 0.0f) {
+            powerPelletTimer = 0.0f;
+            // Ensure all ghosts exit frightened state if their timer hasn't already expired
+            for (int i = 0; i < MAX_GHOSTS; i++) {
+                if (ghosts[i].state == GHOST_FRIGHTENED) {
+                    ghosts[i].state = GHOST_NORMAL;
+                    ghosts[i].frightenedBlinkTimer = 0.0f;
+                }
+            }
+        }
+    }
+
     // Check for collisions first to handle multiple simultaneous ghost collisions
     bool ghostsToEat[MAX_GHOSTS] = {false};
     int numGhostsToEat = 0;
@@ -182,9 +199,12 @@ void update_ghosts(void) {
                 eatenGhostCount ++;
                 int points = 200 * (1 << (eatenGhostCount - 1));    // 200, 400, 800, 1600
                 pacman.score += points;
+                // Debug print for the added score
+                printf("Ghost %d eaten! Added %d points. Total score: %d (eatenGhostCount: %d)\n", 
+                       i, points, pacman.score, eatenGhostCount);
                 eatenGhostIndex = i;
                 gameState = STATE_GHOST_EATEN;
-                ghostEatenTimer = 0.5f;     // 0.5 sec pause
+                ghostEatenTimer = 1.0f;     // 1 sec pause
                 collisionCooldown = 0.5f;   // Preven immediate re-collision
                 break;
             }

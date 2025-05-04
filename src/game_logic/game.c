@@ -23,6 +23,7 @@ int pelletsEaten = 0;                   // Number of pellets eaten in the curren
 
 int eatenGhostCount = 0;                // Number of ghosts eaten in current power pellet
 int eatenGhostIndex = -1;               // Index of the ghost being animated
+float powerPelletTimer;                 // Timer to track power pellet duration
 
 Fruit fruit;                            // Bonus fruit
 int totalFruitsCollected = 0;           // Total number of fruits collected across levels
@@ -206,6 +207,7 @@ void reset_game_state(void) {
     deathAnimFrame = 0;
     eatenGhostCount = 0;
     eatenGhostIndex = -1;
+    powerPelletTimer = 0.0f;
 }
 
 // Check if the maze is cleared (no pellets or power pellets remain)
