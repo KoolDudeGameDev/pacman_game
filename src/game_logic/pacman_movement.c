@@ -171,11 +171,11 @@ void update_pacman(void) {
             }
         }
 
-        // Start frightened sound
-        if (!isFrightenedSoundPaused) {
+        // Start frightened sound if not already playing
+        if (!IsSoundPlaying(sfx_ghost_frightened)) {
             PlaySound(sfx_ghost_frightened);
-            isFrightenedSoundPaused = true;
-        }
+            isFrightenedSoundPaused = false;
+    }
 
         powerPelletTimer = 10.0f;
         if (is_maze_cleared()) {       

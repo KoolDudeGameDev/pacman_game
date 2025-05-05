@@ -6,7 +6,7 @@
 // Global Variables
 // In game.c
 Texture2D spriteSheet;
-GameState gameState = STATE_MENU;       // Initial state
+GameState gameState = STATE_KOOLDUDE_LOGO;       // Initial state
 GhostMode ghostMode = MODE_SCATTER;     // Start in Scatter mode
 float modeTimer = 0.0f;                 // Timer for switching between Chase and Scatter
 float readyTimer = 0.0f;                // Timer for "READY!" phase
@@ -96,7 +96,7 @@ static char game_maze[MAZE_HEIGHT][MAZE_WIDTH] = {
 void load_high_scores(void) {
     for (int i = 0; i < MAX_HIGH_SCORES; i++) {
         highscores[i].score = 0;
-        strcpy(highscores[i].name, "AAA");
+        strcpy(highscores[i].name, "IBO");
     }
 
     FILE *file = fopen("highscores.txt", "r");
@@ -142,7 +142,7 @@ void check_and_update_high_scores(int score) {
         }
         // Insert new score
         highscores[insertIndex].score = score;
-        strcpy(highscores[insertIndex].name, "NEW");       // PLace holderr
+        strcpy(highscores[insertIndex].name, "Ibo");       // PLace holder
     }
 }
 

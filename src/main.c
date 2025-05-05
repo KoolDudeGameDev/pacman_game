@@ -64,6 +64,9 @@ int main(void) {
     GameState nextState = STATE_KOOLDUDE_LOGO;
     GameState prevState = STATE_MENU;
 
+    // Disable ESC key from closing the window
+    SetExitKey(KEY_NULL);
+
     // Game Loop
     // ----------------------------------------------------------------------------------------
     while (!(shouldExit || WindowShouldClose())) {
@@ -134,7 +137,7 @@ int main(void) {
 
             case STATE_MENU:
                 // Start menu loop sound
-                if (!isMenuLoopPlaying && !IsSoundPlaying(sfx_menu)) {
+                if (!IsSoundPlaying(sfx_menu)) {
                     PlaySound(sfx_menu);
                     isMenuLoopPlaying = true;
                 }
@@ -212,6 +215,10 @@ int main(void) {
                 //printf("pelletsEaten = %d, fruit.active = %d\n", pelletsEaten, fruit.active); // Debug print
                 if (powerPelletTimer > 0.0f) {
                     powerPelletTimer -= GetFrameTime();
+                    if (!IsSoundPlaying(sfx_ghost_frightened) && !isFrightenedSoundPaused) {
+                        PlaySound(sfx_ghost_frightened);
+                    }
+                    
                     if (powerPelletTimer <= 0.0f) {
                         powerPelletTimer = 0.0f;
                         StopSound(sfx_ghost_frightened);
