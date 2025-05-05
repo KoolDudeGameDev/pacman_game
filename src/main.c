@@ -20,10 +20,12 @@ int main(void) {
     Font font = GetFontDefault();
 
     // Load sound effects
-    sfx_menu = LoadSound("assets/sounds/pacman_menu.wav");
+    sfx_menu = LoadSound("assets/sounds/pacman_move.wav");
+            TraceLog(LOG_INFO, "Loaded sound: %s", "pacman_move.wav");
     sfx_menu_nav = LoadSound("assets/sounds/pacman_menu_nav.wav");
     sfx_ready = LoadSound("assets/sounds/pacman_beginning.wav");
-    sfx_pacman_move = LoadSound("assets/sounds/pacman_movement.wav");
+    sfx_pacman_move = LoadSound("assets/sounds/pacman_move.wav");
+            TraceLog(LOG_INFO, "Loaded sound: %s", "pacman_move.wav");
     sfx_pacman_chomp = LoadSound("assets/sounds/pacman_chomp.wav");
     sfx_pacman_death = LoadSound("assets/sounds/pacman_death.wav");
     sfx_eat_fruit= LoadSound("assets/sounds/pacman_eatfruit.wav");
@@ -212,19 +214,14 @@ int main(void) {
                 update_pacman();
                 update_ghosts();
                 update_fruit();
-                //printf("pelletsEaten = %d, fruit.active = %d\n", pelletsEaten, fruit.active); // Debug print
                 if (powerPelletTimer > 0.0f) {
                     powerPelletTimer -= GetFrameTime();
-                    if (!IsSoundPlaying(sfx_ghost_frightened) && !isFrightenedSoundPaused) {
-                        PlaySound(sfx_ghost_frightened);
-                    }
-                    
-                    if (powerPelletTimer <= 0.0f) {
+                    if (powerPelletTimer < 0.0f) {
                         powerPelletTimer = 0.0f;
-                        StopSound(sfx_ghost_frightened);
-                        isFrightenedSoundPaused = false;
                     }
                 }
+                //printf("pelletsEaten = %d, fruit.active = %d\n", pelletsEaten, fruit.active); // Debug print
+        
                 if (IsKeyPressed(KEY_P)) {
                     gameState = STATE_PAUSED;
                 }
@@ -238,20 +235,25 @@ int main(void) {
 
             case STATE_GHOST_EATEN:
                 ghostEatenTimer -= GetFrameTime();
-
-                // Pause frightened sound during ghost eaten animation
-                if (!isFrightenedSoundPaused) {
-                    PauseSound(sfx_ghost_frightened);
-                    isFrightenedSoundPaused = true;
-                }
-
                 if (ghostEatenTimer <= 0.0f) {
                     eatenGhostIndex = -1;   // Reset for next ghost
                     gameState = STATE_PLAYING;
-                    // Resume frightened sound if power pellet effect is still active
-                    if (powerPelletTimer > 0.0f && isFrightenedSoundPaused) {
-                        ResumeSound(sfx_ghost_frightened);
-                        isFrightenedSoundPaused = false;
+                    // Resume frightened sound if any ghost is still frightened
+                    if (isFrightenedSoundPaused) {
+                        bool anyFrightened = false;
+                        for (int i = 0; i < MAX_GHOSTS; i++) {
+                            if (ghosts[i].state == GHOST_FRIGHTENED && ghosts[i].stateTimer > 0.0f) {
+                                anyFrightened = true;
+                                break;
+                            }
+                        }
+                        if (anyFrightened) {
+                            ResumeSound(sfx_ghost_frightened);
+                            isFrightenedSoundPaused = false;
+                        } else {
+                            StopSound(sfx_ghost_frightened);
+                            isFrightenedSoundPaused = false;
+                        }
                     }
                 }
                 break;
@@ -263,9 +265,9 @@ int main(void) {
                     deathAnimTimer = 0.0f;
                 } else {
                     // Update death animation frame based on time
-                    // Total animation duration is 2 secs
-                    float frameDuration = 2.0f / PACMAN_DEATH_FRAMES;
-                    int newFrame = (int)((2.0f - deathAnimTimer) / frameDuration);
+                    // Total animation duration is 6 secs
+                    float frameDuration = 6.0f / PACMAN_DEATH_FRAMES;
+                    int newFrame = (int)((6.0f - deathAnimTimer) / frameDuration);
                     deathAnimFrame = (newFrame < PACMAN_DEATH_FRAMES) ? newFrame : (PACMAN_DEATH_FRAMES - 1);
                 }
                 break;

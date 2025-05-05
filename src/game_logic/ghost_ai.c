@@ -153,6 +153,10 @@ void update_ghosts(void) {
 
     // Skip updates during ghost eaten animation
     if (gameState == STATE_GHOST_EATEN) {
+        if (IsSoundPlaying(sfx_ghost_frightened) && !isFrightenedSoundPaused) {
+            PauseSound(sfx_ghost_frightened);
+            isFrightenedSoundPaused = true;
+        }
         return;
     }
 
@@ -164,21 +168,35 @@ void update_ghosts(void) {
         collisionCooldown -= deltaTime;
     }
 
-    // Update power pellet timer to keep track of frightened duration
-    if (powerPelletTimer > 0.0f) {
-        powerPelletTimer -= deltaTime;
-        if (powerPelletTimer <= 0.0f) {
-            powerPelletTimer = 0.0f;
-            // Ensure all ghosts exit frightened state if their timer hasn't already expired
-            for (int i = 0; i < MAX_GHOSTS; i++) {
-                if (ghosts[i].state == GHOST_FRIGHTENED) {
-                    ghosts[i].state = GHOST_NORMAL;
-                    ghosts[i].frightenedBlinkTimer = 0.0f;
-                }
-            }
+    // Manage the frightened sound based on powerPelletTimer
+    // Manage the frightened sound based on ghost states
+    bool anyFrightened = false;
+    for (int i = 0; i < MAX_GHOSTS; i++) {
+        if (ghosts[i].state == GHOST_FRIGHTENED && ghosts[i].stateTimer > 0.0f) {
+            anyFrightened = true;
+            break;
         }
     }
 
+    if (anyFrightened && gameState == STATE_PLAYING) {
+        if (!IsSoundPlaying(sfx_ghost_frightened) && !isFrightenedSoundPaused) {
+            PlaySound(sfx_ghost_frightened);
+        }
+    } else {
+        if (IsSoundPlaying(sfx_ghost_frightened)) {
+            StopSound(sfx_ghost_frightened);
+        }
+        isFrightenedSoundPaused = false;
+    }
+
+    // Update power pellet timer
+    if (powerPelletTimer > 0.0f) {
+        powerPelletTimer -= deltaTime;
+        if (powerPelletTimer < 0.0f) {
+            powerPelletTimer = 0.0f;
+        }
+    }
+    
     // Check for collisions first to handle multiple simultaneous ghost collisions
     bool ghostsToEat[MAX_GHOSTS] = {false};
     int numGhostsToEat = 0;

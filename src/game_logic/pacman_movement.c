@@ -153,6 +153,12 @@ void update_pacman(void) {
         if (is_maze_cleared()) {        // Check if maze is cleared after collecting pellet
             level ++;                   // Increment level
             gameState = STATE_LEVEL_COMPLETE;
+            deathAnimTimer = 6.0f;
+            powerPelletTimer = 0.0f;
+            if (IsSoundPlaying(sfx_ghost_frightened)) {
+                StopSound(sfx_ghost_frightened);
+            }
+            isFrightenedSoundPaused = false;
             return;
         }
     } else if (maze[pacman.gridY][pacman.gridX] == POWER_PELLET) {
@@ -162,25 +168,31 @@ void update_pacman(void) {
         PlaySound(sfx_pacman_chomp);
         update_pellet_count();
         eatenGhostCount = 0;
+        // Stop any existing frightened sound to avoid overlap
+        if (IsSoundPlaying(sfx_ghost_frightened)) {
+            StopSound(sfx_ghost_frightened);
+        }
+        isFrightenedSoundPaused = false;
+
         // Make ghosts frightened and synchronize their timers
         for (int i = 0; i < MAX_GHOSTS; i++) {
-            if (ghosts[i].state == GHOST_NORMAL || ghosts[i].state == GHOST_FRIGHTENED || GHOST_PENNED) {
+            if (ghosts[i].state == GHOST_NORMAL || ghosts[i].state == GHOST_FRIGHTENED) {
                 ghosts[i].state = GHOST_FRIGHTENED;
                 ghosts[i].stateTimer = 10.0f; // Frightened for 10 seconds
                 ghosts[i].frightenedBlinkTimer = 0.0f;
             }
         }
 
-        // Start frightened sound if not already playing
-        if (!IsSoundPlaying(sfx_ghost_frightened)) {
-            PlaySound(sfx_ghost_frightened);
-            isFrightenedSoundPaused = false;
-    }
-
         powerPelletTimer = 10.0f;
         if (is_maze_cleared()) {       
             level ++;                   
-            gameState = STATE_LEVEL_COMPLETE;     
+            gameState = STATE_LEVEL_COMPLETE; 
+            deathAnimTimer = 6.0f;    
+            powerPelletTimer = 0.0f;    // Reset power pellet timer
+            if (IsSoundPlaying(sfx_ghost_frightened)) {
+                StopSound(sfx_ghost_frightened);
+            }
+            isFrightenedSoundPaused = false;
             return;
         }
     }

@@ -4,9 +4,9 @@
 #include <string.h>
 
 // Global Variables
-// In game.c
+
 Texture2D spriteSheet;
-GameState gameState = STATE_KOOLDUDE_LOGO;       // Initial state
+GameState gameState = STATE_MENU;       // Initial state
 GhostMode ghostMode = MODE_SCATTER;     // Start in Scatter mode
 float modeTimer = 0.0f;                 // Timer for switching between Chase and Scatter
 float readyTimer = 0.0f;                // Timer for "READY!" phase
@@ -219,9 +219,14 @@ void reset_game_state(void) {
     gameState = STATE_READY;
     isResetting = true;
     deathAnimFrame = 0;
+    deathAnimTimer = 6.0f;
     eatenGhostCount = 0;
     eatenGhostIndex = -1;
     powerPelletTimer = 0.0f;
+    if (IsSoundPlaying(sfx_ghost_frightened)) {
+        StopSound(sfx_ghost_frightened);
+    }
+    isFrightenedSoundPaused = false;
     PlaySound(sfx_ready);
 }
 
