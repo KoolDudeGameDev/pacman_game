@@ -18,6 +18,21 @@ void init_pacman(int startX, int startY) {
 // Update position and handle pellet collection
 void update_pacman(void) {
     float deltaTime = GetFrameTime();
+    static int lastScore = 0;                   // Track score to detect extra life
+    static bool isMovingSoundPlaying = false;   // Track if movement sound is playing
+
+    // Handle movement sound
+    if (pacman.direction != DIR_NONE && gameState == STATE_PLAYING && !IsSoundPlaying(sfx_pacman_move)) {
+        if (isMovingSoundPlaying) {
+            PlaySound(sfx_pacman_move);
+            isMovingSoundPlaying = true;
+        } 
+    } else if (pacman.direction == DIR_NONE || gameState != STATE_PLAYING) {
+        if (isMovingSoundPlaying) {
+            StopSound(sfx_pacman_move);
+            isMovingSoundPlaying = false;
+        }  
+    }
 
     // Queue the next direction
     if (IsKeyDown(KEY_RIGHT) || IsKeyDown(KEY_D)) pacman.nextDirection = DIR_RIGHT;
@@ -121,11 +136,19 @@ void update_pacman(void) {
     pacman.gridX = (int)(pacman.x / TILE_SIZE);
     pacman.gridY = (int)(pacman.y / TILE_SIZE);
 
+    // Check for extra life (at 10,000 pts)
+    if (pacman.score >= 1000 && lastScore < 1000) {
+        pacman.lives ++;
+        PlaySound(sfx_extra_life);
+    }
+    lastScore = pacman.score;
+    
     // Handle pellet collection
     if (maze[pacman.gridY][pacman.gridX] == PELLET) {
         maze[pacman.gridY][pacman.gridX] = EMPTY;
         pacman.score += 10;
         pelletsEaten ++;
+        PlaySound(sfx_pacman_chomp);
         update_pellet_count();
         if (is_maze_cleared()) {        // Check if maze is cleared after collecting pellet
             level ++;                   // Increment level
@@ -136,16 +159,24 @@ void update_pacman(void) {
         maze[pacman.gridY][pacman.gridX] = EMPTY;
         pacman.score += 50;
         pelletsEaten ++;
+        PlaySound(sfx_pacman_chomp);
         update_pellet_count();
         eatenGhostCount = 0;
         // Make ghosts frightened and synchronize their timers
         for (int i = 0; i < MAX_GHOSTS; i++) {
-            if (ghosts[i].state == GHOST_NORMAL || ghosts[i].state == GHOST_FRIGHTENED) {
+            if (ghosts[i].state == GHOST_NORMAL || ghosts[i].state == GHOST_FRIGHTENED || GHOST_PENNED) {
                 ghosts[i].state = GHOST_FRIGHTENED;
                 ghosts[i].stateTimer = 10.0f; // Frightened for 10 seconds
                 ghosts[i].frightenedBlinkTimer = 0.0f;
             }
         }
+
+        // Start frightened sound
+        if (!isFrightenedSoundPaused) {
+            PlaySound(sfx_ghost_frightened);
+            isFrightenedSoundPaused = true;
+        }
+
         powerPelletTimer = 10.0f;
         if (is_maze_cleared()) {       
             level ++;                   

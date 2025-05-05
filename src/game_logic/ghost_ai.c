@@ -112,6 +112,7 @@ void init_ghosts(void) {
 // Update Ghost Mode (Chase/Scatter switching)
 // ----------------------------------------------------------------------------------------
 void update_ghost_mode(void) {
+
     /*
     Adjust scatter and chase durations based on level
         Level 1: Chase 20s, Scatter 7s
@@ -199,6 +200,7 @@ void update_ghosts(void) {
                 eatenGhostCount ++;
                 int points = 200 * (1 << (eatenGhostCount - 1));    // 200, 400, 800, 1600
                 pacman.score += points;
+                PlaySound(sfx_eat_ghost);
                 // Debug print for the added score
                 printf("Ghost %d eaten! Added %d points. Total score: %d (eatenGhostCount: %d)\n", 
                        i, points, pacman.score, eatenGhostCount);

@@ -19,6 +19,20 @@ int main(void) {
     // Load a font
     Font font = GetFontDefault();
 
+    // Load sound effects
+    sfx_menu = LoadSound("assets/sounds/pacman_menu.wav");
+    sfx_menu_nav = LoadSound("assets/sounds/pacman_menu_nav.wav");
+    sfx_ready = LoadSound("assets/sounds/pacman_beginning.wav");
+    sfx_pacman_move = LoadSound("assets/sounds/pacman_movement.wav");
+    sfx_pacman_chomp = LoadSound("assets/sounds/pacman_chomp.wav");
+    sfx_pacman_death = LoadSound("assets/sounds/pacman_death.wav");
+    sfx_eat_fruit= LoadSound("assets/sounds/pacman_eatfruit.wav");
+    sfx_eat_ghost= LoadSound("assets/sounds/pacman_eatghost.wav");
+    sfx_ghost_frightened = LoadSound("assets/sounds/pacman_ghost_frightened.wav");
+    sfx_intermission= LoadSound("assets/sounds/pacman_intermission.wav");
+    sfx_extra_life= LoadSound("assets/sounds/pacman_extralife.wav");
+    
+
     // Calculate maze dimensions and offsets
     const int mazePixelWidth = MAZE_WIDTH * TILE_SIZE;              // 560px
     const int mazePixelHeight = MAZE_HEIGHT * TILE_SIZE;            // 620px
@@ -28,6 +42,8 @@ int main(void) {
     // Menu variables
     int selectedOption = 0;
     bool shouldExit = false;
+
+    static bool isMenuLoopPlaying = false;
     
     // Logo animation state
     LogoAnimation logoAnim;
@@ -71,6 +87,11 @@ int main(void) {
                         pelletsEaten = 0;
                     }
                 }
+                // Stop menu loop sound when exiting STATE_MENU
+                if (prevState == STATE_MENU && isMenuLoopPlaying) {
+                    StopSound(sfx_menu);
+                    isMenuLoopPlaying = false;
+                }
             }
         } else if (transitionAlpha > 0.0f) {
             transitionAlpha -= 0.05f;
@@ -112,25 +133,29 @@ int main(void) {
                 break;
 
             case STATE_MENU:
+                // Start menu loop sound
+                if (!isMenuLoopPlaying && !IsSoundPlaying(sfx_menu)) {
+                    PlaySound(sfx_menu);
+                    isMenuLoopPlaying = true;
+                }
+
                 // Navigate menu options
                 if (IsKeyPressed(KEY_DOWN)) {
                     selectedOption = (selectedOption + 1) % 4;
+                    PlaySound(sfx_menu_nav);
                 }
                 if (IsKeyPressed(KEY_UP)) {
                     selectedOption = (selectedOption - 1 + 4) % 4;
+                    PlaySound(sfx_menu_nav);
                 }
                 if (IsKeyPressed(KEY_ENTER)) {
                     if (selectedOption == 0) {      // START
                         init_maze();
-                        int startX, startY;
-                        find_pacman_start(&startX, &startY);
-                        init_pacman(startX, startY);
-                        init_ghosts();
-                        readyTimer = 3.0f;          // Show "READY!" for 3 seconds
-                        gameState = STATE_READY;
-                        isResetting = false;
                         level = 1;                  // Reset level to 1 when starting a new game
+                        pacman.score = 0;           // Reset score for new game
+                        pacman.lives = 3;           // Reset lives for new game
                         totalFruitsCollected = 0;   // Reset fruit count
+                        reset_game_state();         // Initialize game state and play sfx_ready                      
                     } else if (selectedOption == 1) { // HIGHSCORES
                         gameState = STATE_HIGHSCORES;
                     } else if (selectedOption == 2) {
@@ -139,20 +164,35 @@ int main(void) {
                         CloseWindow();
                         return 0;
                     }
+                    PlaySound(sfx_menu_nav);
                 }
                 break;
 
             case STATE_HIGHSCORES:
+                // Ensure menu loop stops when entering HIGHSCORES
+                if (isMenuLoopPlaying) {
+                    StopSound(sfx_menu);
+                    isMenuLoopPlaying = false;
+                }
+
                 if (IsKeyPressed(KEY_ESCAPE) || IsKeyPressed(KEY_ENTER)) {
                     gameState = STATE_MENU;
                     selectedOption = 1;
+                    PlaySound(sfx_menu_nav);
                 }
                 break;
 
             case STATE_ABOUT:
+                // Ensure menu loop stops when entering ABOUT
+                if (isMenuLoopPlaying) {
+                    StopSound(sfx_menu);
+                    isMenuLoopPlaying = false;
+                }
+
                 if (IsKeyPressed(KEY_ESCAPE) || IsKeyPressed(KEY_ENTER)) {
                     gameState = STATE_MENU;
                     selectedOption = 2;
+                    PlaySound(sfx_menu_nav);
                 }
                 break;
             
@@ -161,6 +201,7 @@ int main(void) {
                 if (readyTimer <= 0.0f) {
                     gameState = STATE_PLAYING;
                     readyTimer = 0.0f;
+                    StopSound(sfx_ready);
                 }
                 break;
 
@@ -169,6 +210,14 @@ int main(void) {
                 update_ghosts();
                 update_fruit();
                 //printf("pelletsEaten = %d, fruit.active = %d\n", pelletsEaten, fruit.active); // Debug print
+                if (powerPelletTimer > 0.0f) {
+                    powerPelletTimer -= GetFrameTime();
+                    if (powerPelletTimer <= 0.0f) {
+                        powerPelletTimer = 0.0f;
+                        StopSound(sfx_ghost_frightened);
+                        isFrightenedSoundPaused = false;
+                    }
+                }
                 if (IsKeyPressed(KEY_P)) {
                     gameState = STATE_PAUSED;
                 }
@@ -182,9 +231,21 @@ int main(void) {
 
             case STATE_GHOST_EATEN:
                 ghostEatenTimer -= GetFrameTime();
+
+                // Pause frightened sound during ghost eaten animation
+                if (!isFrightenedSoundPaused) {
+                    PauseSound(sfx_ghost_frightened);
+                    isFrightenedSoundPaused = true;
+                }
+
                 if (ghostEatenTimer <= 0.0f) {
                     eatenGhostIndex = -1;   // Reset for next ghost
                     gameState = STATE_PLAYING;
+                    // Resume frightened sound if power pellet effect is still active
+                    if (powerPelletTimer > 0.0f && isFrightenedSoundPaused) {
+                        ResumeSound(sfx_ghost_frightened);
+                        isFrightenedSoundPaused = false;
+                    }
                 }
                 break;
 
@@ -208,7 +269,7 @@ int main(void) {
                 if (deathAnimTimer <= 0.0f) {
                     fadingOut = true;
                     nextState = STATE_READY;
-                    deathAnimTimer = 3.0f;      // Reset timer
+                    deathAnimTimer = 6.0f;      // Reset timer
                 }
                 break;
 
@@ -474,7 +535,19 @@ int main(void) {
         EndDrawing();
     }
 
+    // Unload resources
     UnloadGhostTextures(ghosts);
+    UnloadSound(sfx_menu);
+    UnloadSound(sfx_menu_nav);
+    UnloadSound(sfx_ready);
+    UnloadSound(sfx_pacman_move);
+    UnloadSound(sfx_pacman_chomp);
+    UnloadSound(sfx_pacman_death);
+    UnloadSound(sfx_eat_fruit);
+    UnloadSound(sfx_eat_ghost);
+    UnloadSound(sfx_ghost_frightened);
+    UnloadSound(sfx_intermission);
+    UnloadSound(sfx_extra_life);
     UnloadFont(font);
     CloseAudioDevice();
     CloseWindow();

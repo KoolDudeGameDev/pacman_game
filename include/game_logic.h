@@ -147,6 +147,22 @@ extern Ghost ghosts[MAX_GHOSTS];
 
 extern HighScore highscores[MAX_HIGH_SCORES];       // High score array
 
+// Sound effects
+extern Sound sfx_menu;           // Background sound for menu
+extern Sound sfx_menu_nav;       // Played when navigating to menu options
+extern Sound sfx_ready;          // Played during READY state
+extern Sound sfx_pacman_move;    // Played when Pac-Man is moving
+extern Sound sfx_pacman_chomp;   // Waka waka sound when eating pellets
+extern Sound sfx_pacman_death;   // Played during death animation
+extern Sound sfx_eat_fruit;      // Played when eating fruit
+extern Sound sfx_eat_ghost;      // Played when eating a ghost
+extern Sound sfx_ghost_frightened;// Played when ghosts are frightened
+extern Sound sfx_intermission;   // Played during level complete
+extern Sound sfx_extra_life;     // Played when gaining an extra life
+
+// Sound playback state
+extern bool isFrightenedSoundPaused; // Tracks if ghost frightened sound
+
 // Function Declarations
 
 // game.c

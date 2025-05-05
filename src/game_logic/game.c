@@ -30,6 +30,20 @@ int totalFruitsCollected = 0;           // Total number of fruits collected acro
 
 HighScore highscores[MAX_HIGH_SCORES];  // High scores array
 
+// Sound effects
+Sound sfx_menu;           // Background sound for menu
+Sound sfx_menu_nav;       // Played when navigating to menu options
+Sound sfx_ready;          // Played during READY state
+Sound sfx_pacman_move;    // Played when Pac-Man is moving
+Sound sfx_pacman_chomp;   // Waka waka sound when eating pellets
+Sound sfx_pacman_death;   // Played during death animation
+Sound sfx_eat_fruit;      // Played when eating fruit
+Sound sfx_eat_ghost;      // Played when eating a ghost
+Sound sfx_ghost_frightened;// Played when ghosts are frightened
+Sound sfx_intermission;   // Played during level complete
+Sound sfx_extra_life;     // Played when gaining an extra life
+
+bool isFrightenedSoundPaused = false;
 // Maze array
 int maze[MAZE_HEIGHT][MAZE_WIDTH];
 Player pacman;
@@ -201,13 +215,14 @@ void reset_game_state(void) {
     pacman.lives = lives;       // Restore lives
     init_ghosts();
     init_fruit();
-    readyTimer = 3.0f;          // Show "READY!" for 3 secs
+    readyTimer = 4.0f;          // Show "READY!" for 4 secs
     gameState = STATE_READY;
     isResetting = true;
     deathAnimFrame = 0;
     eatenGhostCount = 0;
     eatenGhostIndex = -1;
     powerPelletTimer = 0.0f;
+    PlaySound(sfx_ready);
 }
 
 // Check if the maze is cleared (no pellets or power pellets remain)
@@ -215,11 +230,12 @@ bool is_maze_cleared(void) {
     for (int y = 0; y < MAZE_HEIGHT; y ++) {
         for (int x = 0; x < MAZE_WIDTH; x ++) {
             if (maze[y][x] == PELLET || maze[y][x] == POWER_PELLET) {
-                return false;  // Found a pellet or power pellet, maze not cleared
+                return false;    // Found a pellet or power pellet, maze not cleared
             }
         }
     }
-    return true;               // No pellets or power pellets found, maze is cleared
+    PlaySound(sfx_intermission); // Play intermission SFX when maze is cleared
+    return true;                 // No pellets or power pellets found, maze is cleared
 }
 
 // Update remaining pellet count (called from update_pacman)
@@ -267,6 +283,7 @@ void update_fruit(void) {
             totalFruitsCollected ++;
             fruit.active = false;
             fruit.timer = 0.0f;
+            PlaySound(sfx_eat_fruit);
         }
     }
 }
