@@ -20,10 +20,11 @@ int level = 1;                          // Start at level 1
 int initialPelletCount = 0;             // Total number of pellets at the start
 int remainingPelletCount = 0;           // Number of pellets remaining
 int pelletsEaten = 0;                   // Number of pellets eaten in the current level
+int powerPelletsEaten = 0;              // Number of power pellets eaten in the current level
+float powerPelletTimer;                 // Timer to track power pellet duration
 
 int eatenGhostCount = 0;                // Number of ghosts eaten in current power pellet
 int eatenGhostIndex = -1;               // Index of the ghost being animated
-float powerPelletTimer;                 // Timer to track power pellet duration
 
 Fruit fruit;                            // Bonus fruit
 int totalFruitsCollected = 0;           // Total number of fruits collected across levels
@@ -40,7 +41,7 @@ Sound sfx_pacman_death;   // Played during death animation
 Sound sfx_eat_fruit;      // Played when eating fruit
 Sound sfx_eat_ghost;      // Played when eating a ghost
 Sound sfx_ghost_frightened;// Played when ghosts are frightened
-Sound sfx_intermission;   // Played during level complete
+Sound sfx_level_complete; // Played when entering STATE_LEVEL_COMPLETE
 Sound sfx_extra_life;     // Played when gaining an extra life
 
 bool isFrightenedSoundPaused = false;
@@ -56,6 +57,40 @@ Ghost ghosts[MAX_GHOSTS];
 */
 
 static char game_maze[MAZE_HEIGHT][MAZE_WIDTH] = {
+
+    "############################",     //  0     
+    "#            ##            #",     //  1
+    "# #### ##### ## ##### #### #",     //  2
+    "# #### ##### ## ##### #### #",     //  3
+    "#                          #",     //  4
+    "# #### ## ######## ## #### #",     //  5
+    "#      ##    ##    ##      #",     //  6
+    "###### ##### ## ##### ######",     //  7
+    "     # ##### ## ##### #     ",     //  8
+    "     # ##          ## #     ",     //  9
+    "     # ## ###||### ## #     ",     // 10
+    "###### ## #      # ## ######",     // 11
+    "          #      #          ",     // 12
+    "          ########          ",     // 13
+    "###### ##          ## ######",     // 14
+    "#      ## ######## ##      #",     // 15
+    "# ####       ##       #### #",     // 16
+    "#      ##### ## #####      #",     // 17
+    "###### ##### ## ##### ######",     // 18
+    "     # ##      ... ## #     ",     // 19
+    "     # ## ######## ## #     ",     // 20
+    "     # ##     P    ## #     ",     // 21
+    "###### ## ######## ## ######",     // 22
+    "#            ## O  O       #",     // 23
+    "# #### ##### ## ##### #### #",     // 24
+    "#    #                #    #",     // 25
+    "#### # ## ######## ## # ####",     // 26
+    "#      ##    ##    ##      #",     // 27
+    "# ########## ## ########## #",     // 28
+    "#                          #",     // 29
+    "############################"      // 30
+
+    /*
     "############################",     //  0     
     "#............##............#",     //  1
     "#.####.#####.##.#####.####O#",     //  2
@@ -87,6 +122,7 @@ static char game_maze[MAZE_HEIGHT][MAZE_WIDTH] = {
     "#.##########.##.##########.#",     //  28
     "#..........................#",     //  29
     "############################"      //  30
+    */
 };
 
 // Function Definitions
@@ -205,7 +241,7 @@ void find_pacman_start(int *startX, int *startY) {
     }
 }
 
-void reset_game_state(void) {
+void reset_game_state(bool fullReset) {
     int startX, startY;
     find_pacman_start(&startX, &startY);
     int score = pacman.score;   // Preserve score
@@ -223,6 +259,25 @@ void reset_game_state(void) {
     eatenGhostCount = 0;
     eatenGhostIndex = -1;
     powerPelletTimer = 0.0f;
+    // Only reset pellet counts and ghost count for full reset (level completion or new game)
+    if (fullReset) {
+        printf("Full reset: Clearing pelletsEaten, powerPelletsEaten, eatenGhostCount\n");
+        pelletsEaten = 0;
+        powerPelletsEaten = 0;
+        eatenGhostCount = 0;
+        totalFruitsCollected = 0;   // Optional: Reset fruits if desired per level
+    }
+
+    // Recount pellets for the new level state
+    remainingPelletCount = 0;
+    for (int y = 0; y < MAZE_HEIGHT; y++) {
+        for (int x = 0; x < MAZE_WIDTH; x++) {
+            if (maze[y][x] == PELLET || maze[y][x] == POWER_PELLET) {
+                remainingPelletCount++;
+            }
+        }
+    }
+
     if (IsSoundPlaying(sfx_ghost_frightened)) {
         StopSound(sfx_ghost_frightened);
     }
@@ -239,8 +294,9 @@ bool is_maze_cleared(void) {
             }
         }
     }
-    PlaySound(sfx_intermission); // Play intermission SFX when maze is cleared
-    return true;                 // No pellets or power pellets found, maze is cleared
+    remainingPelletCount = 0;
+    PlaySound(sfx_level_complete); // Play level complete SFX when maze is cleared
+    return true;                    // No pellets or power pellets found, maze is cleared
 }
 
 // Update remaining pellet count (called from update_pacman)
@@ -268,8 +324,8 @@ void init_fruit(void) {
 void update_fruit(void) {
     float deltaTime = GetFrameTime();
 
-    // Check if fruit should spawn (after 70 or 170 pellets eaten)
-    if (!fruit.active && (pelletsEaten == 70 || pelletsEaten == 170)) {
+    // Check if fruit should spawn (after 60, 120, and 180 pellets eaten)
+    if (!fruit.active && (pelletsEaten == 60 || pelletsEaten == 120 || pelletsEaten == 180)) {
         fruit.active = true;
         fruit.timer = 10.0f;    // Fruit only available for 10 secs
     }

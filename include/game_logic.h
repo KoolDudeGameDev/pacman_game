@@ -133,10 +133,11 @@ extern int level;                 // Current level
 extern int initialPelletCount;    // Total number of pellets at the start
 extern int remainingPelletCount;  // Number of pellets remaining
 extern int pelletsEaten;          // Number of pellets eaten in the current level
+extern int powerPelletsEaten;     // Number of power pellets eaten in the current level
+extern float powerPelletTimer;    // Timer to track power pellet duration
 
 extern int eatenGhostCount;       // Number of ghosts eaten in current power pellet
 extern int eatenGhostIndex;       // Index of the ghost being animated
-extern float powerPelletTimer;    // Timer to track power pellet duration
 
 extern Fruit fruit;               // Bonus fruit
 extern int totalFruitsCollected;  // Total number of fruits collected across levels
@@ -157,7 +158,7 @@ extern Sound sfx_pacman_death;   // Played during death animation
 extern Sound sfx_eat_fruit;      // Played when eating fruit
 extern Sound sfx_eat_ghost;      // Played when eating a ghost
 extern Sound sfx_ghost_frightened;// Played when ghosts are frightened
-extern Sound sfx_intermission;   // Played during level complete
+extern Sound sfx_level_complete; // Played when entering STATE_LEVEL_COMPLETE
 extern Sound sfx_extra_life;     // Played when gaining an extra life
 
 // Sound playback state
@@ -168,7 +169,7 @@ extern bool isFrightenedSoundPaused; // Tracks if ghost frightened sound
 // game.c
 void init_maze(void);
 void find_pacman_start(int *startX, int *startY);
-void reset_game_state(void);
+void reset_game_state(bool fullReset);
 bool is_maze_cleared(void);
 void update_pellet_count(void);
 void init_fruit(void);

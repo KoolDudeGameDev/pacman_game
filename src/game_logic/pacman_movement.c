@@ -136,8 +136,9 @@ void update_pacman(void) {
     pacman.gridX = (int)(pacman.x / TILE_SIZE);
     pacman.gridY = (int)(pacman.y / TILE_SIZE);
 
-    // Check for extra life (at 10,000 pts)
-    if (pacman.score >= 1000 && lastScore < 1000) {
+    // Check for extra life (at 10,000 pts and 20,000 pts)
+    if (pacman.score >= 10000 && lastScore < 10000 || 
+        pacman.score >= 20000 && lastScore < 20000) {
         pacman.lives ++;
         PlaySound(sfx_extra_life);
     }
@@ -148,6 +149,7 @@ void update_pacman(void) {
         maze[pacman.gridY][pacman.gridX] = EMPTY;
         pacman.score += 10;
         pelletsEaten ++;
+        remainingPelletCount --;
         PlaySound(sfx_pacman_chomp);
         update_pellet_count();
         if (is_maze_cleared()) {        // Check if maze is cleared after collecting pellet
@@ -159,12 +161,14 @@ void update_pacman(void) {
                 StopSound(sfx_ghost_frightened);
             }
             isFrightenedSoundPaused = false;
+            PlaySound(sfx_level_complete);
             return;
         }
     } else if (maze[pacman.gridY][pacman.gridX] == POWER_PELLET) {
         maze[pacman.gridY][pacman.gridX] = EMPTY;
         pacman.score += 50;
-        pelletsEaten ++;
+        powerPelletsEaten ++;
+        remainingPelletCount --;
         PlaySound(sfx_pacman_chomp);
         update_pellet_count();
         eatenGhostCount = 0;
@@ -193,6 +197,7 @@ void update_pacman(void) {
                 StopSound(sfx_ghost_frightened);
             }
             isFrightenedSoundPaused = false;
+            PlaySound(sfx_level_complete);
             return;
         }
     }

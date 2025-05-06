@@ -206,6 +206,7 @@ void update_ghosts(void) {
                 CheckCollision(ghosts[i].x, ghosts[i].y, pacman.x, pacman.y, TILE_SIZE / 2.0f)) {
                 ghostsToEat[i] = true;
                 numGhostsToEat ++;
+                printf("Ghost %d collision detected! eatenGhostCount: %d\n", i, eatenGhostCount + 1);
             }
         }
     }

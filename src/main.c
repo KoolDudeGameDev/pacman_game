@@ -20,18 +20,16 @@ int main(void) {
     Font font = GetFontDefault();
 
     // Load sound effects
-    sfx_menu = LoadSound("assets/sounds/pacman_move.wav");
-            TraceLog(LOG_INFO, "Loaded sound: %s", "pacman_move.wav");
+    sfx_menu = LoadSound("assets/sounds/pacman_menu.mp3");
     sfx_menu_nav = LoadSound("assets/sounds/pacman_menu_nav.wav");
     sfx_ready = LoadSound("assets/sounds/pacman_beginning.wav");
-    sfx_pacman_move = LoadSound("assets/sounds/pacman_move.wav");
-            TraceLog(LOG_INFO, "Loaded sound: %s", "pacman_move.wav");
+    sfx_pacman_move = LoadSound("assets/sounds/pacman_move.mp3");;
     sfx_pacman_chomp = LoadSound("assets/sounds/pacman_chomp.wav");
     sfx_pacman_death = LoadSound("assets/sounds/pacman_death.wav");
     sfx_eat_fruit= LoadSound("assets/sounds/pacman_eatfruit.wav");
     sfx_eat_ghost= LoadSound("assets/sounds/pacman_eatghost.wav");
     sfx_ghost_frightened = LoadSound("assets/sounds/pacman_ghost_frightened.wav");
-    sfx_intermission= LoadSound("assets/sounds/pacman_intermission.wav");
+    sfx_level_complete = LoadSound("assets/sounds/pacman_level_complete.mp3");
     sfx_extra_life= LoadSound("assets/sounds/pacman_extralife.wav");
     
 
@@ -87,7 +85,7 @@ int main(void) {
                 // Perform actions after fade-out
                 if (gameState == STATE_READY && nextState == STATE_READY) {
                     init_maze();
-                    reset_game_state();
+                    reset_game_state(true);
                     if (prevState == STATE_LEVEL_COMPLETE || prevState == STATE_MENU) {
                         pelletsEaten = 0;
                     }
@@ -160,7 +158,7 @@ int main(void) {
                         pacman.score = 0;           // Reset score for new game
                         pacman.lives = 3;           // Reset lives for new game
                         totalFruitsCollected = 0;   // Reset fruit count
-                        reset_game_state();         // Initialize game state and play sfx_ready                      
+                        reset_game_state(true);         // Initialize game state and play sfx_ready                      
                     } else if (selectedOption == 1) { // HIGHSCORES
                         gameState = STATE_HIGHSCORES;
                     } else if (selectedOption == 2) {
@@ -174,12 +172,6 @@ int main(void) {
                 break;
 
             case STATE_HIGHSCORES:
-                // Ensure menu loop stops when entering HIGHSCORES
-                if (isMenuLoopPlaying) {
-                    StopSound(sfx_menu);
-                    isMenuLoopPlaying = false;
-                }
-
                 if (IsKeyPressed(KEY_ESCAPE) || IsKeyPressed(KEY_ENTER)) {
                     gameState = STATE_MENU;
                     selectedOption = 1;
@@ -188,12 +180,6 @@ int main(void) {
                 break;
 
             case STATE_ABOUT:
-                // Ensure menu loop stops when entering ABOUT
-                if (isMenuLoopPlaying) {
-                    StopSound(sfx_menu);
-                    isMenuLoopPlaying = false;
-                }
-
                 if (IsKeyPressed(KEY_ESCAPE) || IsKeyPressed(KEY_ENTER)) {
                     gameState = STATE_MENU;
                     selectedOption = 2;
@@ -202,6 +188,12 @@ int main(void) {
                 break;
             
             case STATE_READY:
+                // Ensure menu loop stops when entering READY
+                if (isMenuLoopPlaying) {
+                    StopSound(sfx_menu);
+                    isMenuLoopPlaying = false;
+                }
+
                 readyTimer -= GetFrameTime();
                 if (readyTimer <= 0.0f) {
                     gameState = STATE_PLAYING;
@@ -220,7 +212,7 @@ int main(void) {
                         powerPelletTimer = 0.0f;
                     }
                 }
-                //printf("pelletsEaten = %d, fruit.active = %d\n", pelletsEaten, fruit.active); // Debug print
+                printf("pelletsEaten = %d, fruit.active = %d\n", pelletsEaten, fruit.active); // Debug print
         
                 if (IsKeyPressed(KEY_P)) {
                     gameState = STATE_PAUSED;
@@ -261,7 +253,7 @@ int main(void) {
             case STATE_DEATH_ANIM:
                 deathAnimTimer -= GetFrameTime();
                 if (deathAnimTimer <= 0.0f) {
-                    reset_game_state();
+                    reset_game_state(false);
                     deathAnimTimer = 0.0f;
                 } else {
                     // Update death animation frame based on time
@@ -279,6 +271,7 @@ int main(void) {
                     fadingOut = true;
                     nextState = STATE_READY;
                     deathAnimTimer = 6.0f;      // Reset timer
+                    reset_game_state(true);
                 }
                 break;
 
@@ -359,7 +352,7 @@ int main(void) {
             case STATE_ABOUT:
                 ClearBackground(BLACK);
                 DrawTextEx(font, "About Pac-Man Remake ", (Vector2){screenWidth / 2 - 70, screenHeight / 2 - 100}, 30, 1, YELLOW);
-                DrawTextEx(font, "Developed by Kyle Ibo", (Vector2){screenWidth / 2 - 80, screenHeight / 2 - 40}, 20, 1, WHITE);
+                DrawTextEx(font, "Developed by Kool", (Vector2){screenWidth / 2 - 80, screenHeight / 2 - 40}, 20, 1, WHITE);
                 DrawTextEx(font, "Powered by Raylib", (Vector2){screenWidth / 2 - 60, screenHeight / 2 - 10}, 20, 1, WHITE);
                 DrawTextEx(font, "Version 1.0", (Vector2){screenWidth / 2 - 40, screenHeight / 2 + 20}, 20, 1, WHITE);
                 DrawTextEx(font, "Press ENTER or ESC to return", (Vector2){screenWidth / 2 - 100, screenHeight / 2 + 80}, 15, 1, GRAY);
@@ -494,16 +487,64 @@ int main(void) {
                 }
                 break;
 
-            case STATE_LEVEL_COMPLETE:
+                case STATE_LEVEL_COMPLETE:
                 ClearBackground(BLACK);
+            
+                // Fade-out-to-black background effect
+                float bgAlpha = deathAnimTimer / 6.0f; // 1.0 (fully visible) to 0.0 (black) over 6 seconds
+                DrawRectangle(0, 0, screenWidth, screenHeight, Fade(BLACK, 1.0f - bgAlpha));
+            
+                // Render maze, Pac-Man, and ghosts
                 render_maze(mazeOffsetX, mazeOffsetY);
                 render_pacman(mazeOffsetX, mazeOffsetY);
                 render_ghosts(mazeOffsetX, mazeOffsetY);
-                DrawTextEx(font, "Level Complete!", (Vector2){screenWidth / 2 - 70, screenHeight / 2}, 20, 1, YELLOW);
+            
+                // Static "Level Complete!" text
+                const char* levelCompleteText = "Level Complete!";
+                Vector2 textSize = MeasureTextEx(font, levelCompleteText, 30.0f, 1);
+                Vector2 textPos = { screenWidth / 2.0f - textSize.x / 2.0f, screenHeight / 2.0f - 80 };
+                DrawTextEx(font, levelCompleteText, textPos, 30.0f, 1, YELLOW);
+            
+                // Fading "Preparing Level X..." subtitle
+                float subtitleAlpha = (deathAnimTimer < 4.0f) ? (1.0f - deathAnimTimer / 4.0f) : 0.0f;
+                char subtitle[32];
+                snprintf(subtitle, sizeof(subtitle), "Preparing Level %d...", level);
+                textSize = MeasureTextEx(font, subtitle, 20.0f, 1);
+                textPos = (Vector2){ screenWidth / 2.0f - textSize.x / 2.0f, screenHeight / 2.0f - 40 };
+                DrawTextEx(font, subtitle, textPos, 20.0f, 1, Fade(WHITE, subtitleAlpha));
+            
+                // Score breakdown
+                int pelletsScore = pelletsEaten * 10;
+                int powerPelletsScore = powerPelletsEaten * 50;
+                int ghostPoints = 0;
+                for (int i = 1; i <= eatenGhostCount; i++) {
+                    ghostPoints += 200 * (1 << (i - 1)); // 200, 400, 800, 1600
+                }
+                int fruitScore = totalFruitsCollected * fruit.points;
+            
+                DrawTextEx(font, TextFormat("Pellets: %d x 10 = %d", pelletsEaten, pelletsScore),
+                           (Vector2){ screenWidth / 2.0f - 100, screenHeight / 2.0f + 0 }, 16.0f, 1, WHITE);
+                DrawTextEx(font, TextFormat("Power Pellets: %d x 50 = %d", powerPelletsEaten, powerPelletsScore),
+                           (Vector2){ screenWidth / 2.0f - 100, screenHeight / 2.0f + 20 }, 16.0f, 1, WHITE);
+                DrawTextEx(font, TextFormat("Ghosts Eaten: %d = %d", eatenGhostCount, ghostPoints),
+                           (Vector2){ screenWidth / 2.0f - 100, screenHeight / 2.0f + 40 }, 16.0f, 1, WHITE);
+                DrawTextEx(font, TextFormat("Fruits: %d x %d = %d", totalFruitsCollected, fruit.points, fruitScore),
+                           (Vector2){ screenWidth / 2.0f - 100, screenHeight / 2.0f + 60 }, 16.0f, 1, WHITE);
+            
+                // Progress bar for remaining time
+                float progress = deathAnimTimer / 6.0f;
+                float barWidth = 200.0f;
+                float barHeight = 10.0f;
+                Rectangle barOutline = { screenWidth / 2.0f - barWidth / 2.0f, screenHeight / 2.0f + 100, barWidth, barHeight };
+                Rectangle barFill = { barOutline.x, barOutline.y, barWidth * progress, barHeight };
+                DrawRectangleRec(barOutline, Fade(WHITE, 0.5f));
+                DrawRectangleRec(barFill, YELLOW);
+            
+                // Standard HUD elements
                 DrawTextEx(font, TextFormat("Score: %d", pacman.score), (Vector2){mazeOffsetX + 10, 10}, 20, 1, WHITE);
                 DrawTextEx(font, TextFormat("Level: %d", level - 1), (Vector2){mazeOffsetX + mazePixelWidth - 100, 10}, 20, 1, WHITE);
                 DrawTextEx(font, "Lives: ", (Vector2){mazeOffsetX + mazePixelWidth - 150, screenHeight - 40}, 20, 1, WHITE);
-                
+            
                 // Draw lives as Pac-Man sprites
                 for (int i = 0; i < pacman.lives; i++) {
                     Rectangle destRec = {
@@ -514,17 +555,20 @@ int main(void) {
                     };
                     DrawTexturePro(pacman.sprite, sourceRec, destRec, origin, 0.0f, WHITE);
                 }
-
-                 // Draw collected fruits
+            
+                // Draw collected fruits
                 for (int i = 0; i < totalFruitsCollected; i++) {
                     Rectangle destRec = {
                         fruitsStartX + (i * (scaledWidth + 5)),
-                        screenHeight - 30, // Same row as lives
+                        screenHeight - 30,
                         scaledWidth,
                         scaledHeight
                     };
                     DrawTexturePro(fruit.sprite, fruitSourceRec, destRec, origin, 0.0f, WHITE);
                 }
+
+                printf("pelletsEaten: %d, powerPelletsEaten: %d, eatenGhostCount: %d, remainingPelletCount: %d\n",
+                    pelletsEaten, powerPelletsEaten, eatenGhostCount, remainingPelletCount);
                 break;
 
             case STATE_GAME_OVER:
@@ -555,7 +599,7 @@ int main(void) {
     UnloadSound(sfx_eat_fruit);
     UnloadSound(sfx_eat_ghost);
     UnloadSound(sfx_ghost_frightened);
-    UnloadSound(sfx_intermission);
+    UnloadSound(sfx_level_complete);
     UnloadSound(sfx_extra_life);
     UnloadFont(font);
     CloseAudioDevice();

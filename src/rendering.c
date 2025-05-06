@@ -213,7 +213,7 @@ void render_maze(int offsetX, int offsetY) {
             TILE_SIZE,
             TILE_SIZE
         };
-        DrawRectangleLines(tileRect.x, tileRect.y, tileRect.width, tileRect.height, GREEN);
+        //DrawRectangleLines(tileRect.x, tileRect.y, tileRect.width, tileRect.height, GREEN);
     }
     
 }
@@ -257,11 +257,13 @@ void render_pacman(int offsetX, int offsetY) {
 
     Vector2 origin = { scaledWidth / 2.0f, scaledHeight / 2.0f };
     DrawTexturePro(pacman.sprite, sourceRec, destRec, origin, rotation, WHITE);
-    
+
+    /*
     // Draw a debugging box around the TILE
     float tileX = pacman.gridX * TILE_SIZE + offsetX;
     float tileY = pacman.gridY * TILE_SIZE + offsetY;
     DrawRectangleLines(tileX, tileY, TILE_SIZE, TILE_SIZE, RED);
+    */
 }
 
 void render_pacman_death(int offsetX, int offsetY) {
@@ -391,6 +393,7 @@ void render_ghosts(int offsetX, int offsetY) {
 
         DrawTexturePro(texture, sourceRec, destRec, origin, 0.0f, WHITE);
 
+        /*
         // Adjust the debug rectangle to show the actual tile boundaries
         Rectangle tileRect = {
             (ghosts[i].gridX * TILE_SIZE) + offsetX,
@@ -399,5 +402,6 @@ void render_ghosts(int offsetX, int offsetY) {
             TILE_SIZE
         };
         DrawRectangleLines(tileRect.x, tileRect.y, tileRect.width, tileRect.height, RED);
+        */
     }
 }
