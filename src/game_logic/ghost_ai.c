@@ -217,6 +217,7 @@ void update_ghosts(void) {
             if (ghostsToEat[i]) {
                 ghosts[i].state = GHOST_RETURNING;
                 eatenGhostCount ++;
+                totalGhostsEaten ++;
                 int points = 200 * (1 << (eatenGhostCount - 1));    // 200, 400, 800, 1600
                 pacman.score += points;
                 PlaySound(sfx_eat_ghost);

@@ -17,7 +17,7 @@ int main(void) {
     SetTargetFPS(60);
 
     // Load a font
-    Font font = GetFontDefault();
+    Font font = LoadFont("assets/fonts/Emulogic-zrEw.ttf");
 
     // Load sound effects
     sfx_menu = LoadSound("assets/sounds/pacman_menu.mp3");
@@ -65,7 +65,7 @@ int main(void) {
     GameState prevState = STATE_MENU;
 
     // Disable ESC key from closing the window
-    SetExitKey(KEY_NULL);
+    SetExitKey(KEY_ONE);
 
     // Game Loop
     // ----------------------------------------------------------------------------------------
@@ -158,7 +158,7 @@ int main(void) {
                         pacman.score = 0;           // Reset score for new game
                         pacman.lives = 3;           // Reset lives for new game
                         totalFruitsCollected = 0;   // Reset fruit count
-                        reset_game_state(true);         // Initialize game state and play sfx_ready                      
+                        reset_game_state(true);     // Initialize game state and play sfx_ready                      
                     } else if (selectedOption == 1) { // HIGHSCORES
                         gameState = STATE_HIGHSCORES;
                     } else if (selectedOption == 2) {
@@ -212,7 +212,7 @@ int main(void) {
                         powerPelletTimer = 0.0f;
                     }
                 }
-                printf("pelletsEaten = %d, fruit.active = %d\n", pelletsEaten, fruit.active); // Debug print
+                //printf("pelletsEaten = %d, fruit.active = %d\n", pelletsEaten, fruit.active); // Debug print
         
                 if (IsKeyPressed(KEY_P)) {
                     gameState = STATE_PAUSED;
@@ -330,32 +330,32 @@ int main(void) {
 
             case STATE_MENU:
                 ClearBackground(BLACK);
-                DrawTextEx(font, "Pac-Man", (Vector2){screenWidth / 2 - 50, screenHeight / 2 - 100}, 30, 1, YELLOW);
-                DrawTextEx(font, "Start", (Vector2){screenWidth / 2 - 20, screenHeight / 2 - 40}, 20, 1, selectedOption == 0 ? YELLOW : WHITE);
-                DrawTextEx(font, "Highscores", (Vector2){screenWidth / 2 - 40, screenHeight / 2 - 10}, 20, 1, selectedOption == 1 ? YELLOW : WHITE);
-                DrawTextEx(font, "About", (Vector2){screenWidth / 2 - 20, screenHeight / 2 + 20}, 20, 1, selectedOption == 2 ? YELLOW : WHITE);
-                DrawTextEx(font, "Exit", (Vector2){screenWidth / 2 - 20, screenHeight / 2 + 50}, 20, 1, selectedOption == 3 ? YELLOW : WHITE);
-                DrawTextEx(font, "Use UP/DOWN to select, ENTER to confirm", (Vector2){screenWidth / 2 - 120, screenHeight / 2 + 80}, 15, 1, GRAY);
+                DrawTextEx(font, "Pac-Man", (Vector2){screenWidth / 2 - 50, screenHeight / 2 - 100}, 20.0f, 1, YELLOW);
+                DrawTextEx(font, "Start", (Vector2){screenWidth / 2 - 20, screenHeight / 2 - 40}, 16.0f, 1, selectedOption == 0 ? YELLOW : WHITE);
+                DrawTextEx(font, "Highscores", (Vector2){screenWidth / 2 - 40, screenHeight / 2 - 10}, 16.0f, 1, selectedOption == 1 ? YELLOW : WHITE);
+                DrawTextEx(font, "About", (Vector2){screenWidth / 2 - 20, screenHeight / 2 + 20}, 16.0f, 1, selectedOption == 2 ? YELLOW : WHITE);
+                DrawTextEx(font, "Exit", (Vector2){screenWidth / 2 - 20, screenHeight / 2 + 50}, 16.0f, 1, selectedOption == 3 ? YELLOW : WHITE);
+                DrawTextEx(font, "Use UP/DOWN to select, ENTER to confirm", (Vector2){screenWidth / 2 - 120, screenHeight / 2 + 80}, 10.0f, 1, GRAY);
                 break;
 
-            case STATE_HIGHSCORES:
+                case STATE_HIGHSCORES:
                 ClearBackground(BLACK);
-                DrawTextEx(font, "High Scores", (Vector2){screenWidth / 2 - 50, screenHeight / 2 - 100}, 30, 1, YELLOW);
-                for (int i = 0; i < MAX_HIGH_SCORES; i ++) {
+                DrawTextEx(font, "High Scores", (Vector2){screenWidth / 2 - 50, screenHeight / 2 - 100}, 20.0f, 1, YELLOW);
+                for (int i = 0; i < MAX_HIGH_SCORES; i++) {
                     char scoreText[32];
                     sprintf(scoreText, "%d. %s - %d", i + 1, highscores[i].name, highscores[i].score);
-                    DrawTextEx(font, scoreText, (Vector2){screenWidth / 2 - 50, screenHeight / 2 - 60 + i * 30}, 20, 1, WHITE);
+                    DrawTextEx(font, scoreText, (Vector2){screenWidth / 2 - 50, screenHeight / 2 - 60 + i * 20}, 16.0f, 1, WHITE);
                 }
-                DrawTextEx(font, "Press ENTER or ESC to return", (Vector2){screenWidth / 2 - 100, screenHeight / 2 + 100}, 15, 1, GRAY);
+                DrawTextEx(font, "Press ENTER or ESC to return", (Vector2){screenWidth / 2 - 100, screenHeight / 2 + 100}, 10.0f, 1, GRAY);
                 break;
 
             case STATE_ABOUT:
                 ClearBackground(BLACK);
-                DrawTextEx(font, "About Pac-Man Remake ", (Vector2){screenWidth / 2 - 70, screenHeight / 2 - 100}, 30, 1, YELLOW);
-                DrawTextEx(font, "Developed by Kool", (Vector2){screenWidth / 2 - 80, screenHeight / 2 - 40}, 20, 1, WHITE);
-                DrawTextEx(font, "Powered by Raylib", (Vector2){screenWidth / 2 - 60, screenHeight / 2 - 10}, 20, 1, WHITE);
-                DrawTextEx(font, "Version 1.0", (Vector2){screenWidth / 2 - 40, screenHeight / 2 + 20}, 20, 1, WHITE);
-                DrawTextEx(font, "Press ENTER or ESC to return", (Vector2){screenWidth / 2 - 100, screenHeight / 2 + 80}, 15, 1, GRAY);
+                DrawTextEx(font, "About Pac-Man Remake", (Vector2){screenWidth / 2 - 70, screenHeight / 2 - 100}, 20.0f, 1, YELLOW);
+                DrawTextEx(font, "Developed by Kyle Ibo", (Vector2){screenWidth / 2 - 70, screenHeight / 2 - 40}, 16.0f, 1, WHITE);
+                DrawTextEx(font, "Powered by Raylib", (Vector2){screenWidth / 2 - 50, screenHeight / 2 - 10}, 16.0f, 1, WHITE);
+                DrawTextEx(font, "Version 1.0", (Vector2){screenWidth / 2 - 30, screenHeight / 2 + 20}, 16.0f, 1, WHITE);
+                DrawTextEx(font, "Press ENTER or ESC to return", (Vector2){screenWidth / 2 - 100, screenHeight / 2 + 80}, 10.0f, 1, GRAY);
                 break;
 
             case STATE_READY:
@@ -363,10 +363,10 @@ int main(void) {
                 render_maze(mazeOffsetX, mazeOffsetY);
                 render_pacman(mazeOffsetX, mazeOffsetY);
                 render_ghosts(mazeOffsetX, mazeOffsetY);
-                DrawTextEx(font, "READY!", (Vector2){screenWidth / 2 - 30, mazeOffsetY + (14 * TILE_SIZE + 3)}, 18, 1, YELLOW);     // Position at row 14 (13 in 0-based index)
-                DrawTextEx(font, TextFormat("Score: %d", pacman.score), (Vector2){mazeOffsetX + 10, 10}, 20, 1, WHITE);
-                DrawTextEx(font, TextFormat("Level: %d", level), (Vector2){mazeOffsetX + mazePixelWidth - 100, 10}, 20, 1, WHITE);
-                DrawTextEx(font, "Lives: ", (Vector2){mazeOffsetX + mazePixelWidth - 150, screenHeight - 40}, 20, 1, WHITE);
+                DrawTextEx(font, "READY!", (Vector2){screenWidth / 2 - 30, mazeOffsetY + (14 * TILE_SIZE + 3)}, 16.0f, 1, YELLOW);
+                DrawTextEx(font, TextFormat("Score: %d", pacman.score), (Vector2){mazeOffsetX + 10, 10}, 16.0f, 1, WHITE);
+                DrawTextEx(font, TextFormat("Level: %d", level), (Vector2){mazeOffsetX + mazePixelWidth - 70, 10}, 16.0f, 1, WHITE);
+                DrawTextEx(font, "Lives: ", (Vector2){mazeOffsetX + mazePixelWidth - 100, screenHeight - 40}, 16.0f, 1, WHITE);
                 // Draw lives as Pac-Man sprites
                 for (int i = 0; i < pacman.lives; i++) {
                     Rectangle destRec = {
@@ -390,16 +390,17 @@ int main(void) {
                 }
                 break;
 
+
             case STATE_PLAYING:
             case STATE_GHOST_EATEN:
                 ClearBackground(BLACK);
                 render_maze(mazeOffsetX, mazeOffsetY);
                 render_pacman(mazeOffsetX, mazeOffsetY);
                 render_ghosts(mazeOffsetX, mazeOffsetY);
-                DrawTextEx(font, TextFormat("Score: %d", pacman.score), (Vector2){mazeOffsetX + 10, 10}, 20, 1, WHITE);
-                DrawTextEx(font, TextFormat("Level: %d", level), (Vector2){mazeOffsetX + mazePixelWidth - 100, 10}, 20, 1, WHITE);
-                DrawTextEx(font, TextFormat("Top Score: %d", highscores[0].score), (Vector2){screenWidth / 2 - 50, 10}, 20, 1, WHITE);
-                DrawTextEx(font, "Lives: ", (Vector2){mazeOffsetX + mazePixelWidth - 150, screenHeight - 40}, 20, 1, WHITE);
+                DrawTextEx(font, TextFormat("Score: %d", pacman.score), (Vector2){mazeOffsetX + 10, 10}, 16.0f, 1, WHITE);
+                DrawTextEx(font, TextFormat("Level: %d", level), (Vector2){mazeOffsetX + mazePixelWidth - 70, 10}, 16.0f, 1, WHITE);
+                DrawTextEx(font, TextFormat("Top Score: %d", highscores[0].score), (Vector2){screenWidth / 2 - 50, 10}, 16.0f, 1, WHITE);
+                DrawTextEx(font, "Lives: ", (Vector2){mazeOffsetX + mazePixelWidth - 100, screenHeight - 40}, 16.0f, 1, WHITE);
                 
                 // Draw lives as Pac-Man sprites
                 for (int i = 0; i < pacman.lives; i++) {
@@ -428,11 +429,10 @@ int main(void) {
                 ClearBackground(BLACK);
                 render_maze(mazeOffsetX, mazeOffsetY);
                 render_pacman(mazeOffsetX, mazeOffsetY);
-                render_pacman(mazeOffsetX, mazeOffsetY);
                 render_ghosts(mazeOffsetX, mazeOffsetY);
-                DrawTextEx(font, "Paused", (Vector2){screenWidth / 2 - 30, screenHeight / 2}, 20, 1, WHITE);
-                DrawTextEx(font, "Press P to Resume", (Vector2){screenWidth / 2 - 70, screenHeight / 2 + 30}, 20, 1, WHITE);
-                DrawTextEx(font, "Lives: ", (Vector2){mazeOffsetX + mazePixelWidth - 150, screenHeight - 40}, 20, 1, WHITE);
+                DrawTextEx(font, "Paused", (Vector2){screenWidth / 2 - 30, screenHeight / 2}, 16.0f, 1, WHITE);
+                DrawTextEx(font, "Press P to Resume", (Vector2){screenWidth / 2 - 70, screenHeight / 2 + 20}, 16.0f, 1, WHITE);
+                DrawTextEx(font, "Lives: ", (Vector2){mazeOffsetX + mazePixelWidth - 100, screenHeight - 40}, 16.0f, 1, WHITE);
                 
                 // Draw lives as Pac-Man sprites
                 for (int i = 0; i < pacman.lives; i++) {
@@ -445,8 +445,8 @@ int main(void) {
                     DrawTexturePro(pacman.sprite, sourceRec, destRec, origin, 0.0f, WHITE);
                 }
 
-                 // Draw collected fruits
-                 for (int i = 0; i < totalFruitsCollected; i++) {
+                // Draw collected fruits
+                for (int i = 0; i < totalFruitsCollected; i++) {
                     Rectangle destRec = {
                         fruitsStartX + (i * (scaledWidth + 5)),
                         screenHeight - 30, // Same row as lives
@@ -461,8 +461,8 @@ int main(void) {
                 ClearBackground(BLACK);
                 render_maze(mazeOffsetX, mazeOffsetY);
                 render_pacman_death(mazeOffsetX, mazeOffsetY);
-                DrawTextEx(font, TextFormat("Score: %d", pacman.score), (Vector2){mazeOffsetX + 10, 10}, 20, 1, WHITE);
-                DrawTextEx(font, "Lives: ", (Vector2){mazeOffsetX + mazePixelWidth - 150, screenHeight - 40}, 20, 1, WHITE);
+                DrawTextEx(font, TextFormat("Score: %d", pacman.score), (Vector2){mazeOffsetX + 10, 10}, 16.0f, 1, WHITE);
+                DrawTextEx(font, "Lives: ", (Vector2){mazeOffsetX + mazePixelWidth - 100, screenHeight - 40}, 16.0f, 1, WHITE);
                 
                 // Draw lives as Pac-Man sprites
                 for (int i = 0; i < pacman.lives; i++) {
@@ -487,7 +487,7 @@ int main(void) {
                 }
                 break;
 
-                case STATE_LEVEL_COMPLETE:
+            case STATE_LEVEL_COMPLETE:
                 ClearBackground(BLACK);
             
                 // Fade-out-to-black background effect
@@ -501,35 +501,78 @@ int main(void) {
             
                 // Static "Level Complete!" text
                 const char* levelCompleteText = "Level Complete!";
-                Vector2 textSize = MeasureTextEx(font, levelCompleteText, 30.0f, 1);
+                Vector2 textSize = MeasureTextEx(font, levelCompleteText, 20.0f, 1);
                 Vector2 textPos = { screenWidth / 2.0f - textSize.x / 2.0f, screenHeight / 2.0f - 80 };
-                DrawTextEx(font, levelCompleteText, textPos, 30.0f, 1, YELLOW);
+                DrawTextEx(font, levelCompleteText, textPos, 20.0f, 1, YELLOW);
             
                 // Fading "Preparing Level X..." subtitle
                 float subtitleAlpha = (deathAnimTimer < 4.0f) ? (1.0f - deathAnimTimer / 4.0f) : 0.0f;
                 char subtitle[32];
                 snprintf(subtitle, sizeof(subtitle), "Preparing Level %d...", level);
-                textSize = MeasureTextEx(font, subtitle, 20.0f, 1);
+                textSize = MeasureTextEx(font, subtitle, 16.0f, 1);
                 textPos = (Vector2){ screenWidth / 2.0f - textSize.x / 2.0f, screenHeight / 2.0f - 40 };
-                DrawTextEx(font, subtitle, textPos, 20.0f, 1, Fade(WHITE, subtitleAlpha));
+                DrawTextEx(font, subtitle, textPos, 16.0f, 1, Fade(WHITE, subtitleAlpha));
             
+                // Score breakdown with sequential fade-in
+                float elapsedTime = 6.0f - deathAnimTimer; // Time since entering STATE_LEVEL_COMPLETE
+                const float fadeDuration = 0.5f; // Duration of each fade-in
+                float pelletsAlpha = 0.0f;
+                float powerPelletsAlpha = 0.0f;
+                float ghostsAlpha = 0.0f;
+                float fruitsAlpha = 0.0f;
+                float progressBarAlpha = 0.0f;
+                float backgroundAlpha = 0.0f;
+
+                // Calculate alpha for each element based on elapsed time
+                if (elapsedTime >= 0.5f) {
+                    pelletsAlpha = (elapsedTime - 0.5f) / fadeDuration;
+                    backgroundAlpha = (elapsedTime - 0.5f) / fadeDuration;
+                    if (pelletsAlpha > 1.0f) pelletsAlpha = 1.0f;
+                    if (backgroundAlpha > 1.0f) backgroundAlpha = 1.0f;
+                }
+                if (elapsedTime >= 1.0f) {
+                    powerPelletsAlpha = (elapsedTime - 1.0f) / fadeDuration;
+                    if (powerPelletsAlpha > 1.0f) powerPelletsAlpha = 1.0f;
+                }
+                if (elapsedTime >= 1.5f) {
+                    ghostsAlpha = (elapsedTime - 1.5f) / fadeDuration;
+                    if (ghostsAlpha > 1.0f) ghostsAlpha = 1.0f;
+                }
+                if (elapsedTime >= 2.0f) {
+                    fruitsAlpha = (elapsedTime - 2.0f) / fadeDuration;
+                    if (fruitsAlpha > 1.0f) fruitsAlpha = 1.0f;
+                }
+                if (elapsedTime >= 2.5f) {
+                    progressBarAlpha = (elapsedTime - 2.5f) / fadeDuration;
+                    if (progressBarAlpha > 1.0f) progressBarAlpha = 1.0f;
+                }
+
+                // Draw semi-transparent background for score breakdown and progress bar
+                Rectangle backgroundRect = {
+                    screenWidth / 2.0f - 120, // x: centered, 100 (text width) + 20 padding
+                    screenHeight / 2.0f - 10, // y: start 10 pixels above pellets text
+                    240,                      // width: 100 (text width) + 20 padding on each side
+                    120                       // height: 60 (text height) + 10 (gap) + 10 (bar height) + 20 padding
+                };
+                DrawRectangleRec(backgroundRect, Fade(BLACK, backgroundAlpha * 0.5f));
+
                 // Score breakdown
                 int pelletsScore = pelletsEaten * 10;
                 int powerPelletsScore = powerPelletsEaten * 50;
                 int ghostPoints = 0;
-                for (int i = 1; i <= eatenGhostCount; i++) {
+                for (int i = 1; i <= totalGhostsEaten; i++) {
                     ghostPoints += 200 * (1 << (i - 1)); // 200, 400, 800, 1600
                 }
                 int fruitScore = totalFruitsCollected * fruit.points;
-            
+
                 DrawTextEx(font, TextFormat("Pellets: %d x 10 = %d", pelletsEaten, pelletsScore),
-                           (Vector2){ screenWidth / 2.0f - 100, screenHeight / 2.0f + 0 }, 16.0f, 1, WHITE);
+                           (Vector2){ screenWidth / 2.0f - 100, screenHeight / 2.0f + 0 }, 10.0f, 1, Fade(WHITE, pelletsAlpha));
                 DrawTextEx(font, TextFormat("Power Pellets: %d x 50 = %d", powerPelletsEaten, powerPelletsScore),
-                           (Vector2){ screenWidth / 2.0f - 100, screenHeight / 2.0f + 20 }, 16.0f, 1, WHITE);
-                DrawTextEx(font, TextFormat("Ghosts Eaten: %d = %d", eatenGhostCount, ghostPoints),
-                           (Vector2){ screenWidth / 2.0f - 100, screenHeight / 2.0f + 40 }, 16.0f, 1, WHITE);
+                           (Vector2){ screenWidth / 2.0f - 100, screenHeight / 2.0f + 20 }, 10.0f, 1, Fade(WHITE, powerPelletsAlpha));
+                DrawTextEx(font, TextFormat("Ghosts Eaten: %d = %d", totalGhostsEaten, ghostPoints),
+                           (Vector2){ screenWidth / 2.0f - 100, screenHeight / 2.0f + 40 }, 10.0f, 1, Fade(WHITE, ghostsAlpha));
                 DrawTextEx(font, TextFormat("Fruits: %d x %d = %d", totalFruitsCollected, fruit.points, fruitScore),
-                           (Vector2){ screenWidth / 2.0f - 100, screenHeight / 2.0f + 60 }, 16.0f, 1, WHITE);
+                           (Vector2){ screenWidth / 2.0f - 100, screenHeight / 2.0f + 60 }, 10.0f, 1, Fade(WHITE, fruitsAlpha));
             
                 // Progress bar for remaining time
                 float progress = deathAnimTimer / 6.0f;
@@ -537,13 +580,13 @@ int main(void) {
                 float barHeight = 10.0f;
                 Rectangle barOutline = { screenWidth / 2.0f - barWidth / 2.0f, screenHeight / 2.0f + 100, barWidth, barHeight };
                 Rectangle barFill = { barOutline.x, barOutline.y, barWidth * progress, barHeight };
-                DrawRectangleRec(barOutline, Fade(WHITE, 0.5f));
-                DrawRectangleRec(barFill, YELLOW);
+                DrawRectangleRec(barOutline, Fade(WHITE, progressBarAlpha * 0.5f)); // Outline with half opacity
+                DrawRectangleRec(barFill, Fade(YELLOW, progressBarAlpha));
             
                 // Standard HUD elements
-                DrawTextEx(font, TextFormat("Score: %d", pacman.score), (Vector2){mazeOffsetX + 10, 10}, 20, 1, WHITE);
-                DrawTextEx(font, TextFormat("Level: %d", level - 1), (Vector2){mazeOffsetX + mazePixelWidth - 100, 10}, 20, 1, WHITE);
-                DrawTextEx(font, "Lives: ", (Vector2){mazeOffsetX + mazePixelWidth - 150, screenHeight - 40}, 20, 1, WHITE);
+                DrawTextEx(font, TextFormat("Score: %d", pacman.score), (Vector2){mazeOffsetX + 10, 10}, 16.0f, 1, WHITE);
+                DrawTextEx(font, TextFormat("Level: %d", level - 1), (Vector2){mazeOffsetX + mazePixelWidth - 70, 10}, 16.0f, 1, WHITE);
+                DrawTextEx(font, "Lives: ", (Vector2){mazeOffsetX + mazePixelWidth - 100, screenHeight - 40}, 16.0f, 1, WHITE);
             
                 // Draw lives as Pac-Man sprites
                 for (int i = 0; i < pacman.lives; i++) {
@@ -567,15 +610,15 @@ int main(void) {
                     DrawTexturePro(fruit.sprite, fruitSourceRec, destRec, origin, 0.0f, WHITE);
                 }
 
-                printf("pelletsEaten: %d, powerPelletsEaten: %d, eatenGhostCount: %d, remainingPelletCount: %d\n",
-                    pelletsEaten, powerPelletsEaten, eatenGhostCount, remainingPelletCount);
+                printf("pelletsEaten: %d, powerPelletsEaten: %d, totalGhostsEaten: %d, remainingPelletCount: %d\n",
+                    pelletsEaten, powerPelletsEaten, totalGhostsEaten, remainingPelletCount);
                 break;
 
             case STATE_GAME_OVER:
                 ClearBackground(BLACK);
-                DrawTextEx(font, "Game Over", (Vector2){screenWidth / 2 - 50, screenHeight / 2 - 40}, 20, 1, RED);
-                DrawTextEx(font, TextFormat("Final Score: %d", pacman.score), (Vector2){screenWidth / 2 - 70, screenHeight / 2}, 20, 1, WHITE);
-                DrawTextEx(font, "Press R to Return to Menu", (Vector2){screenWidth / 2 - 90, screenHeight / 2 + 50}, 20, 1, WHITE);
+                DrawTextEx(font, "Game Over", (Vector2){screenWidth / 2 - 50, screenHeight / 2 - 40}, 20.0f, 1, RED);
+                DrawTextEx(font, TextFormat("Final Score: %d", pacman.score), (Vector2){screenWidth / 2 - 70, screenHeight / 2}, 16.0f, 1, WHITE);
+                DrawTextEx(font, "Press R to Return to Menu", (Vector2){screenWidth / 2 - 90, screenHeight / 2 + 40}, 16.0f, 1, WHITE);
                 break;
 
             default:

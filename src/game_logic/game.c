@@ -25,6 +25,7 @@ float powerPelletTimer;                 // Timer to track power pellet duration
 
 int eatenGhostCount = 0;                // Number of ghosts eaten in current power pellet
 int eatenGhostIndex = -1;               // Index of the ghost being animated
+int totalGhostsEaten;                   // Total ghosts eanten in the current level
 
 Fruit fruit;                            // Bonus fruit
 int totalFruitsCollected = 0;           // Total number of fruits collected across levels
@@ -81,7 +82,7 @@ static char game_maze[MAZE_HEIGHT][MAZE_WIDTH] = {
     "     # ## ######## ## #     ",     // 20
     "     # ##     P    ## #     ",     // 21
     "###### ## ######## ## ######",     // 22
-    "#            ## O  O       #",     // 23
+    "#            ##    O       #",     // 23
     "# #### ##### ## ##### #### #",     // 24
     "#    #                #    #",     // 25
     "#### # ## ######## ## # ####",     // 26
@@ -263,9 +264,10 @@ void reset_game_state(bool fullReset) {
     if (fullReset) {
         printf("Full reset: Clearing pelletsEaten, powerPelletsEaten, eatenGhostCount\n");
         pelletsEaten = 0;
-        powerPelletsEaten = 0;
-        eatenGhostCount = 0;
-        totalFruitsCollected = 0;   // Optional: Reset fruits if desired per level
+        powerPelletsEaten = 0;  
+        eatenGhostCount = 0;        // Reset total ghosts eaten during power pellet effect
+        totalGhostsEaten = 0;       // Reset total ghosts eaten
+        totalFruitsCollected = 0;   // Reset fruits if desired per level
     }
 
     // Recount pellets for the new level state
