@@ -8,7 +8,7 @@ void init_pacman(int startX, int startY) {
     pacman.x = startX * TILE_SIZE + TILE_SIZE / 2.0f;
     pacman.y = startY * TILE_SIZE + TILE_SIZE / 2.0f;
 
-    pacman.speed = 120.0f; // Pixels per second (approx 6 tiles/sec)
+    pacman.speed = 120.0f;      // Pixels per second (approx 6 tiles/sec)
     pacman.score = 0;
     pacman.lives = 3;
     pacman.direction = DIR_RIGHT;
@@ -17,7 +17,7 @@ void init_pacman(int startX, int startY) {
 
 // Update position and handle pellet collection
 void update_pacman(void) {
-    float deltaTime = GetFrameTime();
+    float deltaTime = GetFrameTime();           // Ensuring frame-rate-independent movement
     static int lastScore = 0;                   // Track score to detect extra life
     static bool isMovingSoundPlaying = false;   // Track if movement sound is playing
 

@@ -1,8 +1,6 @@
 #include "game_logic.h"
 #include "rendering.h"
 
-#include <stdio.h>
-
 // Ghost Sprites
 // ----------------------------------------------------------------------------------------
 void LoadGhostTextures(Ghost *ghostArray) {

@@ -80,7 +80,6 @@ typedef struct {
     int points;         // Points awarded when collected
 } Fruit;
 
-
 // Pac-Man structure
 typedef struct {
     float x;         // Grid position X
@@ -88,8 +87,8 @@ typedef struct {
     float speed;     // Pixels per frame
     int gridX;       // Grid position X
     int gridY;       // Grid position Y
-    int score;     // Player score
-    int lives;     // Player lives
+    int score;       // Player score
+    int lives;       // Player lives
     Direction direction;     // Current direction
     Direction nextDirection; // Queued direction
     Texture2D sprite;
@@ -168,24 +167,65 @@ extern bool isFrightenedSoundPaused; // Tracks if ghost frightened sound
 // Function Declarations
 
 // game.c
+
+// Initializes the maze array from a static layout, setting walls, pellets, and power pellets.
 void init_maze(void);
+
+// Finds Pac-Man's starting position in the maze layout ('P' character).
+// Parameters:
+//   startX - Pointer to store the starting X grid position.
+//   startY - Pointer to store the starting Y grid position.
 void find_pacman_start(int *startX, int *startY);
+
+// Resets game state, including Pac-Man, ghosts, and timers, with optional full reset.
+// Parameters:
+//   fullReset - If true, clears pellet counts and maze; if false, preserves them.
 void reset_game_state(bool fullReset);
+
+// Checks if all pellets and power pellets have been collected, indicating level completion.
+// Returns: true if maze is cleared, false otherwise.
 bool is_maze_cleared(void);
+
+// Updates the count of remaining pellets after Pac-Man collects one.
 void update_pellet_count(void);
+
+// Initializes the fruit's state, setting it as inactive with default position (14, 19).
 void init_fruit(void);
+
+// Updates the fruit's state, handling spawning (at 70 and 140 pellets eaten) and collection.
 void update_fruit(void);
+
+// Loads high scores from highscores.txt, using defaults if the file is missing.
 void load_high_scores(void);
+
+// Saves high scores to highscores.txt.
 void save_high_scores(void);
+
+// Checks if the player's score qualifies for the high score list and updates it if necessary.
+// Parameters:
+//   score - The player's score to check against the high score list.
 void check_and_update_high_scores(int score);
 
 // pacman_movement.c
+
+// Initializes Pac-Man's starting position, speed, score, lives, and direction.
+// Parameters:
+//   startX - Starting X grid position.
+//   startY - Starting Y grid position.
 void init_pacman(int startX, int startY);
+
+// Updates Pac-Man's movement, direction changes, pellet collection, and tunnel teleportation.
 void update_pacman(void);
 
 // ghost_ai.c
+
+// Initializes ghosts' positions, speeds, states, and scatter targets.
 void init_ghosts(void);
+
+// Updates ghosts' movement, behavior (chase/scatter), and collisions with Pac-Man.
 void update_ghosts(void);
+
+// Manages the chase/scatter cycle based on level timers.
 void update_ghost_mode(void);
 
 #endif // GAME_LOGIC_H

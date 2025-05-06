@@ -1,8 +1,6 @@
 #include "game_logic.h"
 #include "utils.h"
 
-#include <stdio.h>
-
 // Function to choose best direction toward target
 static Direction choose_best_direction(int currentX, int currentY, int targetX, int targetY, Direction currentDir, bool canPassGate) {
     Direction possibleDirs[4] = {DIR_UP, DIR_DOWN, DIR_LEFT, DIR_RIGHT};
@@ -114,10 +112,10 @@ void init_ghosts(void) {
 void update_ghost_mode(void) {
 
     /*
-    Adjust scatter and chase durations based on level
-        Level 1: Chase 20s, Scatter 7s
-        Level 2: Chase 20s,  Scatter 5s
-        Level 3+: Chase 30s, Scatter 3s
+        Adjust scatter and chase durations based on level
+            Level 1: Chase 20s, Scatter 7s
+            Level 2: Chase 20s,  Scatter 5s
+            Level 3+: Chase 30s, Scatter 3s
     */
 
     float chaseDuration = (level >= 3) ? 30.0f : 20.0f;
@@ -167,8 +165,7 @@ void update_ghosts(void) {
     if (collisionCooldown > 0.0f) {
         collisionCooldown -= deltaTime;
     }
-
-    // Manage the frightened sound based on powerPelletTimer
+    
     // Manage the frightened sound based on ghost states
     bool anyFrightened = false;
     for (int i = 0; i < MAX_GHOSTS; i++) {

@@ -1,13 +1,10 @@
 #include "game_logic.h"
 
-#include <stdio.h>
-#include <string.h>
-
 // Global Variables
 
 Texture2D spriteSheet;
 GameState gameState = STATE_MENU;       // Initial state
-GhostMode ghostMode = MODE_SCATTER;     // Start in Scatter mode
+GhostMode ghostMode = MODE_CHASE;       // Start in Chase mode
 float modeTimer = 0.0f;                 // Timer for switching between Chase and Scatter
 float readyTimer = 0.0f;                // Timer for "READY!" phase
 float deathAnimTimer = 0.0f;            // Timer for death animation
@@ -45,20 +42,23 @@ Sound sfx_ghost_frightened;// Played when ghosts are frightened
 Sound sfx_level_complete; // Played when entering STATE_LEVEL_COMPLETE
 Sound sfx_extra_life;     // Played when gaining an extra life
 
-bool isFrightenedSoundPaused = false;
-// Maze array
+bool isFrightenedSoundPaused = false;   //Tracks whether the ghost frightened sound is paused during STATE_GHOST_EATEN
+
+// Define game maze and main entities
 int maze[MAZE_HEIGHT][MAZE_WIDTH];
 Player pacman;
 Ghost ghosts[MAX_GHOSTS];
 
 // Maze Layout
 
-/*  No. of pellets = 240
+/*  
+    31 x 28 array
+    No. of pellets = 240
     No. of power pellets = 4
 */
 
 static char game_maze[MAZE_HEIGHT][MAZE_WIDTH] = {
-
+/*
     "############################",     //  0     
     "#            ##            #",     //  1
     "# #### ##### ## ##### #### #",     //  2
@@ -78,11 +78,11 @@ static char game_maze[MAZE_HEIGHT][MAZE_WIDTH] = {
     "# ####       ##       #### #",     // 16
     "#      ##### ## #####      #",     // 17
     "###### ##### ## ##### ######",     // 18
-    "     # ##      ... ## #     ",     // 19
+    "     # ##          ## #     ",     // 19
     "     # ## ######## ## #     ",     // 20
-    "     # ##     P    ## #     ",     // 21
+    "     # ##     P....## #     ",     // 21
     "###### ## ######## ## ######",     // 22
-    "#            ##    O       #",     // 23
+    "#            ##            #",     // 23
     "# #### ##### ## ##### #### #",     // 24
     "#    #                #    #",     // 25
     "#### # ## ######## ## # ####",     // 26
@@ -91,7 +91,7 @@ static char game_maze[MAZE_HEIGHT][MAZE_WIDTH] = {
     "#                          #",     // 29
     "############################"      // 30
 
-    /*
+    */
     "############################",     //  0     
     "#............##............#",     //  1
     "#.####.#####.##.#####.####O#",     //  2
@@ -123,7 +123,7 @@ static char game_maze[MAZE_HEIGHT][MAZE_WIDTH] = {
     "#.##########.##.##########.#",     //  28
     "#..........................#",     //  29
     "############################"      //  30
-    */
+    
 };
 
 // Function Definitions
@@ -326,8 +326,8 @@ void init_fruit(void) {
 void update_fruit(void) {
     float deltaTime = GetFrameTime();
 
-    // Check if fruit should spawn (after 60, 120, and 180 pellets eaten)
-    if (!fruit.active && (pelletsEaten == 60 || pelletsEaten == 120 || pelletsEaten == 180)) {
+    // Check if fruit should spawn (after 70, 140 pellets eaten)
+    if (!fruit.active && (pelletsEaten == 70 || pelletsEaten == 140)) {
         fruit.active = true;
         fruit.timer = 10.0f;    // Fruit only available for 10 secs
     }

@@ -3,6 +3,9 @@
 
 #include <math.h>
 
+#include <stdio.h>
+#include <string.h>
+
 // pacman_movement.c
 #include <stdlib.h>
 

@@ -8,6 +8,7 @@ bool IsTileWalkable(int x, int y, bool canPassGate) {
     return maze[y][x] != WALL && (maze[y][x] != GHOST_GATE || canPassGate);
 }
 
+// Calculates the Euclidean distance between two points in a 2D space
 float CalculateDistance(float x1, float y1, float x2, float y2) {
     return sqrtf(powf(x2 - x1, 2) + powf(y2 - y1, 2));
 }
