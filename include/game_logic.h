@@ -40,6 +40,12 @@ typedef enum {
     STATE_GAME_OVER
 } GameState;
 
+// Pause menu states
+typedef enum {
+    PAUSE_MENU_MAIN,
+    PAUSE_MENU_SETTINGS
+} PauseMenuState;
+
 // Direction enum
 typedef enum {
     DIR_NONE = 0,
@@ -147,6 +153,12 @@ extern Player pacman;
 extern Ghost ghosts[MAX_GHOSTS];
 
 extern HighScore highscores[MAX_HIGH_SCORES];       // High score array
+
+extern PauseMenuState pauseMenuState;
+extern int pauseSelectedOption;   // Selected option in pause menu
+extern float bgMusicVolume;       // Background music volume (0.0 to 1.0)
+extern float pacmanSfxVolume;     // Pac-Man SFX volume (0.0 to 1.0)
+extern bool soundMuted;           // Global mute state
 
 // Sound effects
 extern Sound sfx_menu;           // Background sound for menu

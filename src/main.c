@@ -11,13 +11,13 @@ int main(void) {
     const int screenHeight = 720;
     InitWindow(screenWidth, screenHeight, "Pacman v1.0");
     //ToggleFullscreen();
-    InitAudioDevice();
     SetTargetFPS(60);
 
     // Load a font
     Font font = LoadFont("assets/fonts/Emulogic-zrEw.ttf");
 
     // Load sound effects
+    InitAudioDevice();
     sfx_menu = LoadSound("assets/sounds/pacman_menu.mp3");
     sfx_menu_nav = LoadSound("assets/sounds/pacman_menu_nav.wav");
     sfx_ready = LoadSound("assets/sounds/pacman_beginning.wav");
@@ -29,8 +29,20 @@ int main(void) {
     sfx_ghost_frightened = LoadSound("assets/sounds/pacman_ghost_frightened.wav");
     sfx_level_complete = LoadSound("assets/sounds/pacman_level_complete.mp3");
     sfx_extra_life= LoadSound("assets/sounds/pacman_extralife.wav");
-    
 
+    // Set initial volumes
+    SetSoundVolume(sfx_menu, bgMusicVolume);
+    SetSoundVolume(sfx_menu_nav, pacmanSfxVolume);
+    SetSoundVolume(sfx_ready, pacmanSfxVolume);
+    SetSoundVolume(sfx_pacman_move, pacmanSfxVolume);
+    SetSoundVolume(sfx_pacman_chomp, pacmanSfxVolume);
+    SetSoundVolume(sfx_pacman_death, pacmanSfxVolume);
+    SetSoundVolume(sfx_eat_fruit, pacmanSfxVolume);
+    SetSoundVolume(sfx_eat_ghost, pacmanSfxVolume);
+    SetSoundVolume(sfx_ghost_frightened, pacmanSfxVolume);
+    SetSoundVolume(sfx_level_complete, pacmanSfxVolume);
+    SetSoundVolume(sfx_extra_life, pacmanSfxVolume);
+    
     // Calculate maze dimensions and offsets
     const int mazePixelWidth = MAZE_WIDTH * TILE_SIZE;              // 560px
     const int mazePixelHeight = MAZE_HEIGHT * TILE_SIZE;            // 620px
@@ -42,6 +54,7 @@ int main(void) {
     bool shouldExit = false;
 
     static bool isMenuLoopPlaying = false;
+    bool pausedThisFrame = false;       // Tracks if pause was toggled this frame
     
     // Logo animation state
     LogoAnimation logoAnim;
@@ -208,6 +221,11 @@ int main(void) {
                 update_pacman();
                 update_ghosts();
                 update_fruit();
+
+                if (!soundMuted && !IsSoundPlaying(sfx_pacman_move)) {
+                    SetSoundVolume(sfx_pacman_move, pacmanSfxVolume);
+                    PlaySound(sfx_pacman_move);
+                }
                 if (powerPelletTimer > 0.0f) {
                     powerPelletTimer -= GetFrameTime();
                     if (powerPelletTimer < 0.0f) {
@@ -222,8 +240,147 @@ int main(void) {
                 break;
 
             case STATE_PAUSED:
-                if (IsKeyPressed(KEY_P)) {
+                // Handle pause menu navigation
+                if (!pausedThisFrame) {
+                    if (pauseMenuState == PAUSE_MENU_MAIN) {
+                        // Navigate main pause menu
+                        if (IsKeyPressed(KEY_UP)) {
+                            pauseSelectedOption = (pauseSelectedOption - 1 + 4) % 4; // 4 options
+                            if (!soundMuted) {
+                                SetSoundVolume(sfx_menu_nav, pacmanSfxVolume);
+                                PlaySound(sfx_menu_nav);
+                            }
+                        }
+                        if (IsKeyPressed(KEY_DOWN)) {
+                            pauseSelectedOption = (pauseSelectedOption + 1) % 4;
+                            if (!soundMuted) {
+                                SetSoundVolume(sfx_menu_nav, pacmanSfxVolume);
+                                PlaySound(sfx_menu_nav);
+                            }
+                        }
+                        if (IsKeyPressed(KEY_ENTER)) {
+                            if (!soundMuted) {
+                                SetSoundVolume(sfx_menu_nav, pacmanSfxVolume);
+                                PlaySound(sfx_menu_nav);
+                            }
+                            switch (pauseSelectedOption) {
+
+                                case 0: // Resume
+                                    gameState = STATE_PLAYING;
+                                    if (!soundMuted && !IsSoundPlaying(sfx_pacman_move)) {
+                                        SetSoundVolume(sfx_pacman_move, pacmanSfxVolume);
+                                        PlaySound(sfx_pacman_move);
+                                    }
+                                    break;
+
+                                case 1: // Restart
+                                    reset_game_state(true);
+                                    level = 1;
+                                    pacman.score = 0;
+                                    pacman.lives = 3;
+                                    init_maze();
+                                    gameState = STATE_READY;
+                                    break;
+
+                                case 2: // Settings
+                                    pauseMenuState = PAUSE_MENU_SETTINGS;
+                                    pauseSelectedOption = 0; // Reset to first setting (BG Music)
+                                    break;
+
+                                case 3: // Quit
+                                    gameState = STATE_MENU;
+                                    reset_game_state(true);
+                                    level = 1;
+                                    pacman.score = 0;
+                                    pacman.lives = 3;
+                                    init_maze();
+                                    if (!soundMuted) {
+                                        SetSoundVolume(sfx_menu, bgMusicVolume);
+                                        PlaySound(sfx_menu);
+                                    }
+                                    break;
+                            }
+                        }
+                    } else if (pauseMenuState == PAUSE_MENU_SETTINGS) {
+                        // Navigate settings menu
+                        if (IsKeyPressed(KEY_UP)) {
+                            pauseSelectedOption = (pauseSelectedOption - 1 + 3) % 3; // 3 settings
+                            if (!soundMuted) {
+                                SetSoundVolume(sfx_menu_nav, pacmanSfxVolume);
+                                PlaySound(sfx_menu_nav);
+                            }
+                        }
+                        if (IsKeyPressed(KEY_DOWN)) {
+                            pauseSelectedOption = (pauseSelectedOption + 1) % 3;
+                            if (!soundMuted) {
+                                SetSoundVolume(sfx_menu_nav, pacmanSfxVolume);
+                                PlaySound(sfx_menu_nav);
+                            }
+                        }
+                        if (IsKeyPressed(KEY_LEFT)) {
+                            if (!soundMuted) {
+                                SetSoundVolume(sfx_menu_nav, pacmanSfxVolume);
+                                PlaySound(sfx_menu_nav);
+                            }
+                            switch (pauseSelectedOption) {
+
+                                case 0: // BG Music Volume
+                                    bgMusicVolume = fmax(0.0f, bgMusicVolume - 0.1f);
+                                    SetSoundVolume(sfx_menu, soundMuted ? 0.0f : bgMusicVolume);
+                                    break;
+
+                                case 1: // Pac-Man SFX Volume
+                                    pacmanSfxVolume = fmax(0.0f, pacmanSfxVolume - 0.1f);
+                                    break;
+
+                                case 2: // Mute Toggle
+                                    soundMuted = !soundMuted;
+                                    SetSoundVolume(sfx_menu, soundMuted ? 0.0f : bgMusicVolume);
+                                    break;
+                            }
+                        }
+                        if (IsKeyPressed(KEY_RIGHT)) {
+                            if (!soundMuted) {
+                                SetSoundVolume(sfx_menu_nav, pacmanSfxVolume);
+                                PlaySound(sfx_menu_nav);
+                            }
+                            switch (pauseSelectedOption) {
+
+                                case 0: // BG Music Volume
+                                    bgMusicVolume = fmin(1.0f, bgMusicVolume + 0.1f);
+                                    SetSoundVolume(sfx_menu, soundMuted ? 0.0f : bgMusicVolume);
+                                    break;
+
+                                case 1: // Pac-Man SFX Volume
+                                    pacmanSfxVolume = fmin(1.0f, pacmanSfxVolume + 0.1f);
+                                    break;
+                                    
+                                case 2: // Mute Toggle
+                                    soundMuted = !soundMuted;
+                                    SetSoundVolume(sfx_menu, soundMuted ? 0.0f : bgMusicVolume);
+                                    break;
+                            }
+                        }
+                        if (IsKeyPressed(KEY_ESCAPE)) {
+                            pauseMenuState = PAUSE_MENU_MAIN;
+                            pauseSelectedOption = 2; // Return to Settings option
+                            if (!soundMuted) {
+                                SetSoundVolume(sfx_menu_nav, pacmanSfxVolume);
+                                PlaySound(sfx_menu_nav);
+                            }
+                        }
+                    }
+                }
+                pausedThisFrame = false;
+
+                // Toggle pause (only when not in settings to avoid accidental resume)
+                if (IsKeyPressed(KEY_P) && pauseMenuState == PAUSE_MENU_MAIN) {
                     gameState = STATE_PLAYING;
+                    pausedThisFrame = true;
+                    if (!soundMuted && !IsSoundPlaying(sfx_pacman_move)) {
+                        SetSoundVolume(sfx_pacman_move, pacmanSfxVolume);
+                        PlaySound(sfx_pacman_move);
+                    }
                 }
                 break;
 
@@ -368,7 +525,7 @@ int main(void) {
                 render_ghosts(mazeOffsetX, mazeOffsetY);
                 DrawTextEx(font, "READY!", (Vector2){screenWidth / 2 - 35, mazeOffsetY + (14 * TILE_SIZE + 3)}, 16.0f, 1, YELLOW);
                 DrawTextEx(font, "Score: ", (Vector2){mazeOffsetX + 10, 10}, 16.0f, 1, WHITE);
-                DrawTextEx(font, TextFormat("%d", pacman.score), (Vector2){mazeOffsetX + 40, 25}, 16.0f, 1, WHITE);
+                DrawTextEx(font, TextFormat("%d", pacman.score), (Vector2){mazeOffsetX + 30, 25}, 16.0f, 1, WHITE);
                 DrawTextEx(font, "Level: ", (Vector2){mazeOffsetX + mazePixelWidth - 100, 10}, 16.0f, 1, WHITE);
                 DrawTextEx(font, TextFormat("%d", level), (Vector2){mazeOffsetX + mazePixelWidth - 70, 25}, 16.0f, 1, WHITE);
                 DrawTextEx(font, "High Score: ", (Vector2){screenWidth / 2 - 70, 10}, 16.0f, 1, WHITE);
@@ -405,7 +562,7 @@ int main(void) {
                 render_pacman(mazeOffsetX, mazeOffsetY);
                 render_ghosts(mazeOffsetX, mazeOffsetY);
                 DrawTextEx(font, "Score: ", (Vector2){mazeOffsetX + 10, 10}, 16.0f, 1, WHITE);
-                DrawTextEx(font, TextFormat("%d", pacman.score), (Vector2){mazeOffsetX + 40, 25}, 16.0f, 1, WHITE);
+                DrawTextEx(font, TextFormat("%d", pacman.score), (Vector2){mazeOffsetX + 30, 25}, 16.0f, 1, WHITE);
                 DrawTextEx(font, "Level: ", (Vector2){mazeOffsetX + mazePixelWidth - 100, 10}, 16.0f, 1, WHITE);
                 DrawTextEx(font, TextFormat("%d", level), (Vector2){mazeOffsetX + mazePixelWidth - 70, 25}, 16.0f, 1, WHITE);
                 DrawTextEx(font, "High Score: ", (Vector2){screenWidth / 2 - 70, 10}, 16.0f, 1, WHITE);
@@ -441,15 +598,12 @@ int main(void) {
                 render_pacman(mazeOffsetX, mazeOffsetY);
                 render_ghosts(mazeOffsetX, mazeOffsetY);
                 DrawTextEx(font, "Score: ", (Vector2){mazeOffsetX + 10, 10}, 16.0f, 1, WHITE);
-                DrawTextEx(font, TextFormat("%d", pacman.score), (Vector2){mazeOffsetX + 40, 25}, 16.0f, 1, WHITE);
+                DrawTextEx(font, TextFormat("%d", pacman.score), (Vector2){mazeOffsetX + 30, 25}, 16.0f, 1, WHITE);
                 DrawTextEx(font, "Level: ", (Vector2){mazeOffsetX + mazePixelWidth - 100, 10}, 16.0f, 1, WHITE);
                 DrawTextEx(font, TextFormat("%d", level), (Vector2){mazeOffsetX + mazePixelWidth - 70, 25}, 16.0f, 1, WHITE);
                 DrawTextEx(font, "High Score: ", (Vector2){screenWidth / 2 - 70, 10}, 16.0f, 1, WHITE);
                 DrawTextEx(font, TextFormat("%d", highscores[0].score), (Vector2){screenWidth / 2 - 50, 25}, 16.0f, 1, WHITE);
                 DrawTextEx(font, "Lives: ", (Vector2){mazeOffsetX + mazePixelWidth - 170, screenHeight - 40}, 16.0f, 1, WHITE);
-
-                DrawTextEx(font, "Paused", (Vector2){screenWidth / 2 - 30, screenHeight / 2}, 16.0f, 1, WHITE);
-                DrawTextEx(font, "Press P to Resume", (Vector2){screenWidth / 2 - 70, screenHeight / 2 + 20}, 16.0f, 1, WHITE);
                 
                 // Draw lives as Pac-Man sprites
                 for (int i = 0; i < pacman.lives; i++) {
@@ -472,6 +626,17 @@ int main(void) {
                     };
                     DrawTexturePro(fruit.sprite, fruitSourceRec, destRec, origin, 0.0f, WHITE);
                 }
+
+                // Draw semi-transparent black overlay
+                DrawRectangle(0, 0, screenWidth, screenHeight, (Color){0, 0, 0, 150});
+                
+                // Render pause or settings menu
+                if (pauseMenuState == PAUSE_MENU_MAIN) {
+                    render_pause_menu(screenWidth, screenHeight, font);
+                } else {
+                    render_settings_menu(screenWidth, screenHeight, font);
+                }
+
                 break;
 
             case STATE_DEATH_ANIM:
@@ -479,7 +644,7 @@ int main(void) {
                 render_maze(mazeOffsetX, mazeOffsetY);
                 render_pacman_death(mazeOffsetX, mazeOffsetY);
                 DrawTextEx(font, "Score: ", (Vector2){mazeOffsetX + 10, 10}, 16.0f, 1, WHITE);
-                DrawTextEx(font, TextFormat("%d", pacman.score), (Vector2){mazeOffsetX + 40, 25}, 16.0f, 1, WHITE);
+                DrawTextEx(font, TextFormat("%d", pacman.score), (Vector2){mazeOffsetX + 30, 25}, 16.0f, 1, WHITE);
                 DrawTextEx(font, "Lives: ", (Vector2){mazeOffsetX + mazePixelWidth - 170, screenHeight - 40}, 16.0f, 1, WHITE);
 
                 // Draw lives as Pac-Man sprites
@@ -675,7 +840,6 @@ int main(void) {
     }
 
     // Unload resources
-    UnloadGhostTextures(ghosts);
     UnloadSound(sfx_menu);
     UnloadSound(sfx_menu_nav);
     UnloadSound(sfx_ready);
@@ -688,6 +852,7 @@ int main(void) {
     UnloadSound(sfx_level_complete);
     UnloadSound(sfx_extra_life);
     UnloadFont(font);
+    UnloadGhostTextures(ghosts);
     CloseAudioDevice();
     CloseWindow();
     return 0;

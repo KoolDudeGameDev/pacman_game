@@ -4,7 +4,7 @@
 
 Texture2D spriteSheet;
 GameState gameState = STATE_MENU;       // Initial state
-GhostMode ghostMode = MODE_CHASE;       // Start in Chase mode
+GhostMode ghostMode = MODE_SCATTER;       // Start in Scatter mode
 float modeTimer = 0.0f;                 // Timer for switching between Chase and Scatter
 float readyTimer = 0.0f;                // Timer for "READY!" phase
 float deathAnimTimer = 0.0f;            // Timer for death animation
@@ -29,18 +29,24 @@ int totalFruitsCollected = 0;           // Total number of fruits collected acro
 
 HighScore highscores[MAX_HIGH_SCORES];  // High scores array
 
+PauseMenuState pauseMenuState = PAUSE_MENU_MAIN;
+int pauseSelectedOption = 0;
+float bgMusicVolume = 1.0f;          // Default full volume
+float pacmanSfxVolume = 1.0f;        // Default full volume
+bool soundMuted = false;             // Default unmuted
+
 // Sound effects
-Sound sfx_menu;           // Background sound for menu
-Sound sfx_menu_nav;       // Played when navigating to menu options
-Sound sfx_ready;          // Played during READY state
-Sound sfx_pacman_move;    // Played when Pac-Man is moving
-Sound sfx_pacman_chomp;   // Waka waka sound when eating pellets
-Sound sfx_pacman_death;   // Played during death animation
-Sound sfx_eat_fruit;      // Played when eating fruit
-Sound sfx_eat_ghost;      // Played when eating a ghost
-Sound sfx_ghost_frightened;// Played when ghosts are frightened
-Sound sfx_level_complete; // Played when entering STATE_LEVEL_COMPLETE
-Sound sfx_extra_life;     // Played when gaining an extra life
+Sound sfx_menu;             // Background sound for menu
+Sound sfx_menu_nav;         // Played when navigating to menu options
+Sound sfx_ready;            // Played during READY state
+Sound sfx_pacman_move;      // Played when Pac-Man is moving
+Sound sfx_pacman_chomp;     // Waka waka sound when eating pellets
+Sound sfx_pacman_death;     // Played during death animation
+Sound sfx_eat_fruit;        // Played when eating fruit
+Sound sfx_eat_ghost;        // Played when eating a ghost
+Sound sfx_ghost_frightened; // Played when ghosts are frightened
+Sound sfx_level_complete;   // Played when entering STATE_LEVEL_COMPLETE
+Sound sfx_extra_life;       // Played when gaining an extra life
 
 bool isFrightenedSoundPaused = false;   //Tracks whether the ghost frightened sound is paused during STATE_GHOST_EATEN
 
@@ -346,7 +352,10 @@ void update_fruit(void) {
             totalFruitsCollected ++;
             fruit.active = false;
             fruit.timer = 0.0f;
-            PlaySound(sfx_eat_fruit);
+            if (!soundMuted) {
+                SetSoundVolume(sfx_eat_fruit, pacmanSfxVolume);
+                PlaySound(sfx_eat_fruit);
+            }
         }
     }
 }
