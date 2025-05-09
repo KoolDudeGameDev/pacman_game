@@ -43,6 +43,6 @@ void render_pause_menu(int screenWidth, int screenHeight, Font font);
 //   screenWidth - Width of the screen in pixels.
 //   screenHeight - Height of the screen in pixels.
 //   font - Font used for rendering text.
-void render_settings_menu(int screenWidth, int screenHeight, Font font);
+void render_settings_menu(int screenWidth, int screenHeight, Font font, int selectedOption);
 
 #endif // RENDERING_H

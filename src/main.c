@@ -96,11 +96,30 @@ int main(void) {
                 // Perform actions after fade-out
                 if (gameState == STATE_READY && nextState == STATE_READY) {
                     init_maze();
-                    reset_game_state(true);
+                    reset_game_state(true, STATE_READY);
                     if (prevState == STATE_LEVEL_COMPLETE || prevState == STATE_MENU) {
                         pelletsEaten = 0;
                     }
                 }
+
+                // Handle quit from pause menu
+                if (gameState == STATE_MENU && prevState == STATE_PAUSED) {
+                    StopSound(sfx_pacman_move);
+                    StopSound(sfx_pacman_chomp);
+                    StopSound(sfx_ghost_frightened);
+                    reset_game_state(true, STATE_MENU);
+                    level = 1;
+                    pacman.score = 0;
+                    pacman.lives = 3;
+                    init_maze();
+                    pauseMenuState = PAUSE_MENU_MAIN;
+                    pauseSelectedOption = 0;
+                    if (!soundMuted) {
+                        SetSoundVolume(sfx_menu, bgMusicVolume);
+                        PlaySound(sfx_menu);
+                    }
+                }
+
                 // Stop menu loop sound when exiting STATE_MENU
                 if (prevState == STATE_MENU && isMenuLoopPlaying) {
                     StopSound(sfx_menu);
@@ -149,17 +168,18 @@ int main(void) {
             case STATE_MENU:
                 // Start menu loop sound
                 if (!IsSoundPlaying(sfx_menu)) {
+                    SetSoundVolume(sfx_menu, bgMusicVolume);
                     PlaySound(sfx_menu);
                     isMenuLoopPlaying = true;
                 }
 
                 // Navigate menu options
                 if (IsKeyPressed(KEY_DOWN)) {
-                    selectedOption = (selectedOption + 1) % 4;
+                    selectedOption = (selectedOption + 1) % 5;
                     PlaySound(sfx_menu_nav);
                 }
                 if (IsKeyPressed(KEY_UP)) {
-                    selectedOption = (selectedOption - 1 + 4) % 4;
+                    selectedOption = (selectedOption - 1 + 5) % 5;
                     PlaySound(sfx_menu_nav);
                 }
                 if (IsKeyPressed(KEY_ENTER)) {
@@ -169,14 +189,20 @@ int main(void) {
                         pacman.score = 0;           // Reset score for new game
                         pacman.lives = 3;           // Reset lives for new game
                         totalFruitsCollected = 0;   // Reset fruit count
-                        reset_game_state(true);     // Initialize game state and play sfx_ready                      
+                        reset_game_state(true, STATE_READY);     // Initialize game state and play sfx_ready                      
                     } else if (selectedOption == 1) { // HIGHSCORES
                         gameState = STATE_HIGHSCORES;
-                    } else if (selectedOption == 2) {
-                        gameState = STATE_ABOUT;    // ABOUT
+                        selectedOption = 0;
+                    } else if (selectedOption == 2) { // ABOUT
+                        gameState = STATE_ABOUT;
+                        selectedOption = 0;    
+                    } else if (selectedOption == 3) { // SETTINGS
+                        gameState = STATE_SETTINGS;
+                        selectedOption = 0;
                     } else {                        // EXIT
-                        CloseWindow();
-                        return 0;
+                        shouldExit = true;
+                        fadingOut = true;
+                        nextState = STATE_MENU;
                     }
                     PlaySound(sfx_menu_nav);
                 }
@@ -194,6 +220,67 @@ int main(void) {
                 if (IsKeyPressed(KEY_ESCAPE) || IsKeyPressed(KEY_ENTER)) {
                     gameState = STATE_MENU;
                     selectedOption = 2;
+                    PlaySound(sfx_menu_nav);
+                }
+                break;
+
+            case STATE_SETTINGS:
+                // Navigate settings menu
+                if (IsKeyPressed(KEY_UP)) {
+                    selectedOption = (selectedOption - 1 + 3) % 3; // 3 settings
+                    if (!soundMuted) {
+                        SetSoundVolume(sfx_menu_nav, pacmanSfxVolume);
+                        PlaySound(sfx_menu_nav);
+                    }
+                }
+                if (IsKeyPressed(KEY_DOWN)) {
+                    selectedOption = (selectedOption + 1) % 3;
+                    if (!soundMuted) {
+                        SetSoundVolume(sfx_menu_nav, pacmanSfxVolume);
+                        PlaySound(sfx_menu_nav);
+                    }
+                }
+                if (IsKeyPressed(KEY_LEFT)) {
+                    if (!soundMuted) {
+                        SetSoundVolume(sfx_menu_nav, pacmanSfxVolume);
+                        PlaySound(sfx_menu_nav);
+                    }
+                    switch (selectedOption) {
+                        case 0: // BG Music Volume
+                            bgMusicVolume = fmax(0.0f, bgMusicVolume - 0.1f);
+                            SetSoundVolume(sfx_menu, soundMuted ? 0.0f : bgMusicVolume);
+                            break;
+                        case 1: // Pac-Man SFX Volume
+                            pacmanSfxVolume = fmax(0.0f, pacmanSfxVolume - 0.1f);
+                            break;
+                        case 2: // Mute Toggle
+                            soundMuted = !soundMuted;
+                            SetSoundVolume(sfx_menu, soundMuted ? 0.0f : bgMusicVolume);
+                            break;
+                    }
+                }
+                if (IsKeyPressed(KEY_RIGHT)) {
+                    if (!soundMuted) {
+                        SetSoundVolume(sfx_menu_nav, pacmanSfxVolume);
+                        PlaySound(sfx_menu_nav);
+                    }
+                    switch (selectedOption) {
+                        case 0: // BG Music Volume
+                            bgMusicVolume = fmin(1.0f, bgMusicVolume + 0.1f);
+                            SetSoundVolume(sfx_menu, soundMuted ? 0.0f : bgMusicVolume);
+                            break;
+                        case 1: // Pac-Man SFX Volume
+                            pacmanSfxVolume = fmin(1.0f, pacmanSfxVolume + 0.1f);
+                            break;
+                        case 2: // Mute Toggle
+                            soundMuted = !soundMuted;
+                            SetSoundVolume(sfx_menu, soundMuted ? 0.0f : bgMusicVolume);
+                            break;
+                    }
+                }
+                if (IsKeyPressed(KEY_ESCAPE) || IsKeyPressed(KEY_ENTER)) {
+                    gameState = STATE_MENU;
+                    selectedOption = 3; // Return to Settings option
                     PlaySound(sfx_menu_nav);
                 }
                 break;
@@ -216,7 +303,7 @@ int main(void) {
                     StopSound(sfx_ready);
                 }
                 break;
-
+            
             case STATE_PLAYING:
                 update_pacman();
                 update_ghosts();
@@ -274,7 +361,7 @@ int main(void) {
                                     break;
 
                                 case 1: // Restart
-                                    reset_game_state(true);
+                                    reset_game_state(true, STATE_READY);
                                     level = 1;
                                     pacman.score = 0;
                                     pacman.lives = 3;
@@ -288,16 +375,9 @@ int main(void) {
                                     break;
 
                                 case 3: // Quit
-                                    gameState = STATE_MENU;
-                                    reset_game_state(true);
-                                    level = 1;
-                                    pacman.score = 0;
-                                    pacman.lives = 3;
-                                    init_maze();
-                                    if (!soundMuted) {
-                                        SetSoundVolume(sfx_menu, bgMusicVolume);
-                                        PlaySound(sfx_menu);
-                                    }
+                                    fadingOut = true;
+                                    nextState = STATE_MENU;
+                                    prevState = STATE_PAUSED;
                                     break;
                             }
                         }
@@ -412,7 +492,7 @@ int main(void) {
             case STATE_DEATH_ANIM:
                 deathAnimTimer -= GetFrameTime();
                 if (deathAnimTimer <= 0.0f) {
-                    reset_game_state(false);
+                    reset_game_state(false, STATE_READY);
                     deathAnimTimer = 0.0f;
                 } else {
                     // Update death animation frame based on time
@@ -431,7 +511,7 @@ int main(void) {
                     fadingOut = true;
                     nextState = STATE_READY;
                     deathAnimTimer = 6.0f;      // Reset timer
-                    reset_game_state(true);
+                    reset_game_state(true, STATE_READY);
                 }
                 break;
 
@@ -494,8 +574,9 @@ int main(void) {
                 DrawTextEx(font, "Start", (Vector2){screenWidth / 2 - 20, screenHeight / 2 - 40}, 16.0f, 1, selectedOption == 0 ? YELLOW : WHITE);
                 DrawTextEx(font, "Highscores", (Vector2){screenWidth / 2 - 40, screenHeight / 2 - 10}, 16.0f, 1, selectedOption == 1 ? YELLOW : WHITE);
                 DrawTextEx(font, "About", (Vector2){screenWidth / 2 - 20, screenHeight / 2 + 20}, 16.0f, 1, selectedOption == 2 ? YELLOW : WHITE);
-                DrawTextEx(font, "Exit", (Vector2){screenWidth / 2 - 20, screenHeight / 2 + 50}, 16.0f, 1, selectedOption == 3 ? YELLOW : WHITE);
-                DrawTextEx(font, "Use UP/DOWN to select, ENTER to confirm", (Vector2){screenWidth / 2 - 120, screenHeight / 2 + 80}, 10.0f, 1, GRAY);
+                DrawTextEx(font, "Settings", (Vector2){screenWidth / 2 - 30, screenHeight / 2 + 50}, 16.0f, 1, selectedOption == 3 ? YELLOW : WHITE);
+                DrawTextEx(font, "Exit", (Vector2){screenWidth / 2 - 20, screenHeight / 2 + 80}, 16.0f, 1, selectedOption == 4 ? YELLOW : WHITE);
+                DrawTextEx(font, "Use UP/DOWN to select, ENTER to confirm", (Vector2){screenWidth / 2 - 120, screenHeight / 2 + 110}, 10.0f, 1, GRAY);
                 break;
 
                 case STATE_HIGHSCORES:
@@ -516,6 +597,11 @@ int main(void) {
                 DrawTextEx(font, "Powered by Raylib", (Vector2){screenWidth / 2 - 50, screenHeight / 2 - 10}, 16.0f, 1, WHITE);
                 DrawTextEx(font, "Version 1.0", (Vector2){screenWidth / 2 - 30, screenHeight / 2 + 20}, 16.0f, 1, WHITE);
                 DrawTextEx(font, "Press ENTER or ESC to return", (Vector2){screenWidth / 2 - 100, screenHeight / 2 + 80}, 10.0f, 1, GRAY);
+                break;
+
+            case STATE_SETTINGS:
+                ClearBackground(BLACK);
+                render_settings_menu(screenWidth, screenHeight, font, selectedOption);
                 break;
 
             case STATE_READY:
@@ -634,7 +720,7 @@ int main(void) {
                 if (pauseMenuState == PAUSE_MENU_MAIN) {
                     render_pause_menu(screenWidth, screenHeight, font);
                 } else {
-                    render_settings_menu(screenWidth, screenHeight, font);
+                    render_settings_menu(screenWidth, screenHeight, font, pauseSelectedOption);
                 }
 
                 break;

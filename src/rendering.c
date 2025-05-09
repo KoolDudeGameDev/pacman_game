@@ -407,14 +407,14 @@ void render_ghosts(int offsetX, int offsetY) {
 void render_pause_menu(int screenWidth, int screenHeight, Font font) {
     const char *options[] = {"RESUME", "RESTART", "SETTINGS", "QUIT"};
     int numOptions = 4;
-    int fontSize = 30;
-    int spacing = 50;
+    int fontSize = 16;
+    int spacing = 30;
     int startY = screenHeight / 2 - (numOptions * spacing) / 2;
 
     // Draw "PAUSED" title
     const char *title = "PAUSED";
-    Vector2 titleSize = MeasureTextEx(font, title, fontSize * 1.5, 2);
-    DrawTextEx(font, title, (Vector2){screenWidth / 2 - titleSize.x / 2, startY - 100}, fontSize * 1.5, 2, YELLOW);
+    Vector2 titleSize = MeasureTextEx(font, title, fontSize * 1.25, 2);
+    DrawTextEx(font, title, (Vector2){screenWidth / 2 - titleSize.x / 2, startY - 60}, fontSize * 1.25, 2, YELLOW);
 
     // Draw menu options
     for (int i = 0; i < numOptions; i++) {
@@ -424,25 +424,25 @@ void render_pause_menu(int screenWidth, int screenHeight, Font font) {
     }
 }
 
-void render_settings_menu(int screenWidth, int screenHeight, Font font) {
+void render_settings_menu(int screenWidth, int screenHeight, Font font, int selectedOption) {
     const char *options[] = {"BG MUSIC VOLUME", "PAC-MAN SFX VOLUME", "MUTE"};
     int numOptions = 3;
-    int fontSize = 30;
-    int spacing = 60;
+    int fontSize = 16;
+    int spacing = 30;
     int startY = screenHeight / 2 - (numOptions * spacing) / 2;
-    int sliderWidth = 200;
-    int sliderHeight = 10;
+    int sliderWidth = fontSize * 6;
+    int sliderHeight = (int)(fontSize * 0.3 + 0.5);
 
     // Draw "SETTINGS" title
     const char *title = "SETTINGS";
-    Vector2 titleSize = MeasureTextEx(font, title, fontSize * 1.5, 2);
-    DrawTextEx(font, title, (Vector2){screenWidth / 2 - titleSize.x / 2, startY - 100}, fontSize * 1.5, 2, YELLOW);
+    Vector2 titleSize = MeasureTextEx(font, title, fontSize * 1.25, 2);
+    DrawTextEx(font, title, (Vector2){screenWidth / 2 - titleSize.x / 2, startY - 60}, fontSize * 1.5, 2, YELLOW);
 
     // Draw settings options
     for (int i = 0; i < numOptions; i++) {
-        Color color = (i == pauseSelectedOption) ? YELLOW : WHITE;
+        Color color = (i == selectedOption) ? YELLOW : WHITE;
         Vector2 textSize = MeasureTextEx(font, options[i], fontSize, 2);
-        float textX = screenWidth / 2 - textSize.x - 50;
+        float textX = screenWidth / 2 - textSize.x - 30;
         float sliderX = screenWidth / 2 + 10;
         float y = startY + i * spacing;
 
@@ -453,8 +453,8 @@ void render_settings_menu(int screenWidth, int screenHeight, Font font) {
         if (i < 2) {
             // Sliders for volumes
             float volume = (i == 0) ? bgMusicVolume : pacmanSfxVolume;
-            DrawRectangle(sliderX, y + 5, sliderWidth, sliderHeight, GRAY);
-            DrawRectangle(sliderX, y + 5, sliderWidth * volume, sliderHeight, color);
+            DrawRectangle(sliderX, y + 2, sliderWidth, sliderHeight, GRAY);
+            DrawRectangle(sliderX, y + 2, sliderWidth * volume, sliderHeight, color);
             char valueText[16];
             sprintf(valueText, "%.0f%%", volume * 100);
             Vector2 valueSize = MeasureTextEx(font, valueText, fontSize * 0.8, 2);

@@ -31,6 +31,7 @@ typedef enum {
     STATE_MENU,
     STATE_HIGHSCORES,
     STATE_ABOUT,
+    STATE_SETTINGS,
     STATE_READY,         // Ready phase before playing
     STATE_PLAYING,
     STATE_PAUSED,
@@ -192,7 +193,7 @@ void find_pacman_start(int *startX, int *startY);
 // Resets game state, including Pac-Man, ghosts, and timers, with optional full reset.
 // Parameters:
 //   fullReset - If true, clears pellet counts and maze; if false, preserves them.
-void reset_game_state(bool fullReset);
+void reset_game_state(bool fullReset, GameState targetState);
 
 // Checks if all pellets and power pellets have been collected, indicating level completion.
 // Returns: true if maze is cleared, false otherwise.

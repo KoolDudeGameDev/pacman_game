@@ -248,18 +248,23 @@ void find_pacman_start(int *startX, int *startY) {
     }
 }
 
-void reset_game_state(bool fullReset) {
+void reset_game_state(bool fullReset, GameState targetState) {
     int startX, startY;
     find_pacman_start(&startX, &startY);
-    int score = pacman.score;   // Preserve score
-    int lives = pacman.lives;   // Preserve lives
+    int score = pacman.score;   // Preserve score unless full reset
+    int lives = pacman.lives;   // Preserve lives unless full reset
     init_pacman(startX, startY);
-    pacman.score = score;       // Restore score
-    pacman.lives = lives;       // Restore lives
+    if (fullReset) {
+        pacman.score = 0;
+        pacman.lives = 3;
+    } else {
+        pacman.score = score;   // Restore score
+        pacman.lives = lives;   // Restore lives
+    }
     init_ghosts();
     init_fruit();
-    readyTimer = 4.0f;          // Show "READY!" for 4 secs
-    gameState = STATE_READY;
+    readyTimer = 4.0f;          // Show "READY!" for 4 secs (only used if targetState is STATE_READY)
+    gameState = targetState;    // Set to specified target state
     isResetting = true;
     deathAnimFrame = 0;
     deathAnimTimer = 6.0f;
@@ -290,7 +295,9 @@ void reset_game_state(bool fullReset) {
         StopSound(sfx_ghost_frightened);
     }
     isFrightenedSoundPaused = false;
-    PlaySound(sfx_ready);
+    if (targetState == STATE_READY) {
+        PlaySound(sfx_ready);
+    }
 }
 
 // Check if the maze is cleared (no pellets or power pellets remain)
