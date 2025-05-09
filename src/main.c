@@ -10,7 +10,7 @@ int main(void) {
     const int screenWidth = 1280;
     const int screenHeight = 720;
     InitWindow(screenWidth, screenHeight, "Pacman v1.0");
-    //ToggleFullscreen();
+
     SetTargetFPS(60);
 
     // Load a font
@@ -81,6 +81,11 @@ int main(void) {
     // Game Loop
     // ----------------------------------------------------------------------------------------
     while (!(shouldExit || WindowShouldClose())) {
+
+        // Toggle fullscreen with F11
+        if (IsKeyPressed(KEY_F11)) {
+            ToggleFullscreen();
+        }
 
         DrawFPS(10,10);
 

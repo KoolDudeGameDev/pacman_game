@@ -31,6 +31,10 @@ void DrawArc(Vector2 center, float radius, float startAngle, float endAngle, int
 //   offsetY - Y offset for rendering the maze in pixels.
 void render_maze(int offsetX, int offsetY);
 
+void render_pacman(int offsetX, int offsetY);
+void render_pacman_death(int offsetX, int offsetY);
+void render_ghosts(int offsetX, int offsetY);
+
 // Renders the pause menu (Resume, Restart, Settings, Quit).
 // Parameters:
 //   screenWidth - Width of the screen in pixels.
