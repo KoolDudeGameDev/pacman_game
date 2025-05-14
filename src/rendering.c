@@ -202,18 +202,8 @@ void render_maze(int offsetX, int offsetY) {
             scaledHeight
         };
         Vector2 origin = { 0.0f, 0.0f }; // Origin at top-left for precise positioning
-        DrawTexturePro(fruit.sprite, sourceRec, destRec, origin, 0.0f, WHITE);
-
-        // Debug: Draw a rectangle around the tile to confirm position
-        Rectangle tileRect = {
-            fruit.gridX * TILE_SIZE + offsetX,
-            fruit.gridY * TILE_SIZE + offsetY,
-            TILE_SIZE,
-            TILE_SIZE
-        };
-        //DrawRectangleLines(tileRect.x, tileRect.y, tileRect.width, tileRect.height, GREEN);
-    }
-    
+        DrawTexturePro(fruit.sprite, sourceRec, destRec, origin, 0.0f, WHITE); 
+    }  
 }
 
 // Render Entities
@@ -255,13 +245,6 @@ void render_pacman(int offsetX, int offsetY) {
 
     Vector2 origin = { scaledWidth / 2.0f, scaledHeight / 2.0f };
     DrawTexturePro(pacman.sprite, sourceRec, destRec, origin, rotation, WHITE);
-
-    /*
-    // Draw a debugging box around the TILE
-    float tileX = pacman.gridX * TILE_SIZE + offsetX;
-    float tileY = pacman.gridY * TILE_SIZE + offsetY;
-    DrawRectangleLines(tileX, tileY, TILE_SIZE, TILE_SIZE, RED);
-    */
 }
 
 void render_pacman_death(int offsetX, int offsetY) {
@@ -327,11 +310,11 @@ void render_ghosts(int offsetX, int offsetY) {
 
             // Map points to sprite coordinates
             switch (points) {
-                case 200:  scoreSourceRec = (Rectangle){ 0.0f, 130.0f, 16.0f, 16.0f }; break;
-                case 400:  scoreSourceRec = (Rectangle){ 0.0f, 138.0f, 16.0f, 16.0f }; break;
-                case 800:  scoreSourceRec = (Rectangle){ 0.0f, 146.0f, 16.0f, 16.0f }; break;
-                case 1600: scoreSourceRec = (Rectangle){ 0.0f, 154.0f, 16.0f, 16.0f }; break;
-                default:   scoreSourceRec = (Rectangle){ 0.0f, 130.0f, 16.0f, 16.0f }; break;
+                case 200:  scoreSourceRec = (Rectangle){ 4.0f, 128.0f, 16.0f, 16.0f }; break;
+                case 400:  scoreSourceRec = (Rectangle){ 20.0f, 128.0f, 16.0f, 16.0f }; break;
+                case 800:  scoreSourceRec = (Rectangle){ 36.0f, 128.0f, 16.0f, 16.0f }; break;
+                case 1600: scoreSourceRec = (Rectangle){ 52.0f, 128.0f, 16.0f, 16.0f }; break;
+                default:   scoreSourceRec = (Rectangle){ 4.0f, 128.0f, 16.0f, 16.0f }; break;
             }
 
             DrawTexturePro(spriteSheet, scoreSourceRec, destRec, origin, 0.0f, WHITE);
@@ -388,19 +371,7 @@ void render_ghosts(int offsetX, int offsetY) {
             sourceRec = (Rectangle){ xOffset, yOffset, 16.0f, 16.0f };
             texture = ghosts[i].normalSprite[ghosts[i].currentFrame];
         }
-
         DrawTexturePro(texture, sourceRec, destRec, origin, 0.0f, WHITE);
-
-        /*
-        // Adjust the debug rectangle to show the actual tile boundaries
-        Rectangle tileRect = {
-            (ghosts[i].gridX * TILE_SIZE) + offsetX,
-            (ghosts[i].gridY * TILE_SIZE) + offsetY,
-            TILE_SIZE,
-            TILE_SIZE
-        };
-        DrawRectangleLines(tileRect.x, tileRect.y, tileRect.width, tileRect.height, RED);
-        */
     }
 }
 

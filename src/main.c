@@ -29,7 +29,7 @@ int main(void) {
     sfx_ghost_frightened = LoadSound("assets/sounds/pacman_ghost_frightened.wav");
     sfx_level_complete = LoadSound("assets/sounds/pacman_level_complete.mp3");
     sfx_extra_life = LoadSound("assets/sounds/pacman_extralife.wav");
-    sfx_game_over = LoadSound("assets/sounds/pacman_extralife.wav");
+    sfx_game_over = LoadSound("assets/sounds/pacman_game_over.mp3");
 
     // Set initial volumes
     SetSoundVolume(sfx_menu, bgMusicVolume);
@@ -328,12 +328,16 @@ int main(void) {
                 }
                 //printf("pelletsEaten = %d, fruit.active = %d\n", pelletsEaten, fruit.active); // Debug print
         
-                if (IsKeyPressed(KEY_P)) {
+                if (IsKeyPressed(KEY_ESCAPE) || IsKeyPressed(KEY_P)) {
                     gameState = STATE_PAUSED;
                 }
                 break;
 
             case STATE_PAUSED:
+                if (IsKeyPressed(KEY_ESCAPE) || IsKeyPressed(KEY_P)) {
+                    gameState = STATE_PLAYING;
+                }
+
                 // Handle pause menu navigation
                 if (!pausedThisFrame) {
                     if (pauseMenuState == PAUSE_MENU_MAIN) {
@@ -981,53 +985,96 @@ int main(void) {
 
             case STATE_GAME_OVER:
                 ClearBackground(BLACK);
-
-                if (pacman.lives <= 0) {
-                    gameState = STATE_GAME_OVER;
-                    init_game_over_particles(); // Initialize particles
-                    select_game_over_message(); // Also ensure message is selected
-                    gameOverAnimTimer = 0.0f;   // Reset animation timer
-                    gameOverAnimActive = true;  // Start animation
-                    PlaySound(sfx_game_over);   // Play game over sound
-                }
-
+                
                 // Particle effects
-                for (int i = 0; i < MAX_PARTICLES; i ++) {
+                for (int i = 0; i < MAX_PARTICLES; i++) {
                     if (gameOverParticles[i].active) {
                         float alpha = gameOverParticles[i].lifetime / 3.0f;
-                        DrawCircleV(gameOverParticles[i].position, 3.0f, (Color){255,255,0, (unsigned char)(alpha * 255)});
+                        Color particleColor = (Color){
+                            (unsigned char)(255 - (i % 3) * 20), // Slight yellow/orange variation
+                            (unsigned char)(255 - (i % 3) * 50),
+                            0,
+                            (unsigned char)(alpha * 255)
+                        };
+                        DrawCircleV(gameOverParticles[i].position, 3.0f, particleColor);
                     }
                 }
                 
-                // Animated Game Over
-                float scale = 1.0f + 0.5f * sinf(gameOverAnimTimer * PI);
+                // Retro animated Game Over
+                float scale = 1.0f + 0.3f * sinf(gameOverAnimTimer * PI * 2.0f); // Pulsate forever
                 float alpha = gameOverAnimActive ? 1.0f - (gameOverAnimTimer / 2.0f) : 1.0f;
-                DrawTextEx(font, "Game Over", (Vector2){screenWidth / 2 - 50, screenHeight / 2 - 80}, 20.0f * scale, 1, (Color){255, 0, 0, (unsigned char)(alpha * 255)});
+                Color textColor = (Color){
+                    (unsigned char)(255 * (1.0f - gameOverAnimTimer / 4.0f)),
+                    (unsigned char)(gameOverAnimTimer * 128.0f / 2.0f),
+                    0,
+                    (unsigned char)(alpha * 255)
+                };
+                DrawTextEx(font, "Game Over", 
+                        (Vector2){screenWidth / 2 - MeasureTextEx(font, "Game Over", 24.0f * scale, 1).x / 2, screenHeight / 2 - 100}, 
+                        24.0f * scale, 1, textColor);
                 
                 // Score and motivational message
-                DrawTextEx(font, TextFormat("Final Score: %d", pacman.score), (Vector2) {screenWidth / 2 - 70, screenHeight / 2 - 40}, 16.0f, 1, WHITE);
-                DrawTextEx(font, gameOverMessages[selectedMessageIndex], (Vector2){screenWidth / 2 - 80, screenHeight / 2 - 10}, 12.0f, 1, WHITE);
+                float messageScale = 1.0f + 0.1f * sinf(gameOverAnimTimer * PI * 3.0f); // Bounce effect
+                DrawTextEx(font, TextFormat("Final Score: %d", pacman.score), 
+                        (Vector2){screenWidth / 2 - MeasureTextEx(font, TextFormat("Final Score: %d", pacman.score), 16.0f, 1).x / 2, screenHeight / 2 - 40}, 
+                        16.0f, 1, WHITE);
+                DrawTextEx(font, gameOverMessages[selectedMessageIndex], 
+                        (Vector2){screenWidth / 2 - MeasureTextEx(font, gameOverMessages[selectedMessageIndex], 12.0f * messageScale, 1).x / 2, screenHeight / 2 - 10}, 
+                        12.0f * messageScale, 1, WHITE);
                 
-                // Name input rendering
+                // Name input and high score preview
                 if (!nameInputComplete) {
-                    DrawTextEx(font, "Enter Initials:", (Vector2){screenWidth / 2 - 60, screenHeight / 2}, 16.0f, 1, YELLOW);
+                    DrawTextEx(font, "Enter Initials:", 
+                            (Vector2){screenWidth / 2 - MeasureTextEx(font, "Enter Initials:", 16.0f, 1).x / 2, screenHeight / 2 + 20}, 
+                            16.0f, 1, YELLOW);
                     char displayName[4] = {'_', '_', '_', '\0'};
-                    for (int i = 0; i < nameInputIndex; i ++) {
+                    for (int i = 0; i < nameInputIndex; i++) {
                         displayName[i] = playerNameInput[i];
                     }
-                    DrawTextEx(font, displayName, (Vector2){screenWidth / 2 - 20, screenHeight / 2 + 30}, 16.0f, 1, WHITE);
-                    DrawTextEx(font, "Press ENTER to confirm", (Vector2){screenWidth / 2 - 80, screenHeight / 2 + 60}, 10.0f, 1, GRAY);
+                    // Blinking cursor
+                    if (((int)(gameOverAnimTimer * 2.0f) % 2) == 0 && nameInputIndex < 3) {
+                        displayName[nameInputIndex] = '|';
+                    }
+                    DrawTextEx(font, displayName, 
+                            (Vector2){screenWidth / 2 - MeasureTextEx(font, displayName, 16.0f, 1).x / 2, screenHeight / 2 + 50}, 
+                            16.0f, 1, WHITE);
+                    DrawTextEx(font, "Press ENTER to confirm", 
+                            (Vector2){screenWidth / 2 - MeasureTextEx(font, "Press ENTER to confirm", 10.0f, 1).x / 2, screenHeight / 2 + 80}, 
+                            10.0f, 1, GRAY);
+                    
+                    // High score preview with placeholder
+                    DrawRectangleLines(screenWidth / 2 - 80, screenHeight / 2 + 100, 160, 120, YELLOW); // Retro border
+                    DrawTextEx(font, "High Scores:", 
+                            (Vector2){screenWidth / 2 - MeasureTextEx(font, "High Scores:", 16.0f, 1).x / 2, screenHeight / 2 + 110}, 
+                            16.0f, 1, YELLOW);
+                    for (int i = 0; i < MAX_HIGH_SCORES; i++) {
+                        char* displayName = (i == 0 && pacman.score > highscores[i].score) ? "YOU" : highscores[i].name;
+                        int displayScore = (i == 0 && pacman.score > highscores[i].score) ? pacman.score : highscores[i].score;
+                        DrawTextEx(font, TextFormat("%s: %d", displayName, displayScore), 
+                                (Vector2){screenWidth / 2 - 70, screenHeight / 2 + 130 + i * 20}, 
+                                12.0f, 1, (i == 0 && pacman.score > highscores[i].score) ? GREEN : WHITE);
+                    }
                 } else {
-                    DrawTextEx(font, "Initials: ", (Vector2){screenWidth / 2 - 40, screenHeight / 2}, 16.0f, 1, YELLOW);
-                    DrawTextEx(font, playerNameInput, (Vector2){screenWidth / 2 - 20, screenHeight / 2 + 30}, 16.0f, 1, WHITE);
-                    // High score preview
-                    DrawTextEx(font, "High Scores:", (Vector2){screenWidth / 2 - 50, screenHeight / 2 + 90}, 16.0f, 1, YELLOW);
+                    DrawTextEx(font, "Initials:", 
+                            (Vector2){screenWidth / 2 - MeasureTextEx(font, "Initials:", 16.0f, 1).x / 2, screenHeight / 2 + 20}, 
+                            16.0f, 1, YELLOW);
+                    DrawTextEx(font, playerNameInput, 
+                            (Vector2){screenWidth / 2 - MeasureTextEx(font, playerNameInput, 16.0f, 1).x / 2, screenHeight / 2 + 50}, 
+                            16.0f, 1, WHITE);
+                    // High score list with retro border
+                    DrawRectangleLines(screenWidth / 2 - 80, screenHeight / 2 + 100, 160, 120, YELLOW);
+                    DrawTextEx(font, "High Scores:", 
+                            (Vector2){screenWidth / 2 - MeasureTextEx(font, "High Scores:", 16.0f, 1).x / 2, screenHeight / 2 + 110}, 
+                            16.0f, 1, YELLOW);
                     for (int i = 0; i < MAX_HIGH_SCORES; i++) {
                         bool isPlayerScore = (strcmp(highscores[i].name, playerNameInput) == 0 && highscores[i].score == pacman.score);
                         DrawTextEx(font, TextFormat("%s: %d", highscores[i].name, highscores[i].score), 
-                                   (Vector2){screenWidth / 2 - 50, screenHeight / 2 + 110 + i * 20}, 12.0f, 1, isPlayerScore ? GREEN : WHITE);
+                                (Vector2){screenWidth / 2 - 70, screenHeight / 2 + 130 + i * 20}, 
+                                12.0f, 1, isPlayerScore ? GREEN : WHITE);
                     }
-                    DrawTextEx(font, "Press ENTER to Return to menu", (Vector2){screenWidth / 2 - 90, screenHeight / 2 + 210}, 10.0f, 1, GRAY);
+                    DrawTextEx(font, "Press ENTER to Return to Menu", 
+                            (Vector2){screenWidth / 2 - MeasureTextEx(font, "Press ENTER to Return to Menu", 10.0f, 1).x / 2, screenHeight / 2 + 230}, 
+                            10.0f, 1, GRAY);
                 }
                 break;
 
