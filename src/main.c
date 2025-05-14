@@ -413,7 +413,7 @@ int main(void) {
 
                                 case 0: // BG Music Volume
                                     bgMusicVolume = fmax(0.0f, bgMusicVolume - 0.1f);
-                                    SetSoundVolume(sfx_menu, soundMuted ? 0.0f : bgMusicVolume);
+                                    SetSoundVolume(sfx_pacman_move, soundMuted ? 0.0f : bgMusicVolume);
                                     break;
 
                                 case 1: // Pac-Man SFX Volume
@@ -435,7 +435,7 @@ int main(void) {
 
                                 case 0: // BG Music Volume
                                     bgMusicVolume = fmin(1.0f, bgMusicVolume + 0.1f);
-                                    SetSoundVolume(sfx_menu, soundMuted ? 0.0f : bgMusicVolume);
+                                    SetSoundVolume(sfx_pacman_move, soundMuted ? 0.0f : bgMusicVolume);
                                     break;
 
                                 case 1: // Pac-Man SFX Volume
@@ -559,7 +559,7 @@ int main(void) {
                         // Backspace to erase last character
                         if (key == KEY_BACKSPACE && nameInputIndex > 0) {
                             nameInputIndex --;
-                            playerNameInput[nameInputIndex] = 'A';
+                            playerNameInput[nameInputIndex] = '_';
                             if (!soundMuted) {
                                 SetSoundVolume(sfx_menu_nav, pacmanSfxVolume);
                                 PlaySound(sfx_menu_nav);
@@ -583,8 +583,10 @@ int main(void) {
                 }    
 
                 // Allow return to menu after name input
-                if (nameInputComplete && (KEY_ENTER)) {
-                    gameState = STATE_MENU;
+                if (nameInputComplete && IsKeyPressed(KEY_ENTER)) {
+                    fadingOut = true;
+                    nextState = STATE_MENU;
+                    prevState = STATE_GAME_OVER;
                     selectedOption = 0;
                     // Reset score, lives, and level for a new game
                     pacman.score = 0;
@@ -592,7 +594,8 @@ int main(void) {
                     level = 1;
                     pelletsEaten = 0;
                     // Reset name input
-                    strcpy(playerNameInput, "AAA");
+                    strncpy(playerNameInput, "AAA", sizeof(playerNameInput));
+                    playerNameInput[sizeof(playerNameInput) - 1] = '\0';
                     nameInputIndex = 0;
                     nameInputComplete = false;
                 }
@@ -978,6 +981,16 @@ int main(void) {
 
             case STATE_GAME_OVER:
                 ClearBackground(BLACK);
+
+                if (pacman.lives <= 0) {
+                    gameState = STATE_GAME_OVER;
+                    init_game_over_particles(); // Initialize particles
+                    select_game_over_message(); // Also ensure message is selected
+                    gameOverAnimTimer = 0.0f;   // Reset animation timer
+                    gameOverAnimActive = true;  // Start animation
+                    PlaySound(sfx_game_over);   // Play game over sound
+                }
+
                 // Particle effects
                 for (int i = 0; i < MAX_PARTICLES; i ++) {
                     if (gameOverParticles[i].active) {

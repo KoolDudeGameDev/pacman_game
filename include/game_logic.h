@@ -201,6 +201,9 @@ extern bool isFrightenedSoundPaused; // Tracks if ghost frightened sound
 
 // game.c
 
+void init_game_over_particles(void);
+void select_game_over_message(void);
+
 // Initializes the maze array from a static layout, setting walls, pellets, and power pellets.
 void init_maze(void);
 

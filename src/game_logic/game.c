@@ -157,7 +157,7 @@ void init_game_over_particles(void) {
     for (int i = 0; i < MAX_PARTICLES; i++) {
         gameOverParticles[i].position = (Vector2){GetRandomValue(0, GetScreenWidth()), GetRandomValue(0, GetScreenHeight())};
         gameOverParticles[i].velocity = (Vector2){GetRandomValue(-50, 50), GetRandomValue(-50, 50)};
-        gameOverParticles[i].lifetime = GetRandomValue(1, 3);
+        gameOverParticles[i].lifetime = GetRandomValue(10, 30) / 10.0f;     // 1.0 to 3.0 seconds
         gameOverParticles[i].active = true;
     }
 }
