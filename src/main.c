@@ -28,7 +28,8 @@ int main(void) {
     sfx_eat_ghost= LoadSound("assets/sounds/pacman_eatghost.wav");
     sfx_ghost_frightened = LoadSound("assets/sounds/pacman_ghost_frightened.wav");
     sfx_level_complete = LoadSound("assets/sounds/pacman_level_complete.mp3");
-    sfx_extra_life= LoadSound("assets/sounds/pacman_extralife.wav");
+    sfx_extra_life = LoadSound("assets/sounds/pacman_extralife.wav");
+    sfx_game_over = LoadSound("assets/sounds/pacman_extralife.wav");
 
     // Set initial volumes
     SetSoundVolume(sfx_menu, bgMusicVolume);
@@ -42,6 +43,7 @@ int main(void) {
     SetSoundVolume(sfx_ghost_frightened, pacmanSfxVolume);
     SetSoundVolume(sfx_level_complete, pacmanSfxVolume);
     SetSoundVolume(sfx_extra_life, pacmanSfxVolume);
+    SetSoundVolume(sfx_game_over, pacmanSfxVolume);
     
     // Calculate maze dimensions and offsets
     const int mazePixelWidth = MAZE_WIDTH * TILE_SIZE;              // 560px
@@ -521,10 +523,67 @@ int main(void) {
                 break;
 
             case STATE_GAME_OVER:
-                // Update high scores before returning to menu
-                check_and_update_high_scores(pacman.score);
-                save_high_scores();
-                if (IsKeyPressed(KEY_R)) {
+                // Particles background
+                if (gameOverAnimActive) {
+                    gameOverAnimTimer += GetFrameTime();
+                    if (gameOverAnimTimer >= 2.0f) {
+                        gameOverAnimActive = false;
+                    }
+                }
+                // Update particles
+                for (int i = 0; i < MAX_PARTICLES; i++) {
+                    if (gameOverParticles[i].active) {
+                        gameOverParticles[i].position.x += gameOverParticles[i].velocity.x * GetFrameTime();
+                        gameOverParticles[i].position.y += gameOverParticles[i].velocity.y * GetFrameTime();
+                        gameOverParticles[i].lifetime -= GetFrameTime();
+                        if (gameOverParticles[i].lifetime <= 0) {
+                            gameOverParticles[i].active = false;
+                        }
+                    }
+                }
+
+                // Name input
+                if (!nameInputComplete) {
+                    int key = GetKeyPressed();
+                    while (key > 0) {
+                        // Accept A-Z keys
+                        if (key >= KEY_A && key <= KEY_Z && nameInputIndex < 3) {
+                            playerNameInput[nameInputIndex] = (char)key;
+                            nameInputIndex ++;
+                            if (!soundMuted) {
+                                SetSoundVolume(sfx_menu_nav, pacmanSfxVolume);
+                                PlaySound(sfx_menu_nav);
+                            }
+                        }
+
+                        // Backspace to erase last character
+                        if (key == KEY_BACKSPACE && nameInputIndex > 0) {
+                            nameInputIndex --;
+                            playerNameInput[nameInputIndex] = 'A';
+                            if (!soundMuted) {
+                                SetSoundVolume(sfx_menu_nav, pacmanSfxVolume);
+                                PlaySound(sfx_menu_nav);
+                            }
+                        }
+
+                        // Enter to confirm the name
+                        if (key == KEY_ENTER && nameInputIndex > 0) {
+                            nameInputComplete = true;
+                            playerNameInput[nameInputIndex] = '\0';
+                            // Update high scores now that name is entered
+                            check_and_update_high_scores(pacman.score);
+                            save_high_scores();
+                            if (!soundMuted) {
+                                SetSoundVolume(sfx_menu_nav, pacmanSfxVolume);
+                                PlaySound(sfx_menu_nav);
+                            }
+                        }
+                        key = GetKeyPressed();
+                    }   
+                }    
+
+                // Allow return to menu after name input
+                if (nameInputComplete && (KEY_ENTER)) {
                     gameState = STATE_MENU;
                     selectedOption = 0;
                     // Reset score, lives, and level for a new game
@@ -532,6 +591,10 @@ int main(void) {
                     pacman.lives = 3;
                     level = 1;
                     pelletsEaten = 0;
+                    // Reset name input
+                    strcpy(playerNameInput, "AAA");
+                    nameInputIndex = 0;
+                    nameInputComplete = false;
                 }
                 break;
         
@@ -915,9 +978,44 @@ int main(void) {
 
             case STATE_GAME_OVER:
                 ClearBackground(BLACK);
-                DrawTextEx(font, "Game Over", (Vector2){screenWidth / 2 - 50, screenHeight / 2 - 40}, 20.0f, 1, RED);
-                DrawTextEx(font, TextFormat("Final Score: %d", pacman.score), (Vector2){screenWidth / 2 - 70, screenHeight / 2}, 16.0f, 1, WHITE);
-                DrawTextEx(font, "Press R to Return to Menu", (Vector2){screenWidth / 2 - 90, screenHeight / 2 + 40}, 16.0f, 1, WHITE);
+                // Particle effects
+                for (int i = 0; i < MAX_PARTICLES; i ++) {
+                    if (gameOverParticles[i].active) {
+                        float alpha = gameOverParticles[i].lifetime / 3.0f;
+                        DrawCircleV(gameOverParticles[i].position, 3.0f, (Color){255,255,0, (unsigned char)(alpha * 255)});
+                    }
+                }
+                
+                // Animated Game Over
+                float scale = 1.0f + 0.5f * sinf(gameOverAnimTimer * PI);
+                float alpha = gameOverAnimActive ? 1.0f - (gameOverAnimTimer / 2.0f) : 1.0f;
+                DrawTextEx(font, "Game Over", (Vector2){screenWidth / 2 - 50, screenHeight / 2 - 80}, 20.0f * scale, 1, (Color){255, 0, 0, (unsigned char)(alpha * 255)});
+                
+                // Score and motivational message
+                DrawTextEx(font, TextFormat("Final Score: %d", pacman.score), (Vector2) {screenWidth / 2 - 70, screenHeight / 2 - 40}, 16.0f, 1, WHITE);
+                DrawTextEx(font, gameOverMessages[selectedMessageIndex], (Vector2){screenWidth / 2 - 80, screenHeight / 2 - 10}, 12.0f, 1, WHITE);
+                
+                // Name input rendering
+                if (!nameInputComplete) {
+                    DrawTextEx(font, "Enter Initials:", (Vector2){screenWidth / 2 - 60, screenHeight / 2}, 16.0f, 1, YELLOW);
+                    char displayName[4] = {'_', '_', '_', '\0'};
+                    for (int i = 0; i < nameInputIndex; i ++) {
+                        displayName[i] = playerNameInput[i];
+                    }
+                    DrawTextEx(font, displayName, (Vector2){screenWidth / 2 - 20, screenHeight / 2 + 30}, 16.0f, 1, WHITE);
+                    DrawTextEx(font, "Press ENTER to confirm", (Vector2){screenWidth / 2 - 80, screenHeight / 2 + 60}, 10.0f, 1, GRAY);
+                } else {
+                    DrawTextEx(font, "Initials: ", (Vector2){screenWidth / 2 - 40, screenHeight / 2}, 16.0f, 1, YELLOW);
+                    DrawTextEx(font, playerNameInput, (Vector2){screenWidth / 2 - 20, screenHeight / 2 + 30}, 16.0f, 1, WHITE);
+                    // High score preview
+                    DrawTextEx(font, "High Scores:", (Vector2){screenWidth / 2 - 50, screenHeight / 2 + 90}, 16.0f, 1, YELLOW);
+                    for (int i = 0; i < MAX_HIGH_SCORES; i++) {
+                        bool isPlayerScore = (strcmp(highscores[i].name, playerNameInput) == 0 && highscores[i].score == pacman.score);
+                        DrawTextEx(font, TextFormat("%s: %d", highscores[i].name, highscores[i].score), 
+                                   (Vector2){screenWidth / 2 - 50, screenHeight / 2 + 110 + i * 20}, 12.0f, 1, isPlayerScore ? GREEN : WHITE);
+                    }
+                    DrawTextEx(font, "Press ENTER to Return to menu", (Vector2){screenWidth / 2 - 90, screenHeight / 2 + 210}, 10.0f, 1, GRAY);
+                }
                 break;
 
             default:
@@ -942,6 +1040,7 @@ int main(void) {
     UnloadSound(sfx_ghost_frightened);
     UnloadSound(sfx_level_complete);
     UnloadSound(sfx_extra_life);
+    UnloadSound(sfx_game_over);
     UnloadFont(font);
     UnloadGhostTextures(ghosts);
     CloseAudioDevice();

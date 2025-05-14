@@ -28,6 +28,22 @@ Fruit fruit;                            // Bonus fruit
 int totalFruitsCollected = 0;           // Total number of fruits collected across levels
 
 HighScore highscores[MAX_HIGH_SCORES];  // High scores array
+char playerNameInput[4] = "AAA";        // Default to "AAA"
+int nameInputIndex = 0;
+bool nameInputComplete = false;
+
+float gameOverAnimTimer = 0.0f;
+bool gameOverAnimActive = false;
+
+Particle gameOverParticles[MAX_PARTICLES] = {0};
+const char* gameOverMessages[] = {
+    "Better Luck Next Time!",
+    "Ghosts Got You Down?",
+    "Try Again, Champ!",
+    "Keep Chasing Those Pellets!",
+    "Don't Let Blinky Win!"
+};
+int selectedMessageIndex = 0;
 
 PauseMenuState pauseMenuState = PAUSE_MENU_MAIN;
 int pauseSelectedOption = 0;
@@ -47,6 +63,7 @@ Sound sfx_eat_ghost;        // Played when eating a ghost
 Sound sfx_ghost_frightened; // Played when ghosts are frightened
 Sound sfx_level_complete;   // Played when entering STATE_LEVEL_COMPLETE
 Sound sfx_extra_life;       // Played when gaining an extra life
+Sound sfx_game_over;        // Game over sound effects
 
 bool isFrightenedSoundPaused = false;   //Tracks whether the ghost frightened sound is paused during STATE_GHOST_EATEN
 
@@ -135,11 +152,26 @@ static char game_maze[MAZE_HEIGHT][MAZE_WIDTH] = {
 // Function Definitions
 // --------------------------------------------------------------------------------------------------------------------------
 
+// *** New particle initialization ***
+void init_game_over_particles(void) {
+    for (int i = 0; i < MAX_PARTICLES; i++) {
+        gameOverParticles[i].position = (Vector2){GetRandomValue(0, GetScreenWidth()), GetRandomValue(0, GetScreenHeight())};
+        gameOverParticles[i].velocity = (Vector2){GetRandomValue(-50, 50), GetRandomValue(-50, 50)};
+        gameOverParticles[i].lifetime = GetRandomValue(1, 3);
+        gameOverParticles[i].active = true;
+    }
+}
+
+// *** New message selection ***
+void select_game_over_message(void) {
+    selectedMessageIndex = GetRandomValue(0, 4); // 5 messages
+}
+
 // Load high scores from file
 void load_high_scores(void) {
     for (int i = 0; i < MAX_HIGH_SCORES; i++) {
         highscores[i].score = 0;
-        strcpy(highscores[i].name, "IBO");
+        strcpy(highscores[i].name, "AAA");
     }
 
     FILE *file = fopen("highscores.txt", "r");
@@ -185,7 +217,8 @@ void check_and_update_high_scores(int score) {
         }
         // Insert new score
         highscores[insertIndex].score = score;
-        strcpy(highscores[insertIndex].name, "Ibo");       // PLace holder
+        strncpy(highscores[insertIndex].name, playerNameInput, MAX_NAME_LENGTH);
+        highscores[insertIndex].name[MAX_NAME_LENGTH - 1] = '\0';
     }
 }
 
@@ -279,6 +312,10 @@ void reset_game_state(bool fullReset, GameState targetState) {
         eatenGhostCount = 0;        // Reset total ghosts eaten during power pellet effect
         totalGhostsEaten = 0;       // Reset total ghosts eaten
         totalFruitsCollected = 0;   // Reset fruits if desired per level
+
+        strcpy(playerNameInput, "AAA");
+        nameInputIndex = 0;
+        nameInputComplete = false;
     }
 
     // Recount pellets for the new level state
