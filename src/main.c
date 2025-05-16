@@ -78,6 +78,10 @@ int main(void) {
     GameState nextState = STATE_KOOLDUDE_LOGO;
     GameState prevState = STATE_MENU;
 
+    // Game over fade transition
+    float gameOverFadeAlpha = 0.0f; // Controls fade-in/out for game over screen
+    bool gameOverFadingIn = true;   // True during fade-in, false during fade-out
+
     // Disable ESC key from closing the window
     SetExitKey(KEY_ONE);
 
@@ -90,9 +94,14 @@ int main(void) {
             ToggleFullscreen();
         }
 
-        DrawFPS(10,10);
+        if (IsKeyPressed(KEY_TWO)) { // Press '2' to trigger game over
+            TraceLog(LOG_INFO, "Forcing transition to STATE_GAME_OVER");
+            fadingOut = true;
+            nextState = STATE_GAME_OVER;
+            prevState = gameState;
+        }
 
-        // Fade to black transition
+        // Fade to black transition for state changes
         if (fadingOut) {
             transitionAlpha += 0.05f;
             if (transitionAlpha >= 1.0f) {
@@ -128,6 +137,22 @@ int main(void) {
                     }
                 }
 
+                // Initialize game over state
+                if (gameState == STATE_GAME_OVER) {
+                    gameOverFadeAlpha = 0.0f;
+                    gameOverFadingIn = true;
+                    select_game_over_message();
+                    if (!soundMuted) {
+                        PlaySound(sfx_game_over);
+                    }
+                }
+
+                // Reset game over fade when returning to menu
+                if (gameState == STATE_MENU && prevState == STATE_GAME_OVER) {
+                    gameOverFadeAlpha = 0.0f;
+                    gameOverFadingIn = true;
+                }
+
                 // Stop menu loop sound when exiting STATE_MENU
                 if (prevState == STATE_MENU && isMenuLoopPlaying) {
                     StopSound(sfx_menu);
@@ -138,6 +163,15 @@ int main(void) {
             transitionAlpha -= 0.05f;
             if (transitionAlpha < 0.0f) {
                 transitionAlpha = 0.0f;
+            }
+        }
+
+        // Handle game over fade-in
+        if (gameState == STATE_GAME_OVER && gameOverFadingIn) {
+            gameOverFadeAlpha += 0.05f;
+            if (gameOverFadeAlpha >= 1.0f) {
+                gameOverFadeAlpha = 1.0f;
+                gameOverFadingIn = false;
             }
         }
 
@@ -330,7 +364,6 @@ int main(void) {
                         powerPelletTimer = 0.0f;
                     }
                 }
-                //printf("pelletsEaten = %d, fruit.active = %d\n", pelletsEaten, fruit.active); // Debug print
         
                 if (IsKeyPressed(KEY_ESCAPE) || IsKeyPressed(KEY_P)) {
                     gameState = STATE_PAUSED;
@@ -548,25 +581,6 @@ int main(void) {
                 break;
 
             case STATE_GAME_OVER:
-                // Particles background
-                if (gameOverAnimActive) {
-                    gameOverAnimTimer += GetFrameTime();
-                    if (gameOverAnimTimer >= 2.0f) {
-                        gameOverAnimActive = false;
-                    }
-                }
-                // Update particles
-                for (int i = 0; i < MAX_PARTICLES; i++) {
-                    if (gameOverParticles[i].active) {
-                        gameOverParticles[i].position.x += gameOverParticles[i].velocity.x * GetFrameTime();
-                        gameOverParticles[i].position.y += gameOverParticles[i].velocity.y * GetFrameTime();
-                        gameOverParticles[i].lifetime -= GetFrameTime();
-                        if (gameOverParticles[i].lifetime <= 0) {
-                            gameOverParticles[i].active = false;
-                        }
-                    }
-                }
-
                 // Name input
                 if (!nameInputComplete) {
                     int key = GetKeyPressed();
@@ -574,7 +588,7 @@ int main(void) {
                         // Accept A-Z keys
                         if (key >= KEY_A && key <= KEY_Z && nameInputIndex < 3) {
                             playerNameInput[nameInputIndex] = (char)key;
-                            nameInputIndex ++;
+                            nameInputIndex++;
                             if (!soundMuted) {
                                 SetSoundVolume(sfx_menu_nav, pacmanSfxVolume);
                                 PlaySound(sfx_menu_nav);
@@ -583,7 +597,7 @@ int main(void) {
 
                         // Backspace to erase last character
                         if (key == KEY_BACKSPACE && nameInputIndex > 0) {
-                            nameInputIndex --;
+                            nameInputIndex--;
                             playerNameInput[nameInputIndex] = '_';
                             if (!soundMuted) {
                                 SetSoundVolume(sfx_menu_nav, pacmanSfxVolume);
@@ -604,12 +618,13 @@ int main(void) {
                             }
                         }
                         key = GetKeyPressed();
-                    }   
-                }    
+                    }
+                }
 
-                // Allow return to menu after name input
+                // Allow return to menu after name input with fade-out
                 if (nameInputComplete && IsKeyPressed(KEY_ENTER)) {
                     fadingOut = true;
+                    gameOverFadeAlpha = 0.0f; // Start fade-out
                     nextState = STATE_MENU;
                     prevState = STATE_GAME_OVER;
                     selectedOption = 0;
@@ -633,6 +648,7 @@ int main(void) {
         // Start Rendering
         // ----------------------------------------------------------------------------------------
         BeginDrawing();
+        ClearBackground(BLACK);
 
         // Render lives as Pac-Man sprites
         float scaleFactor = (float)TILE_SIZE / 16.0f;
@@ -999,103 +1015,90 @@ int main(void) {
                     };
                     DrawTexturePro(fruit.sprite, fruitSourceRec, destRec, origin, 0.0f, WHITE);
                 }
-
-                printf("pelletsEaten: %d, powerPelletsEaten: %d, totalGhostsEaten: %d, remainingPelletCount: %d\n",
-                    pelletsEaten, powerPelletsEaten, totalGhostsEaten, remainingPelletCount);
                 break;
 
             case STATE_GAME_OVER:
                 ClearBackground(BLACK);
-                
-                // Particle effects
-                for (int i = 0; i < MAX_PARTICLES; i++) {
-                    if (gameOverParticles[i].active) {
-                        float alpha = gameOverParticles[i].lifetime / 3.0f;
-                        Color particleColor = (Color){
-                            (unsigned char)(255 - (i % 3) * 20), // Slight yellow/orange variation
-                            (unsigned char)(255 - (i % 3) * 50),
-                            0,
-                            (unsigned char)(alpha * 255)
-                        };
-                        DrawCircleV(gameOverParticles[i].position, 3.0f, particleColor);
-                    }
-                }
-                
-                // Retro animated Game Over
-                float scale = 1.0f + 0.3f * sinf(gameOverAnimTimer * PI * 2.0f); // Pulsate forever
-                float alpha = gameOverAnimActive ? 1.0f - (gameOverAnimTimer / 2.0f) : 1.0f;
-                Color textColor = (Color){
-                    (unsigned char)(255 * (1.0f - gameOverAnimTimer / 4.0f)),
-                    (unsigned char)(gameOverAnimTimer * 128.0f / 2.0f),
-                    0,
-                    (unsigned char)(alpha * 255)
-                };
-                DrawTextEx(font, "Game Over", 
-                        (Vector2){screenWidth / 2 - MeasureTextEx(font, "Game Over", 24.0f * scale, 1).x / 2, screenHeight / 2 - 100}, 
-                        24.0f * scale, 1, textColor);
-                
+
+                // Game Over text
+                DrawTextEx(font, "Game Over",
+                        (Vector2){screenWidth / 2 - MeasureTextEx(font, "Game Over", 24.0f, 1).x / 2, screenHeight / 2 - 100},
+                        24.0f, 1, Fade(YELLOW, gameOverFadeAlpha));
+
                 // Score and motivational message
-                float messageScale = 1.0f + 0.1f * sinf(gameOverAnimTimer * PI * 3.0f); // Bounce effect
-                DrawTextEx(font, TextFormat("Final Score: %d", pacman.score), 
-                        (Vector2){screenWidth / 2 - MeasureTextEx(font, TextFormat("Final Score: %d", pacman.score), 16.0f, 1).x / 2, screenHeight / 2 - 40}, 
-                        16.0f, 1, WHITE);
-                DrawTextEx(font, gameOverMessages[selectedMessageIndex], 
-                        (Vector2){screenWidth / 2 - MeasureTextEx(font, gameOverMessages[selectedMessageIndex], 12.0f * messageScale, 1).x / 2, screenHeight / 2 - 10}, 
-                        12.0f * messageScale, 1, WHITE);
-                
-                // Name input and high score preview
-                if (!nameInputComplete) {
-                    DrawTextEx(font, "Enter Initials:", 
-                            (Vector2){screenWidth / 2 - MeasureTextEx(font, "Enter Initials:", 16.0f, 1).x / 2, screenHeight / 2 + 20}, 
-                            16.0f, 1, YELLOW);
+                DrawTextEx(font, TextFormat("Final Score: %d", pacman.score),
+                        (Vector2){screenWidth / 2 - MeasureTextEx(font, TextFormat("Final Score: %d", pacman.score), 16.0f, 1).x / 2, screenHeight / 2 - 40},
+                        16.0f, 1, Fade(WHITE, gameOverFadeAlpha));
+                DrawTextEx(font, gameOverMessages[selectedMessageIndex],
+                        (Vector2){screenWidth / 2 - MeasureTextEx(font, gameOverMessages[selectedMessageIndex], 12.0f, 1).x / 2, screenHeight / 2 - 10},
+                        12.0f, 1, Fade(WHITE, gameOverFadeAlpha));
+
+                // Add delay and fade-in for name input
+                if (gameOverFadingIn) {
+                    gameOverFadeAlpha += 0.02f; // Slower fade for emphasis
+                    if (gameOverFadeAlpha >= 1.0f) {
+                        gameOverFadeAlpha = 1.0f;
+                        gameOverFadingIn = false;
+                    }
+                } else if (!nameInputComplete) {
+                    DrawTextEx(font, "Enter Initials:",
+                            (Vector2){screenWidth / 2 - MeasureTextEx(font, "Enter Initials:", 16.0f, 1).x / 2, screenHeight / 2 + 20},
+                            16.0f, 1, Fade(YELLOW, gameOverFadeAlpha));
                     char displayName[4] = {'_', '_', '_', '\0'};
                     for (int i = 0; i < nameInputIndex; i++) {
                         displayName[i] = playerNameInput[i];
                     }
-                    // Blinking cursor
-                    if (((int)(gameOverAnimTimer * 2.0f) % 2) == 0 && nameInputIndex < 3) {
+                    // Blinking cursor at the active input slot
+                    if (((int)(GetTime() * 2.0f) % 2) == 0 && nameInputIndex < 3) {
                         displayName[nameInputIndex] = '|';
                     }
-                    DrawTextEx(font, displayName, 
-                            (Vector2){screenWidth / 2 - MeasureTextEx(font, displayName, 16.0f, 1).x / 2, screenHeight / 2 + 50}, 
-                            16.0f, 1, WHITE);
-                    DrawTextEx(font, "Press ENTER to confirm", 
-                            (Vector2){screenWidth / 2 - MeasureTextEx(font, "Press ENTER to confirm", 10.0f, 1).x / 2, screenHeight / 2 + 80}, 
-                            10.0f, 1, GRAY);
-                    
+                    DrawTextEx(font, displayName,
+                            (Vector2){screenWidth / 2 - MeasureTextEx(font, displayName, 16.0f, 1).x / 2, screenHeight / 2 + 50},
+                            16.0f, 1, Fade(WHITE, gameOverFadeAlpha));
+                    DrawTextEx(font, "Press ENTER to confirm",
+                            (Vector2){screenWidth / 2 - MeasureTextEx(font, "Press ENTER to confirm", 10.0f, 1).x / 2, screenHeight / 2 + 80},
+                            10.0f, 1, Fade(GRAY, gameOverFadeAlpha));
+
                     // High score preview with placeholder
-                    DrawRectangleLines(screenWidth / 2 - 80, screenHeight / 2 + 100, 160, 120, YELLOW); // Retro border
-                    DrawTextEx(font, "High Scores:", 
-                            (Vector2){screenWidth / 2 - MeasureTextEx(font, "High Scores:", 16.0f, 1).x / 2, screenHeight / 2 + 110}, 
-                            16.0f, 1, YELLOW);
+                    DrawRectangleLines(screenWidth / 2 - 90, screenHeight / 2 + 100, 180, 130, Fade(YELLOW, gameOverFadeAlpha));
+                    DrawTextEx(font, "High Scores:",
+                            (Vector2){screenWidth / 2 - MeasureTextEx(font, "High Scores:", 16.0f, 1).x / 2, screenHeight / 2 + 110},
+                            16.0f, 1, Fade(YELLOW, gameOverFadeAlpha));
                     for (int i = 0; i < MAX_HIGH_SCORES; i++) {
-                        char* displayName = (i == 0 && pacman.score > highscores[i].score) ? "YOU" : highscores[i].name;
+                        char* scoreDisplayName = (i == 0 && pacman.score > highscores[i].score) ? "YOU" : highscores[i].name;
                         int displayScore = (i == 0 && pacman.score > highscores[i].score) ? pacman.score : highscores[i].score;
-                        DrawTextEx(font, TextFormat("%s: %d", displayName, displayScore), 
-                                (Vector2){screenWidth / 2 - 70, screenHeight / 2 + 130 + i * 20}, 
-                                12.0f, 1, (i == 0 && pacman.score > highscores[i].score) ? GREEN : WHITE);
+                        DrawTextEx(font, TextFormat("%s: %d", scoreDisplayName, displayScore),
+                                (Vector2){screenWidth / 2 - 70, screenHeight / 2 + 130 + i * 20},
+                                12.0f, 1, Fade((i == 0 && pacman.score > highscores[i].score) ? GREEN : WHITE, gameOverFadeAlpha));
                     }
                 } else {
-                    DrawTextEx(font, "Initials:", 
-                            (Vector2){screenWidth / 2 - MeasureTextEx(font, "Initials:", 16.0f, 1).x / 2, screenHeight / 2 + 20}, 
-                            16.0f, 1, YELLOW);
-                    DrawTextEx(font, playerNameInput, 
-                            (Vector2){screenWidth / 2 - MeasureTextEx(font, playerNameInput, 16.0f, 1).x / 2, screenHeight / 2 + 50}, 
-                            16.0f, 1, WHITE);
+                    DrawTextEx(font, "Initials:",
+                            (Vector2){screenWidth / 2 - MeasureTextEx(font, "Initials:", 16.0f, 1).x / 2, screenHeight / 2 + 20},
+                            16.0f, 1, Fade(YELLOW, gameOverFadeAlpha));
+                    DrawTextEx(font, playerNameInput,
+                            (Vector2){screenWidth / 2 - MeasureTextEx(font, playerNameInput, 16.0f, 1).x / 2, screenHeight / 2 + 50},
+                            16.0f, 1, Fade(WHITE, gameOverFadeAlpha));
                     // High score list with retro border
-                    DrawRectangleLines(screenWidth / 2 - 80, screenHeight / 2 + 100, 160, 120, YELLOW);
-                    DrawTextEx(font, "High Scores:", 
-                            (Vector2){screenWidth / 2 - MeasureTextEx(font, "High Scores:", 16.0f, 1).x / 2, screenHeight / 2 + 110}, 
-                            16.0f, 1, YELLOW);
+                    DrawRectangleLines(screenWidth / 2 - 80, screenHeight / 2 + 100, 160, 120, Fade(YELLOW, gameOverFadeAlpha));
+                    DrawTextEx(font, "High Scores:",
+                            (Vector2){screenWidth / 2 - MeasureTextEx(font, "High Scores:", 16.0f, 1).x / 2, screenHeight / 2 + 110},
+                            16.0f, 1, Fade(YELLOW, gameOverFadeAlpha));
                     for (int i = 0; i < MAX_HIGH_SCORES; i++) {
                         bool isPlayerScore = (strcmp(highscores[i].name, playerNameInput) == 0 && highscores[i].score == pacman.score);
-                        DrawTextEx(font, TextFormat("%s: %d", highscores[i].name, highscores[i].score), 
-                                (Vector2){screenWidth / 2 - 70, screenHeight / 2 + 130 + i * 20}, 
-                                12.0f, 1, isPlayerScore ? GREEN : WHITE);
+                        DrawTextEx(font, TextFormat("%s: %d", highscores[i].name, highscores[i].score),
+                                (Vector2){screenWidth / 2 - 70, screenHeight / 2 + 130 + i * 20},
+                                12.0f, 1, Fade(isPlayerScore ? GREEN : WHITE, gameOverFadeAlpha));
                     }
-                    DrawTextEx(font, "Press ENTER to Return to Menu", 
-                            (Vector2){screenWidth / 2 - MeasureTextEx(font, "Press ENTER to Return to Menu", 10.0f, 1).x / 2, screenHeight / 2 + 230}, 
-                            10.0f, 1, GRAY);
+                    DrawTextEx(font, "Press ENTER to Return to Menu",
+                            (Vector2){screenWidth / 2 - MeasureTextEx(font, "Press ENTER to Return to Menu", 10.0f, 1).x / 2, screenHeight / 2 + 230},
+                            10.0f, 1, Fade(GRAY, gameOverFadeAlpha));
+                }
+
+                // Error message for failed high score saving
+                if (saveHighScoreFailed) {
+                    DrawTextEx(font, "Failed to save high score!",
+                            (Vector2){screenWidth / 2 - MeasureTextEx(font, "Failed to save high score!", 12.0f, 1).x / 2, screenHeight / 2 + 260},
+                            12.0f, 1, Fade(RED, gameOverFadeAlpha));
                 }
                 break;
 

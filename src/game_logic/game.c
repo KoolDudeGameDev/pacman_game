@@ -31,11 +31,8 @@ HighScore highscores[MAX_HIGH_SCORES];  // High scores array
 char playerNameInput[4] = "AAA";        // Default to "AAA"
 int nameInputIndex = 0;
 bool nameInputComplete = false;
+bool saveHighScoreFailed = false;
 
-float gameOverAnimTimer = 0.0f;
-bool gameOverAnimActive = false;
-
-Particle gameOverParticles[MAX_PARTICLES] = {0};
 const char* gameOverMessages[] = {
     "Better Luck Next Time!",
     "Ghosts Got You Down?",
@@ -81,7 +78,7 @@ Ghost ghosts[MAX_GHOSTS];
 */
 
 static char game_maze[MAZE_HEIGHT][MAZE_WIDTH] = {
-/*
+
     "############################",     //  0     
     "#            ##            #",     //  1
     "# #### ##### ## ##### #### #",     //  2
@@ -91,7 +88,7 @@ static char game_maze[MAZE_HEIGHT][MAZE_WIDTH] = {
     "#      ##    ##    ##      #",     //  6
     "###### ##### ## ##### ######",     //  7
     "     # ##### ## ##### #     ",     //  8
-    "     # ##          ## #     ",     //  9
+    "     # ##         P## #     ",     //  9
     "     # ## ###||### ## #     ",     // 10
     "###### ## #      # ## ######",     // 11
     "          #      #          ",     // 12
@@ -103,7 +100,7 @@ static char game_maze[MAZE_HEIGHT][MAZE_WIDTH] = {
     "###### ##### ## ##### ######",     // 18
     "     # ##          ## #     ",     // 19
     "     # ## ######## ## #     ",     // 20
-    "     # ##     P....## #     ",     // 21
+    "     # ##     ....## #     ",     // 21
     "###### ## ######## ## ######",     // 22
     "#            ##            #",     // 23
     "# #### ##### ## ##### #### #",     // 24
@@ -114,7 +111,7 @@ static char game_maze[MAZE_HEIGHT][MAZE_WIDTH] = {
     "#                          #",     // 29
     "############################"      // 30
 
-    */
+    /*
     "############################",     //  0     
     "#............##............#",     //  1
     "#.####.#####.##.#####.####O#",     //  2
@@ -146,23 +143,13 @@ static char game_maze[MAZE_HEIGHT][MAZE_WIDTH] = {
     "#.##########.##.##########.#",     //  28
     "#..........................#",     //  29
     "############################"      //  30
-    
+    */
 };
 
 // Function Definitions
 // --------------------------------------------------------------------------------------------------------------------------
 
-// *** New particle initialization ***
-void init_game_over_particles(void) {
-    for (int i = 0; i < MAX_PARTICLES; i++) {
-        gameOverParticles[i].position = (Vector2){GetRandomValue(0, GetScreenWidth()), GetRandomValue(0, GetScreenHeight())};
-        gameOverParticles[i].velocity = (Vector2){GetRandomValue(-50, 50), GetRandomValue(-50, 50)};
-        gameOverParticles[i].lifetime = GetRandomValue(10, 30) / 10.0f;     // 1.0 to 3.0 seconds
-        gameOverParticles[i].active = true;
-    }
-}
-
-// *** New message selection ***
+// Game over message selection
 void select_game_over_message(void) {
     selectedMessageIndex = GetRandomValue(0, 4); // 5 messages
 }

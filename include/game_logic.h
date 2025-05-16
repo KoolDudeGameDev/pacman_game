@@ -12,7 +12,6 @@
 #define PACMAN_DEATH_FRAMES 11
 #define MAX_HIGH_SCORES 5
 #define MAX_NAME_LENGTH 4   // 3 initials + null terminator
-#define MAX_PARTICLES 20
 
 // Tile types
 typedef enum {
@@ -77,14 +76,6 @@ typedef struct {
     char name[MAX_NAME_LENGTH];
     int score;
 } HighScore;
-
-// Particle Background structure
-typedef struct {
-    Vector2 position;
-    Vector2 velocity;
-    float lifetime;
-    bool active;
-} Particle;
 
 // Fruit structure
 typedef struct {
@@ -167,11 +158,8 @@ extern HighScore highscores[MAX_HIGH_SCORES];       // High score array
 extern char playerNameInput[4];                     // Buffer for player nmae input (3 chars + null)
 extern int nameInputIndex;                          // Current position in name input
 extern bool nameInputComplete;                      // Flag to indicate name input is done
+extern bool saveHighScoreFailed;                    // Flag to indicate high score save failure
 
-extern float gameOverAnimTimer;   // Tracks animation progress
-extern bool gameOverAnimActive;   // Flag for animation
-
-extern Particle gameOverParticles[MAX_PARTICLES];
 extern const char* gameOverMessages[];
 extern int selectedMessageIndex;
 
@@ -202,7 +190,6 @@ extern bool isFrightenedSoundPaused; // Tracks if ghost frightened sound
 
 // game.c
 
-void init_game_over_particles(void);
 void select_game_over_message(void);
 
 // Initializes the maze array from a static layout, setting walls, pellets, and power pellets.
