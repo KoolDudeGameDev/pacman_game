@@ -47,8 +47,38 @@ static Direction choose_best_direction(int currentX, int currentY, int targetX, 
         }
     }
 
+    // If no valid directions are found, try again but allow opposite direction
     if (validCount == 0) {
-        return DIR_NONE; // No valid directions
+        for (int d = 0; d < 4; d++) {
+            int newGridX = currentX;
+            int newGridY = currentY;
+            switch (possibleDirs[d]) {
+                case DIR_UP:
+                    newGridY--;
+                    break;
+                case DIR_DOWN:
+                    newGridY++;
+                    break;
+                case DIR_LEFT:
+                    newGridX--;
+                    break;
+                case DIR_RIGHT:
+                    newGridX++;
+                    break;
+                default:
+                    break;
+            }
+
+            if (IsTileWalkable(newGridX, newGridY, canPassGate)) {
+                validDirs[validCount] = d;
+                distances[validCount] = CalculateDistance(newGridX, newGridY, targetX, targetY);
+                validCount++;
+            }
+        }
+    }
+
+    if (validCount == 0) {
+        return DIR_NONE;    // No valid directions, truly stuck
     }
 
     // Choose the direction that gets closest to target
@@ -94,6 +124,7 @@ void init_ghosts(void) {
         ghosts[i].scatterTargetY = scatterTargets[i][1];
         ghosts[i].stateTimer = i * 5.0f;                 // Staggered release times (0, 5, 10, 15 seconds)
         ghosts[i].frightenedBlinkTimer = 0.0f;           // Initialize blinking timer
+        ghosts[i].stuckTimer = 0.0f;                     // Initialize stuck timer
         if (i == 0) {
             // Blinky starts outside the pen
             ghosts[i].state = GHOST_NORMAL;
@@ -283,6 +314,8 @@ void update_ghosts(void) {
                 ghosts[i].stateTimer = 2.0f;        // Wait in pen for 2 secs before exiting
                 ghosts[i].x = penX * TILE_SIZE + TILE_SIZE / 2.0f;
                 ghosts[i].y = penY * TILE_SIZE + TILE_SIZE / 2.0f;
+                ghosts[i].stuckTimer = 0.0f;        // Reset stuck timer
+                printf("Ghost %d reached pen at (%d, %d)\n", i, penX, penY);
                 continue;
             }
 
@@ -298,6 +331,58 @@ void update_ghosts(void) {
                 // Choose direction to return to pen
                 ghosts[i].direction = choose_best_direction(ghosts[i].gridX, ghosts[i].gridY, penX, penY, ghosts[i].direction, true);
 
+                // Debug: Log the ghost's position and direction
+                printf("Ghost %d at (%d, %d), Direction: %d\n", i, ghosts[i].gridX, ghosts[i].gridY, ghosts[i].direction);
+                
+                // Update stuck timer
+                if (ghosts[i].direction == DIR_NONE) {
+                    ghosts[i].stuckTimer += deltaTime;
+                    // Debug: Log when the ghost is stuck
+                    printf("Ghost %d is stuck at (%d, %d), Stuck Timer: %.2f\n", i, ghosts[i].gridX, ghosts[i].gridY, ghosts[i].stuckTimer);
+                } else {
+                    ghosts[i].stuckTimer = 0.0f; // Reset timer if moving
+                }
+
+                // If stuck for too long, force a random valid direction
+                if (ghosts[i].stuckTimer > 1.0f) { // Stuck for 1 second
+                    Direction possibleDirs[4] = {DIR_UP, DIR_DOWN, DIR_LEFT, DIR_RIGHT};
+                    int validDirs[4] = {0};
+                    int validCount = 0;
+
+                    for (int d = 0; d < 4; d++) {
+                        int newGridX = ghosts[i].gridX;
+                        int newGridY = ghosts[i].gridY;
+                        switch (possibleDirs[d]) {
+                            case DIR_UP:
+                                newGridY--;
+                                break;
+                            case DIR_DOWN:
+                                newGridY++;
+                                break;
+                            case DIR_LEFT:
+                                newGridX--;
+                                break;
+                            case DIR_RIGHT:
+                                newGridX++;
+                                break;
+                            default:
+                                break;
+                        }
+
+                        if (IsTileWalkable(newGridX, newGridY, true)) {
+                            validDirs[validCount] = d;
+                            validCount++;
+                        }
+                    }
+
+                    if (validCount > 0) {
+                        ghosts[i].direction = possibleDirs[validDirs[rand() % validCount]];
+                        ghosts[i].stuckTimer = 0.0f; // Reset stuck timer
+                        // Debug: Log when forcing a new direction
+                        printf("Ghost %d was stuck, forcing new direction: %d\n", i, ghosts[i].direction);
+                    }
+                }
+                
                 // Update grid position based on direction, but only if the next tile is walkable
                 int newGridX = ghosts[i].gridX;
                 int newGridY = ghosts[i].gridY;

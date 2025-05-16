@@ -130,6 +130,7 @@ typedef struct {
     float animTimer;            // Timer to control animation frame switching
     int currentFrame;           // Current animation frame (0 or 1 for normal state)
     float frightenedBlinkTimer; // Timer for frightened state blinking
+    float stuckTimer;           // Timer to detect if the ghost is stuck
 } Ghost;
 
 // Global Variables (extern to declare them, defined in game.c)

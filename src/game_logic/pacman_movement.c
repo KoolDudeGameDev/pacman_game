@@ -22,16 +22,17 @@ void update_pacman(void) {
     static bool isMovingSoundPlaying = false;   // Track if movement sound is playing
 
     // Handle movement sound
-    if (pacman.direction != DIR_NONE && gameState == STATE_PLAYING && !IsSoundPlaying(sfx_pacman_move)) {
-        if (isMovingSoundPlaying) {
+    if (pacman.direction != DIR_NONE && (gameState == STATE_PLAYING || gameState == STATE_GHOST_EATEN) && !soundMuted) {
+        if (!isMovingSoundPlaying && !IsSoundPlaying(sfx_pacman_move)) {
+            SetSoundVolume(sfx_pacman_move, 0.3f); 
             PlaySound(sfx_pacman_move);
             isMovingSoundPlaying = true;
-        } 
-    } else if (pacman.direction == DIR_NONE || gameState != STATE_PLAYING) {
+        }
+    } else {
         if (isMovingSoundPlaying) {
             StopSound(sfx_pacman_move);
             isMovingSoundPlaying = false;
-        }  
+        }
     }
 
     // Queue the next direction
