@@ -1,8 +1,8 @@
-#include "game_logic.h"
 #include "rendering.h"
 
-// Ghost Sprites
+// Texture Management
 // ----------------------------------------------------------------------------------------
+// Loads ghost textures and assigns them to the ghost array, also setting Pac-Man and fruit sprites.
 void LoadGhostTextures(Ghost *ghostArray) {
     // Load the sprite sheet as an image
     Image spriteImage = LoadImage("assets/sprites/pacman_general_sprites.png");
@@ -35,12 +35,14 @@ void LoadGhostTextures(Ghost *ghostArray) {
     }
 }
 
+// Unloads the sprite sheet texture to free memory.
 void UnloadGhostTextures(Ghost *ghostArray) {
     UnloadTexture(spriteSheet);
 }
 
-
-
+// Utility Functions
+// ----------------------------------------------------------------------------------------
+// Draws an arc for maze wall corners, used in render_maze.
 void DrawArc(Vector2 center, float radius, float startAngle, float endAngle, int segments, float thickness, Color color) {
     // Convert angles to radians
     float startRad = startAngle * DEG2RAD;
@@ -48,7 +50,7 @@ void DrawArc(Vector2 center, float radius, float startAngle, float endAngle, int
     float angleStep = (endRad - startRad) / segments;
 
     // Calculate points along the arc and draw lines between them
-    for (int i = 0; i < segments; i ++) {
+    for (int i = 0; i < segments; i++) {
         float angle1 = startRad + i * angleStep;
         float angle2 = startRad + (i + 1) * angleStep;
 
@@ -66,8 +68,9 @@ void DrawArc(Vector2 center, float radius, float startAngle, float endAngle, int
     }
 }
 
-// Render Maze
+// Rendering Functions
 // ----------------------------------------------------------------------------------------
+// Renders the maze, including walls, pellets, power pellets, ghost gate, and active fruit.
 void render_maze(int offsetX, int offsetY) {
     // Update global blink timer
     blinkTimer += GetFrameTime();
@@ -102,7 +105,7 @@ void render_maze(int offsetX, int offsetY) {
 
     // Second pass: Draw walls as single outlines with curved corners
     const int lineThickness = 1;
-    const Color wallColor = { 0, 120, 215, 255 }; /// Light Blue
+    const Color wallColor = { 0, 120, 215, 255 }; // Light Blue
 
     for (int y = 0; y < MAZE_HEIGHT; y++) {
         for (int x = 0; x < MAZE_WIDTH; x++) {
@@ -162,7 +165,7 @@ void render_maze(int offsetX, int offsetY) {
             }
 
             // Draw curved corners for outer ends
-            float outerOffset = outerRadius;    // Center the arc at the corner adjusted by radius
+            float outerOffset = outerRadius; // Center the arc at the corner adjusted by radius
 
             // Top-left corner or end
             if (!up && !left) {
@@ -206,9 +209,7 @@ void render_maze(int offsetX, int offsetY) {
     }  
 }
 
-// Render Entities
-// ----------------------------------------------------------------------------------------
-
+// Renders Pac-Man with mouth animation based on direction.
 void render_pacman(int offsetX, int offsetY) {
     // Mouth animation
     static float animTimer = 0.0f;
@@ -247,6 +248,7 @@ void render_pacman(int offsetX, int offsetY) {
     DrawTexturePro(pacman.sprite, sourceRec, destRec, origin, rotation, WHITE);
 }
 
+// Renders Pac-Man's death animation with shrinking effect.
 void render_pacman_death(int offsetX, int offsetY) {
     // Define source rectangle
     Rectangle sourceRec = { (deathAnimFrame * 16.0f) + 51.0f, 0.0f, 16.0f, 16.0f};
@@ -267,6 +269,7 @@ void render_pacman_death(int offsetX, int offsetY) {
     DrawTexturePro(pacman.sprite, sourceRec, destRec, origin, 0.0f, WHITE);
 }
 
+// Renders all ghosts based on their state (normal, frightened, returning) and direction.
 void render_ghosts(int offsetX, int offsetY) {
     for (int i = 0; i < MAX_GHOSTS; i++) {
         // Update animation timer for normal ghost animation
@@ -325,7 +328,6 @@ void render_ghosts(int offsetX, int offsetY) {
         Rectangle sourceRec;
         Texture2D texture;
         
-
         if (ghosts[i].state == GHOST_RETURNING) {
             float xOffset;
             switch (ghosts[i].direction) {
@@ -337,7 +339,6 @@ void render_ghosts(int offsetX, int offsetY) {
             }
             sourceRec = (Rectangle){ xOffset, 80.0f, 16.0f, 16.0f };
             texture = ghosts[i].eyeballSprite;
-
         } else if (ghosts[i].state == GHOST_FRIGHTENED) {
             // Default to blue frightened sprite
             float xOffset = 132.0f; // Blue frightened sprite
@@ -347,7 +348,6 @@ void render_ghosts(int offsetX, int offsetY) {
             }
             sourceRec = (Rectangle){ xOffset, 64.0f, 16.0f, 16.0f };
             texture = ghosts[i].frightenedSprite;
-
         } else {
             // Normal sprite based on ghost type (Blinky, Pinky, Inky, Clyde)
             float xOffset;
@@ -360,14 +360,14 @@ void render_ghosts(int offsetX, int offsetY) {
                 default: yOffset = 64.0f; break;
             }
 
-           // Select xOffset based on direction and animation frame
+            // Select xOffset based on direction and animation frame
             switch (ghosts[i].direction) {
                 case DIR_RIGHT: xOffset = 4.0f + ghosts[i].currentFrame * 16.0f; break;       
                 case DIR_LEFT: xOffset = 36.0f + ghosts[i].currentFrame * 16.0f; break; 
                 case DIR_UP: xOffset = 68.0f + ghosts[i].currentFrame * 16.0f; break;  
                 case DIR_DOWN: xOffset = 100.0f + ghosts[i].currentFrame * 16.0f; break;
                 default: xOffset = 4.0f + ghosts[i].currentFrame * 16.0f; break;              
-        }
+            }
             sourceRec = (Rectangle){ xOffset, yOffset, 16.0f, 16.0f };
             texture = ghosts[i].normalSprite[ghosts[i].currentFrame];
         }
@@ -375,66 +375,26 @@ void render_ghosts(int offsetX, int offsetY) {
     }
 }
 
-void render_pause_menu(int screenWidth, int screenHeight, Font font) {
-    const char *options[] = {"RESUME", "RESTART", "SETTINGS", "QUIT"};
-    int numOptions = 4;
-    int fontSize = 16;
-    int spacing = 30;
-    int startY = screenHeight / 2 - (numOptions * spacing) / 2;
+// Renders the fruit if active, centered at its grid position.
+void render_fruit(int offsetX, int offsetY) {
+    if (fruit.active) {
+        //printf("Rendering fruit at gridX: %d, gridY: %d\n", fruit.gridX, fruit.gridY);
+        float scaleFactor = (float)TILE_SIZE / 16.0f;
+        float scaledWidth = 16.0f * scaleFactor;
+        float scaledHeight = 16.0f * scaleFactor;
+        Rectangle sourceRec = { 35.0f, 48.0f, 16.0f, 16.0f };
 
-    // Draw "PAUSED" title
-    const char *title = "PAUSED";
-    Vector2 titleSize = MeasureTextEx(font, title, fontSize * 1.25, 2);
-    DrawTextEx(font, title, (Vector2){screenWidth / 2 - titleSize.x / 2, startY - 60}, fontSize * 1.25, 2, YELLOW);
+        float tileCenterX = fruit.gridX * TILE_SIZE + offsetX + (TILE_SIZE / 2.0f);
+        float tileCenterY = fruit.gridY * TILE_SIZE + offsetY + (TILE_SIZE / 2.0f);
 
-    // Draw menu options
-    for (int i = 0; i < numOptions; i++) {
-        Color color = (i == pauseSelectedOption) ? YELLOW : WHITE;
-        Vector2 textSize = MeasureTextEx(font, options[i], fontSize, 2);
-        DrawTextEx(font, options[i], (Vector2){screenWidth / 2 - textSize.x / 2, startY + i * spacing}, fontSize, 2, color);
-    }
-}
-
-void render_settings_menu(int screenWidth, int screenHeight, Font font, int selectedOption) {
-    const char *options[] = {"BG MUSIC VOLUME", "PAC-MAN SFX VOLUME", "MUTE"};
-    int numOptions = 3;
-    int fontSize = 16;
-    int spacing = 30;
-    int startY = screenHeight / 2 - (numOptions * spacing) / 2;
-    int sliderWidth = fontSize * 6;
-    int sliderHeight = (int)(fontSize * 0.3 + 0.5);
-
-    // Draw "SETTINGS" title
-    const char *title = "SETTINGS";
-    Vector2 titleSize = MeasureTextEx(font, title, fontSize * 1.25, 2);
-    DrawTextEx(font, title, (Vector2){screenWidth / 2 - titleSize.x / 2, startY - 60}, fontSize * 1.5, 2, YELLOW);
-
-    // Draw settings options
-    for (int i = 0; i < numOptions; i++) {
-        Color color = (i == selectedOption) ? YELLOW : WHITE;
-        Vector2 textSize = MeasureTextEx(font, options[i], fontSize, 2);
-        float textX = screenWidth / 2 - textSize.x - 30;
-        float sliderX = screenWidth / 2 + 10;
-        float y = startY + i * spacing;
-
-        // Draw option text
-        DrawTextEx(font, options[i], (Vector2){textX, y}, fontSize, 2, color);
-
-        // Draw sliders or mute status
-        if (i < 2) {
-            // Sliders for volumes
-            float volume = (i == 0) ? bgMusicVolume : pacmanSfxVolume;
-            DrawRectangle(sliderX, y + 2, sliderWidth, sliderHeight, GRAY);
-            DrawRectangle(sliderX, y + 2, sliderWidth * volume, sliderHeight, color);
-            char valueText[16];
-            sprintf(valueText, "%.0f%%", volume * 100);
-            Vector2 valueSize = MeasureTextEx(font, valueText, fontSize * 0.8, 2);
-            DrawTextEx(font, valueText, (Vector2){sliderX + sliderWidth + 10, y}, fontSize * 0.8, 2, WHITE);
-        } else {
-            // Mute toggle
-            const char *muteText = soundMuted ? "ON" : "OFF";
-            Vector2 muteSize = MeasureTextEx(font, muteText, fontSize, 2);
-            DrawTextEx(font, muteText, (Vector2){sliderX, y}, fontSize, 2, color);
-        }
-    }
+        // Position the sprite so its center is at the tile's center
+        Rectangle destRec = {
+            tileCenterX - (scaledWidth / 2.0f),  // Top-left x
+            tileCenterY - (scaledHeight / 2.0f), // Top-left y
+            scaledWidth,
+            scaledHeight
+        };
+        Vector2 origin = { 0.0f, 0.0f }; // Origin at top-left for precise positioning
+        DrawTexturePro(fruit.sprite, sourceRec, destRec, origin, 0.0f, WHITE); 
+    }  
 }

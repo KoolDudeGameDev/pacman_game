@@ -3,7 +3,7 @@
 // Global Variables
 
 Texture2D spriteSheet;
-GameState gameState = STATE_MENU;       // Initial state
+GameState gameState = STATE_KOOLDUDE_LOGO;       // Initial state
 GhostMode ghostMode = MODE_SCATTER;       // Start in Scatter mode
 float modeTimer = 0.0f;                 // Timer for switching between Chase and Scatter
 float readyTimer = 0.0f;                // Timer for "READY!" phase
@@ -78,7 +78,7 @@ Ghost ghosts[MAX_GHOSTS];
 */
 
 static char game_maze[MAZE_HEIGHT][MAZE_WIDTH] = {
-
+/*
     "############################",     //  0     
     "#            ##            #",     //  1
     "# #### ##### ## ##### #### #",     //  2
@@ -100,7 +100,7 @@ static char game_maze[MAZE_HEIGHT][MAZE_WIDTH] = {
     "###### ##### ## ##### ######",     // 18
     "     # ##          ## #     ",     // 19
     "     # ## ######## ## #     ",     // 20
-    "     # ##     ....## #     ",     // 21
+    "     # ##     .....## #     ",     // 21
     "###### ## ######## ## ######",     // 22
     "#            ##            #",     // 23
     "# #### ##### ## ##### #### #",     // 24
@@ -111,7 +111,7 @@ static char game_maze[MAZE_HEIGHT][MAZE_WIDTH] = {
     "#                          #",     // 29
     "############################"      // 30
 
-    /*
+    */
     "############################",     //  0     
     "#............##............#",     //  1
     "#.####.#####.##.#####.####O#",     //  2
@@ -143,7 +143,7 @@ static char game_maze[MAZE_HEIGHT][MAZE_WIDTH] = {
     "#.##########.##.##########.#",     //  28
     "#..........................#",     //  29
     "############################"      //  30
-    */
+
 };
 
 // Function Definitions
