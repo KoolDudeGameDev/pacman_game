@@ -44,9 +44,10 @@ int selectedMessageIndex = 0;
 
 PauseMenuState pauseMenuState = PAUSE_MENU_MAIN;
 int pauseSelectedOption = 0;
-float bgMusicVolume = 1.0f;          // Default full volume
-float pacmanSfxVolume = 1.0f;        // Default full volume
+float bgMusicVolume = 0.3f;          // Default full volume
+float sfxVolume = 1.0f;              // Default full volume
 bool soundMuted = false;             // Default unmuted
+bool playPacmanMove = false;         // Flag to control sfx_pacman_move playback
 
 // Sound effects
 Sound sfx_menu;             // Background sound for menu
@@ -78,40 +79,7 @@ Ghost ghosts[MAX_GHOSTS];
 */
 
 static char game_maze[MAZE_HEIGHT][MAZE_WIDTH] = {
-/*
-    "############################",     //  0     
-    "#            ##            #",     //  1
-    "# #### ##### ## ##### #### #",     //  2
-    "# #### ##### ## ##### #### #",     //  3
-    "#                          #",     //  4
-    "# #### ## ######## ## #### #",     //  5
-    "#      ##    ##    ##      #",     //  6
-    "###### ##### ## ##### ######",     //  7
-    "     # ##### ## ##### #     ",     //  8
-    "     # ##         P## #     ",     //  9
-    "     # ## ###||### ## #     ",     // 10
-    "###### ## #      # ## ######",     // 11
-    "          #      #          ",     // 12
-    "          ########          ",     // 13
-    "###### ##          ## ######",     // 14
-    "#      ## ######## ##      #",     // 15
-    "# ####       ##       #### #",     // 16
-    "#      ##### ## #####      #",     // 17
-    "###### ##### ## ##### ######",     // 18
-    "     # ##          ## #     ",     // 19
-    "     # ## ######## ## #     ",     // 20
-    "     # ##     .....## #     ",     // 21
-    "###### ## ######## ## ######",     // 22
-    "#            ##            #",     // 23
-    "# #### ##### ## ##### #### #",     // 24
-    "#    #                #    #",     // 25
-    "#### # ## ######## ## # ####",     // 26
-    "#      ##    ##    ##      #",     // 27
-    "# ########## ## ########## #",     // 28
-    "#                          #",     // 29
-    "############################"      // 30
 
-    */
     "############################",     //  0     
     "#............##............#",     //  1
     "#.####.#####.##.#####.####O#",     //  2
@@ -274,6 +242,7 @@ void reset_game_state(bool fullReset, GameState targetState) {
     int score = pacman.score;   // Preserve score unless full reset
     int lives = pacman.lives;   // Preserve lives unless full reset
     init_pacman(startX, startY);
+
     if (fullReset) {
         pacman.score = 0;
         pacman.lives = 3;
@@ -281,6 +250,7 @@ void reset_game_state(bool fullReset, GameState targetState) {
         pacman.score = score;   // Restore score
         pacman.lives = lives;   // Restore lives
     }
+
     init_ghosts();
     init_fruit();
     readyTimer = 4.0f;          // Show "READY!" for 4 secs (only used if targetState is STATE_READY)
@@ -291,6 +261,7 @@ void reset_game_state(bool fullReset, GameState targetState) {
     eatenGhostCount = 0;
     eatenGhostIndex = -1;
     powerPelletTimer = 0.0f;
+
     // Only reset pellet counts and ghost count for full reset (level completion or new game)
     if (fullReset) {
         printf("Full reset: Clearing pelletsEaten, powerPelletsEaten, eatenGhostCount\n");
@@ -319,7 +290,10 @@ void reset_game_state(bool fullReset, GameState targetState) {
         StopSound(sfx_ghost_frightened);
     }
     isFrightenedSoundPaused = false;
-    if (targetState == STATE_READY) {
+    playPacmanMove = false;
+    StopSound(sfx_pacman_move);
+    if (targetState == STATE_READY && !soundMuted) {
+        SetSoundVolume(sfx_ready, sfxVolume);
         PlaySound(sfx_ready);
     }
 }
@@ -334,7 +308,12 @@ bool is_maze_cleared(void) {
         }
     }
     remainingPelletCount = 0;
-    PlaySound(sfx_level_complete); // Play level complete SFX when maze is cleared
+
+    if (!soundMuted) {
+        SetSoundVolume(sfx_level_complete, sfxVolume);
+        PlaySound(sfx_level_complete);
+    }
+
     return true;                    // No pellets or power pellets found, maze is cleared
 }
 
@@ -384,7 +363,7 @@ void update_fruit(void) {
             fruit.active = false;
             fruit.timer = 0.0f;
             if (!soundMuted) {
-                SetSoundVolume(sfx_eat_fruit, pacmanSfxVolume);
+                SetSoundVolume(sfx_eat_fruit, sfxVolume);
                 PlaySound(sfx_eat_fruit);
             }
         }

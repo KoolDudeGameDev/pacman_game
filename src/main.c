@@ -33,18 +33,18 @@ int main(void) {
     sfx_game_over = LoadSound("assets/sounds/pacman_game_over.mp3");
 
     // Set initial volumes
-    SetSoundVolume(sfx_menu, bgMusicVolume);
-    SetSoundVolume(sfx_menu_nav, pacmanSfxVolume);
-    SetSoundVolume(sfx_ready, pacmanSfxVolume);
-    SetSoundVolume(sfx_pacman_move, 0.3f);
-    SetSoundVolume(sfx_pacman_chomp, pacmanSfxVolume);
-    SetSoundVolume(sfx_pacman_death, pacmanSfxVolume);
-    SetSoundVolume(sfx_eat_fruit, pacmanSfxVolume);
-    SetSoundVolume(sfx_eat_ghost, pacmanSfxVolume);
-    SetSoundVolume(sfx_ghost_frightened, pacmanSfxVolume);
-    SetSoundVolume(sfx_level_complete, pacmanSfxVolume);
-    SetSoundVolume(sfx_extra_life, pacmanSfxVolume);
-    SetSoundVolume(sfx_game_over, pacmanSfxVolume);
+    SetSoundVolume(sfx_menu, soundMuted ? 0.0f : bgMusicVolume);
+    SetSoundVolume(sfx_menu_nav, soundMuted ? 0.0f : sfxVolume);
+    SetSoundVolume(sfx_ready, soundMuted ? 0.0f : sfxVolume);
+    SetSoundVolume(sfx_pacman_move, soundMuted ? 0.0f : bgMusicVolume);
+    SetSoundVolume(sfx_pacman_chomp, soundMuted ? 0.0f : sfxVolume);
+    SetSoundVolume(sfx_pacman_death, soundMuted ? 0.0f : sfxVolume);
+    SetSoundVolume(sfx_eat_fruit, soundMuted ? 0.0f : sfxVolume);
+    SetSoundVolume(sfx_eat_ghost, soundMuted ? 0.0f : sfxVolume);
+    SetSoundVolume(sfx_ghost_frightened, soundMuted ? 0.0f : sfxVolume);
+    SetSoundVolume(sfx_level_complete, soundMuted ? 0.0f : sfxVolume);
+    SetSoundVolume(sfx_extra_life, soundMuted ? 0.0f : sfxVolume);
+    SetSoundVolume(sfx_game_over, soundMuted ? 0.0f : sfxVolume);
     
     // Calculate maze dimensions and offsets
     const int mazePixelWidth = MAZE_WIDTH * TILE_SIZE;              // 560px
@@ -145,6 +145,8 @@ int main(void) {
                         SetSoundVolume(sfx_menu, bgMusicVolume);
                         PlaySound(sfx_menu);
                     }
+                    playPacmanMove = false;
+                    StopSound(sfx_pacman_move);
                 }
 
                 // Initialize game over state
@@ -153,8 +155,11 @@ int main(void) {
                     gameOverFadingIn = true;
                     select_game_over_message();
                     if (!soundMuted) {
+                        SetSoundVolume(sfx_game_over, sfxVolume);
                         PlaySound(sfx_game_over);
                     }
+                    playPacmanMove = false;
+                    StopSound(sfx_pacman_move);
                 }
 
                 // Reset game over fade when returning to menu
@@ -219,7 +224,7 @@ int main(void) {
 
             case STATE_MENU:
                 // Start menu loop sound
-                if (!IsSoundPlaying(sfx_menu)) {
+                if (!IsSoundPlaying(sfx_menu) && !soundMuted) {
                     SetSoundVolume(sfx_menu, bgMusicVolume);
                     PlaySound(sfx_menu);
                     isMenuLoopPlaying = true;
@@ -252,16 +257,14 @@ int main(void) {
 
                 // Stop movement sound
                 StopSound(sfx_pacman_move);
-
-                if (!IsSoundPlaying(sfx_ready)) {
-                    PlaySound(sfx_ready);
-                }
+                playPacmanMove = false;
 
                 readyTimer -= GetFrameTime();
                 if (readyTimer <= 0.0f) {
                     gameState = STATE_PLAYING;
                     readyTimer = 0.0f;
                     StopSound(sfx_ready);
+                    playPacmanMove = true;      // Start movement sfx when entering PLAYING
                 }
                 break;
             
@@ -271,7 +274,7 @@ int main(void) {
                 update_fruit();
 
                 if (!soundMuted && !IsSoundPlaying(sfx_pacman_move)) {
-                    SetSoundVolume(sfx_pacman_move, 0.3f);
+                    SetSoundVolume(sfx_pacman_move, bgMusicVolume);
                     PlaySound(sfx_pacman_move);
                 }
                 if (powerPelletTimer > 0.0f) {
@@ -283,20 +286,20 @@ int main(void) {
         
                 if (IsKeyPressed(KEY_ESCAPE) || IsKeyPressed(KEY_P)) {
                     gameState = STATE_PAUSED;
+                    playPacmanMove = false;
+                    StopSound(sfx_pacman_move);
                 }
                 break;
 
             case STATE_PAUSED:
                 if (IsKeyPressed(KEY_ESCAPE)) {
                     gameState = STATE_PLAYING;
-                    if (!soundMuted && !IsSoundPlaying(sfx_pacman_move)) {
-                        SetSoundVolume(sfx_pacman_move, 0.3f);
-                        PlaySound(sfx_pacman_move);
-                    }
+                    playPacmanMove = true;      // Resume movement sfx
                 }
                 // Stop movement sound when entering pause
                 if (!pausedThisFrame) {
                     StopSound(sfx_pacman_move);
+                    playPacmanMove = false;
                 }
 
                 if (handle_pause_input(&pausedThisFrame)) {
@@ -304,6 +307,8 @@ int main(void) {
                         fadingOut = true;
                         nextState = STATE_MENU;
                         prevState = STATE_PAUSED;
+                        playPacmanMove = true;
+                        StopSound(sfx_pacman_move);
                     }
                 }
                 pausedThisFrame = false;
@@ -314,6 +319,7 @@ int main(void) {
                 if (ghostEatenTimer <= 0.0f) {
                     eatenGhostIndex = -1;   // Reset for next ghost
                     gameState = STATE_PLAYING;
+                    playPacmanMove = true;
                     // Resume frightened sound if any ghost is still frightened
                     if (isFrightenedSoundPaused) {
                         bool anyFrightened = false;
@@ -323,7 +329,8 @@ int main(void) {
                                 break;
                             }
                         }
-                        if (anyFrightened) {
+                        if (anyFrightened && !soundMuted) {
+                            SetSoundVolume(sfx_ghost_frightened, sfxVolume);
                             ResumeSound(sfx_ghost_frightened);
                             isFrightenedSoundPaused = false;
                         } else {
@@ -339,25 +346,30 @@ int main(void) {
                 if (!deathSfxPlayed && !soundMuted) {
                     StopSound(sfx_pacman_move);
                     StopSound(sfx_ghost_frightened);
-                    SetSoundVolume(sfx_pacman_death, pacmanSfxVolume);
+                    SetSoundVolume(sfx_pacman_death, sfxVolume);
                     PlaySound(sfx_pacman_death);
                     deathSfxPlayed = true;
                 }
 
                 deathAnimTimer -= GetFrameTime();
                 if (deathAnimTimer <= 0.0f) {
+                    // Decrement lives at the end of the animation
+                    //pacman.lives--;
                     deathAnimTimer = 6.0f; // Reset timer for next death
                     deathAnimFrame = 0;
                     deathSfxPlayed = false; // Reset flag for next death
                     if (pacman.lives > 0) {
                         reset_game_state(false, STATE_READY);
                         gameState = STATE_READY;
+                        playPacmanMove = false;
                     } else {
                         fadingOut = true;
                         nextState = STATE_GAME_OVER;
                         prevState = STATE_DEATH_ANIM;
                         gameOverFadeAlpha = 0.0f;
                         gameOverFadingIn = true;
+                        playPacmanMove = false;
+                        StopSound(sfx_pacman_move);
                     }
                 } else {
                     // Update death animation frame based on time
@@ -373,7 +385,7 @@ int main(void) {
                 if (!levelCompleteSfxStopped && !soundMuted) {
                     StopSound(sfx_pacman_move);
                     StopSound(sfx_ghost_frightened);
-                    SetSoundVolume(sfx_level_complete, pacmanSfxVolume);
+                    SetSoundVolume(sfx_level_complete, sfxVolume);
                     PlaySound(sfx_level_complete);
                     levelCompleteSfxStopped = true;
                 }
@@ -388,6 +400,8 @@ int main(void) {
                     reset_game_state(false, STATE_READY);
                     level++;                    // Increment level for next iteration
                     levelCompleteSfxStopped = false;    // Reset flag for next level
+                    playPacmanMove = false;
+                    StopSound(sfx_pacman_move);
                 }
                 break;
 

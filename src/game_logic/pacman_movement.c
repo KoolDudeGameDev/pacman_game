@@ -19,21 +19,6 @@ void init_pacman(int startX, int startY) {
 void update_pacman(void) {
     float deltaTime = GetFrameTime();           // Ensuring frame-rate-independent movement
     static int lastScore = 0;                   // Track score to detect extra life
-    static bool isMovingSoundPlaying = false;   // Track if movement sound is playing
-
-    // Handle movement sound
-    if (pacman.direction != DIR_NONE && (gameState == STATE_PLAYING || gameState == STATE_GHOST_EATEN) && !soundMuted) {
-        if (!isMovingSoundPlaying && !IsSoundPlaying(sfx_pacman_move)) {
-            SetSoundVolume(sfx_pacman_move, 0.3f); 
-            PlaySound(sfx_pacman_move);
-            isMovingSoundPlaying = true;
-        }
-    } else {
-        if (isMovingSoundPlaying) {
-            StopSound(sfx_pacman_move);
-            isMovingSoundPlaying = false;
-        }
-    }
 
     // Queue the next direction
     if (IsKeyDown(KEY_RIGHT) || IsKeyDown(KEY_D)) pacman.nextDirection = DIR_RIGHT;

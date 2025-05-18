@@ -16,11 +16,17 @@ void handle_menu_input(int *selectedOption, bool *shouldExit) {
     // Navigate menu options
     if (IsKeyPressed(KEY_DOWN)) {
         *selectedOption = (*selectedOption + 1) % 5;
-        PlaySound(sfx_menu_nav);
+        if (!soundMuted) {
+            SetSoundVolume(sfx_menu_nav, sfxVolume); // Apply sfxVolume to menu navigation sound
+            PlaySound(sfx_menu_nav);
+        }
     }
     if (IsKeyPressed(KEY_UP)) {
         *selectedOption = (*selectedOption - 1 + 5) % 5;
-        PlaySound(sfx_menu_nav);
+        if (!soundMuted) {
+            SetSoundVolume(sfx_menu_nav, sfxVolume); // Apply sfxVolume to menu navigation sound
+            PlaySound(sfx_menu_nav);
+        }
     }
     if (IsKeyPressed(KEY_ENTER)) {
         if (*selectedOption == 0) {      // START
@@ -43,7 +49,10 @@ void handle_menu_input(int *selectedOption, bool *shouldExit) {
         } else {                        // EXIT
             *shouldExit = true;
         }
-        PlaySound(sfx_menu_nav);
+        if (!soundMuted) {
+            SetSoundVolume(sfx_menu_nav, sfxVolume); // Apply sfxVolume to menu navigation sound
+            PlaySound(sfx_menu_nav);
+        }
     }
 }
 
@@ -54,7 +63,10 @@ void handle_highscores_input(int *selectedOption) {
     if (IsKeyPressed(KEY_ESCAPE) || IsKeyPressed(KEY_ENTER)) {
         gameState = STATE_MENU;
         *selectedOption = 1;
-        PlaySound(sfx_menu_nav);
+        if (!soundMuted) {
+            SetSoundVolume(sfx_menu_nav, sfxVolume); // Apply sfxVolume to menu navigation sound
+            PlaySound(sfx_menu_nav);
+        }
     }
 }
 
@@ -65,7 +77,10 @@ void handle_about_input(int *selectedOption) {
     if (IsKeyPressed(KEY_ESCAPE) || IsKeyPressed(KEY_ENTER)) {
         gameState = STATE_MENU;
         *selectedOption = 2;
-        PlaySound(sfx_menu_nav);
+        if (!soundMuted) {
+            SetSoundVolume(sfx_menu_nav, sfxVolume); // Apply sfxVolume to menu navigation sound
+            PlaySound(sfx_menu_nav);
+        }
     }
 }
 
@@ -77,59 +92,110 @@ void handle_settings_input(int *selectedOption) {
     if (IsKeyPressed(KEY_UP)) {
         *selectedOption = (*selectedOption - 1 + 3) % 3; // 3 settings
         if (!soundMuted) {
-            SetSoundVolume(sfx_menu_nav, pacmanSfxVolume);
+            SetSoundVolume(sfx_menu_nav, sfxVolume);
             PlaySound(sfx_menu_nav);
         }
     }
     if (IsKeyPressed(KEY_DOWN)) {
         *selectedOption = (*selectedOption + 1) % 3;
         if (!soundMuted) {
-            SetSoundVolume(sfx_menu_nav, pacmanSfxVolume);
+            SetSoundVolume(sfx_menu_nav, sfxVolume);
             PlaySound(sfx_menu_nav);
         }
     }
     if (IsKeyPressed(KEY_LEFT)) {
         if (!soundMuted) {
-            SetSoundVolume(sfx_menu_nav, pacmanSfxVolume);
+            SetSoundVolume(sfx_menu_nav, sfxVolume);
             PlaySound(sfx_menu_nav);
         }
         switch (*selectedOption) {
             case 0: // BG Music Volume
                 bgMusicVolume = fmax(0.0f, bgMusicVolume - 0.1f);
                 SetSoundVolume(sfx_menu, soundMuted ? 0.0f : bgMusicVolume);
+                SetSoundVolume(sfx_pacman_move, soundMuted ? 0.0f : bgMusicVolume);
                 break;
-            case 1: // Pac-Man SFX Volume
-                pacmanSfxVolume = fmax(0.0f, pacmanSfxVolume - 0.1f);
+            case 1: // SFX Volume (controls all sound effects)
+                sfxVolume = fmax(0.0f, sfxVolume - 0.1f);
+                // Update volume for all sound effects
+                SetSoundVolume(sfx_menu_nav, soundMuted ? 0.0f : sfxVolume);
+                SetSoundVolume(sfx_ready, soundMuted ? 0.0f : sfxVolume);
+                SetSoundVolume(sfx_pacman_chomp, soundMuted ? 0.0f : sfxVolume);
+                SetSoundVolume(sfx_pacman_death, soundMuted ? 0.0f : sfxVolume);
+                SetSoundVolume(sfx_eat_fruit, soundMuted ? 0.0f : sfxVolume);
+                SetSoundVolume(sfx_eat_ghost, soundMuted ? 0.0f : sfxVolume);
+                SetSoundVolume(sfx_ghost_frightened, soundMuted ? 0.0f : sfxVolume);
+                SetSoundVolume(sfx_level_complete, soundMuted ? 0.0f : sfxVolume);
+                SetSoundVolume(sfx_extra_life, soundMuted ? 0.0f : sfxVolume);
+                SetSoundVolume(sfx_game_over, soundMuted ? 0.0f : sfxVolume);
                 break;
             case 2: // Mute Toggle
                 soundMuted = !soundMuted;
+                // Update volumes based on mute state
                 SetSoundVolume(sfx_menu, soundMuted ? 0.0f : bgMusicVolume);
+                SetSoundVolume(sfx_menu_nav, soundMuted ? 0.0f : sfxVolume);
+                SetSoundVolume(sfx_ready, soundMuted ? 0.0f : sfxVolume);
+                SetSoundVolume(sfx_pacman_move, soundMuted ? 0.0f : bgMusicVolume);
+                SetSoundVolume(sfx_pacman_chomp, soundMuted ? 0.0f : sfxVolume);
+                SetSoundVolume(sfx_pacman_death, soundMuted ? 0.0f : sfxVolume);
+                SetSoundVolume(sfx_eat_fruit, soundMuted ? 0.0f : sfxVolume);
+                SetSoundVolume(sfx_eat_ghost, soundMuted ? 0.0f : sfxVolume);
+                SetSoundVolume(sfx_ghost_frightened, soundMuted ? 0.0f : sfxVolume);
+                SetSoundVolume(sfx_level_complete, soundMuted ? 0.0f : sfxVolume);
+                SetSoundVolume(sfx_extra_life, soundMuted ? 0.0f : sfxVolume);
+                SetSoundVolume(sfx_game_over, soundMuted ? 0.0f : sfxVolume);
                 break;
         }
     }
     if (IsKeyPressed(KEY_RIGHT)) {
         if (!soundMuted) {
-            SetSoundVolume(sfx_menu_nav, pacmanSfxVolume);
+            SetSoundVolume(sfx_menu_nav, sfxVolume);
             PlaySound(sfx_menu_nav);
         }
         switch (*selectedOption) {
             case 0: // BG Music Volume
                 bgMusicVolume = fmin(1.0f, bgMusicVolume + 0.1f);
                 SetSoundVolume(sfx_menu, soundMuted ? 0.0f : bgMusicVolume);
+                SetSoundVolume(sfx_pacman_move, soundMuted ? 0.0f : bgMusicVolume);
                 break;
-            case 1: // Pac-Man SFX Volume
-                pacmanSfxVolume = fmin(1.0f, pacmanSfxVolume + 0.1f);
+            case 1: // SFX Volume (controls all sound effects)
+                sfxVolume = fmin(1.0f, sfxVolume + 0.1f);
+                // Update volume for all sound effects
+                SetSoundVolume(sfx_menu_nav, soundMuted ? 0.0f : sfxVolume);
+                SetSoundVolume(sfx_ready, soundMuted ? 0.0f : sfxVolume);
+                SetSoundVolume(sfx_pacman_chomp, soundMuted ? 0.0f : sfxVolume);
+                SetSoundVolume(sfx_pacman_death, soundMuted ? 0.0f : sfxVolume);
+                SetSoundVolume(sfx_eat_fruit, soundMuted ? 0.0f : sfxVolume);
+                SetSoundVolume(sfx_eat_ghost, soundMuted ? 0.0f : sfxVolume);
+                SetSoundVolume(sfx_ghost_frightened, soundMuted ? 0.0f : sfxVolume);
+                SetSoundVolume(sfx_level_complete, soundMuted ? 0.0f : sfxVolume);
+                SetSoundVolume(sfx_extra_life, soundMuted ? 0.0f : sfxVolume);
+                SetSoundVolume(sfx_game_over, soundMuted ? 0.0f : sfxVolume);
                 break;
             case 2: // Mute Toggle
                 soundMuted = !soundMuted;
+                // Update volumes based on mute state
                 SetSoundVolume(sfx_menu, soundMuted ? 0.0f : bgMusicVolume);
+                SetSoundVolume(sfx_menu_nav, soundMuted ? 0.0f : sfxVolume);
+                SetSoundVolume(sfx_ready, soundMuted ? 0.0f : sfxVolume);
+                SetSoundVolume(sfx_pacman_move, soundMuted ? 0.0f : bgMusicVolume);
+                SetSoundVolume(sfx_pacman_chomp, soundMuted ? 0.0f : sfxVolume);
+                SetSoundVolume(sfx_pacman_death, soundMuted ? 0.0f : sfxVolume);
+                SetSoundVolume(sfx_eat_fruit, soundMuted ? 0.0f : sfxVolume);
+                SetSoundVolume(sfx_eat_ghost, soundMuted ? 0.0f : sfxVolume);
+                SetSoundVolume(sfx_ghost_frightened, soundMuted ? 0.0f : sfxVolume);
+                SetSoundVolume(sfx_level_complete, soundMuted ? 0.0f : sfxVolume);
+                SetSoundVolume(sfx_extra_life, soundMuted ? 0.0f : sfxVolume);
+                SetSoundVolume(sfx_game_over, soundMuted ? 0.0f : sfxVolume);
                 break;
         }
     }
     if (IsKeyPressed(KEY_ESCAPE) || IsKeyPressed(KEY_ENTER)) {
         gameState = STATE_MENU;
         *selectedOption = 3; // Return to Settings option
-        PlaySound(sfx_menu_nav);
+        if (!soundMuted) {
+            SetSoundVolume(sfx_menu_nav, sfxVolume);
+            PlaySound(sfx_menu_nav);
+        }
     }
 }
 
@@ -147,29 +213,26 @@ bool handle_pause_input(bool *pausedThisFrame) {
             if (IsKeyPressed(KEY_UP)) {
                 pauseSelectedOption = (pauseSelectedOption - 1 + 4) % 4; // 4 options
                 if (!soundMuted) {
-                    SetSoundVolume(sfx_menu_nav, pacmanSfxVolume);
+                    SetSoundVolume(sfx_menu_nav, sfxVolume);
                     PlaySound(sfx_menu_nav);
                 }
             }
             if (IsKeyPressed(KEY_DOWN)) {
                 pauseSelectedOption = (pauseSelectedOption + 1) % 4;
                 if (!soundMuted) {
-                    SetSoundVolume(sfx_menu_nav, pacmanSfxVolume);
+                    SetSoundVolume(sfx_menu_nav, sfxVolume);
                     PlaySound(sfx_menu_nav);
                 }
             }
             if (IsKeyPressed(KEY_ENTER)) {
                 if (!soundMuted) {
-                    SetSoundVolume(sfx_menu_nav, pacmanSfxVolume);
+                    SetSoundVolume(sfx_menu_nav, sfxVolume);
                     PlaySound(sfx_menu_nav);
                 }
                 switch (pauseSelectedOption) {
                     case 0: // Resume
                         gameState = STATE_PLAYING;
-                        if (!soundMuted && !IsSoundPlaying(sfx_pacman_move)) {
-                            SetSoundVolume(sfx_pacman_move, 0.3f);
-                            PlaySound(sfx_pacman_move);
-                        }
+                        playPacmanMove = true;
                         stateChanged = true;
                         break;
                     case 1: // Restart
@@ -182,6 +245,7 @@ bool handle_pause_input(bool *pausedThisFrame) {
                         pauseMenuState = PAUSE_MENU_MAIN;   // Reset pause menu state
                         pauseSelectedOption = 0;            // Reset selected option
                         stateChanged = true;
+                        playPacmanMove = false;
                         break;
                     case 2: // Settings
                         pauseMenuState = PAUSE_MENU_SETTINGS;
@@ -197,52 +261,100 @@ bool handle_pause_input(bool *pausedThisFrame) {
             if (IsKeyPressed(KEY_UP)) {
                 pauseSelectedOption = (pauseSelectedOption - 1 + 3) % 3; // 3 settings
                 if (!soundMuted) {
-                    SetSoundVolume(sfx_menu_nav, pacmanSfxVolume);
+                    SetSoundVolume(sfx_menu_nav, sfxVolume);
                     PlaySound(sfx_menu_nav);
                 }
             }
             if (IsKeyPressed(KEY_DOWN)) {
                 pauseSelectedOption = (pauseSelectedOption + 1) % 3;
                 if (!soundMuted) {
-                    SetSoundVolume(sfx_menu_nav, pacmanSfxVolume);
+                    SetSoundVolume(sfx_menu_nav, sfxVolume);
                     PlaySound(sfx_menu_nav);
                 }
             }
             if (IsKeyPressed(KEY_LEFT)) {
                 if (!soundMuted) {
-                    SetSoundVolume(sfx_menu_nav, pacmanSfxVolume);
+                    SetSoundVolume(sfx_menu_nav, sfxVolume);
                     PlaySound(sfx_menu_nav);
                 }
                 switch (pauseSelectedOption) {
                     case 0: // BG Music Volume
                         bgMusicVolume = fmax(0.0f, bgMusicVolume - 0.1f);
+                        SetSoundVolume(sfx_menu, soundMuted ? 0.0f : bgMusicVolume);
                         SetSoundVolume(sfx_pacman_move, soundMuted ? 0.0f : bgMusicVolume);
                         break;
-                    case 1: // Pac-Man SFX Volume
-                        pacmanSfxVolume = fmax(0.0f, pacmanSfxVolume - 0.1f);
+                    case 1: // SFX Volume (controls all sound effects)
+                        sfxVolume = fmax(0.0f, sfxVolume - 0.1f);
+                        // Update volume for all sound effects
+                        SetSoundVolume(sfx_menu_nav, soundMuted ? 0.0f : sfxVolume);
+                        SetSoundVolume(sfx_ready, soundMuted ? 0.0f : sfxVolume);
+                        SetSoundVolume(sfx_pacman_chomp, soundMuted ? 0.0f : sfxVolume);
+                        SetSoundVolume(sfx_pacman_death, soundMuted ? 0.0f : sfxVolume);
+                        SetSoundVolume(sfx_eat_fruit, soundMuted ? 0.0f : sfxVolume);
+                        SetSoundVolume(sfx_eat_ghost, soundMuted ? 0.0f : sfxVolume);
+                        SetSoundVolume(sfx_ghost_frightened, soundMuted ? 0.0f : sfxVolume);
+                        SetSoundVolume(sfx_level_complete, soundMuted ? 0.0f : sfxVolume);
+                        SetSoundVolume(sfx_extra_life, soundMuted ? 0.0f : sfxVolume);
+                        SetSoundVolume(sfx_game_over, soundMuted ? 0.0f : sfxVolume);
                         break;
                     case 2: // Mute Toggle
                         soundMuted = !soundMuted;
+                        // Update volumes based on mute state
                         SetSoundVolume(sfx_menu, soundMuted ? 0.0f : bgMusicVolume);
+                        SetSoundVolume(sfx_menu_nav, soundMuted ? 0.0f : sfxVolume);
+                        SetSoundVolume(sfx_ready, soundMuted ? 0.0f : sfxVolume);
+                        SetSoundVolume(sfx_pacman_move, soundMuted ? 0.0f : bgMusicVolume);
+                        SetSoundVolume(sfx_pacman_chomp, soundMuted ? 0.0f : sfxVolume);
+                        SetSoundVolume(sfx_pacman_death, soundMuted ? 0.0f : sfxVolume);
+                        SetSoundVolume(sfx_eat_fruit, soundMuted ? 0.0f : sfxVolume);
+                        SetSoundVolume(sfx_eat_ghost, soundMuted ? 0.0f : sfxVolume);
+                        SetSoundVolume(sfx_ghost_frightened, soundMuted ? 0.0f : sfxVolume);
+                        SetSoundVolume(sfx_level_complete, soundMuted ? 0.0f : sfxVolume);
+                        SetSoundVolume(sfx_extra_life, soundMuted ? 0.0f : sfxVolume);
+                        SetSoundVolume(sfx_game_over, soundMuted ? 0.0f : sfxVolume);
                         break;
                 }
             }
             if (IsKeyPressed(KEY_RIGHT)) {
                 if (!soundMuted) {
-                    SetSoundVolume(sfx_menu_nav, pacmanSfxVolume);
+                    SetSoundVolume(sfx_menu_nav, sfxVolume);
                     PlaySound(sfx_menu_nav);
                 }
                 switch (pauseSelectedOption) {
                     case 0: // BG Music Volume
                         bgMusicVolume = fmin(1.0f, bgMusicVolume + 0.1f);
-                        SetSoundVolume(sfx_pacman_move, soundMuted ? 0.0f : bgMusicVolume);
+                        SetSoundVolume(sfx_menu, soundMuted ? 0.0f : bgMusicVolume); // Apply to background music
                         break;
-                    case 1: // Pac-Man SFX Volume
-                        pacmanSfxVolume = fmin(1.0f, pacmanSfxVolume + 0.1f);
+                    case 1: // SFX Volume (controls all sound effects)
+                        sfxVolume = fmin(1.0f, sfxVolume + 0.1f);
+                        // Update volume for all sound effects
+                        SetSoundVolume(sfx_menu_nav, soundMuted ? 0.0f : sfxVolume);
+                        SetSoundVolume(sfx_ready, soundMuted ? 0.0f : sfxVolume);
+                        SetSoundVolume(sfx_pacman_move, soundMuted ? 0.0f : sfxVolume);
+                        SetSoundVolume(sfx_pacman_chomp, soundMuted ? 0.0f : sfxVolume);
+                        SetSoundVolume(sfx_pacman_death, soundMuted ? 0.0f : sfxVolume);
+                        SetSoundVolume(sfx_eat_fruit, soundMuted ? 0.0f : sfxVolume);
+                        SetSoundVolume(sfx_eat_ghost, soundMuted ? 0.0f : sfxVolume);
+                        SetSoundVolume(sfx_ghost_frightened, soundMuted ? 0.0f : sfxVolume);
+                        SetSoundVolume(sfx_level_complete, soundMuted ? 0.0f : sfxVolume);
+                        SetSoundVolume(sfx_extra_life, soundMuted ? 0.0f : sfxVolume);
+                        SetSoundVolume(sfx_game_over, soundMuted ? 0.0f : sfxVolume);
                         break;
                     case 2: // Mute Toggle
                         soundMuted = !soundMuted;
+                        // Update volumes based on mute state
                         SetSoundVolume(sfx_menu, soundMuted ? 0.0f : bgMusicVolume);
+                        SetSoundVolume(sfx_menu_nav, soundMuted ? 0.0f : sfxVolume);
+                        SetSoundVolume(sfx_ready, soundMuted ? 0.0f : sfxVolume);
+                        SetSoundVolume(sfx_pacman_move, soundMuted ? 0.0f : bgMusicVolume);
+                        SetSoundVolume(sfx_pacman_chomp, soundMuted ? 0.0f : sfxVolume);
+                        SetSoundVolume(sfx_pacman_death, soundMuted ? 0.0f : sfxVolume);
+                        SetSoundVolume(sfx_eat_fruit, soundMuted ? 0.0f : sfxVolume);
+                        SetSoundVolume(sfx_eat_ghost, soundMuted ? 0.0f : sfxVolume);
+                        SetSoundVolume(sfx_ghost_frightened, soundMuted ? 0.0f : sfxVolume);
+                        SetSoundVolume(sfx_level_complete, soundMuted ? 0.0f : sfxVolume);
+                        SetSoundVolume(sfx_extra_life, soundMuted ? 0.0f : sfxVolume);
+                        SetSoundVolume(sfx_game_over, soundMuted ? 0.0f : sfxVolume);
                         break;
                 }
             }
@@ -250,7 +362,7 @@ bool handle_pause_input(bool *pausedThisFrame) {
                 pauseMenuState = PAUSE_MENU_MAIN;
                 pauseSelectedOption = 2; // Return to Settings option
                 if (!soundMuted) {
-                    SetSoundVolume(sfx_menu_nav, pacmanSfxVolume);
+                    SetSoundVolume(sfx_menu_nav, sfxVolume);
                     PlaySound(sfx_menu_nav);
                 }
             }
@@ -261,10 +373,7 @@ bool handle_pause_input(bool *pausedThisFrame) {
     if (IsKeyPressed(KEY_P) && pauseMenuState == PAUSE_MENU_MAIN) {
         gameState = STATE_PLAYING;
         *pausedThisFrame = true;
-        if (!soundMuted && !IsSoundPlaying(sfx_pacman_move)) {
-            SetSoundVolume(sfx_pacman_move, 0.3f);
-            PlaySound(sfx_pacman_move);
-        }
+        playPacmanMove = true;
         stateChanged = true;
     }
 
@@ -284,7 +393,7 @@ void handle_game_over_input(int *selectedOption) {
                 playerNameInput[nameInputIndex] = (char)key;
                 nameInputIndex++;
                 if (!soundMuted) {
-                    SetSoundVolume(sfx_menu_nav, pacmanSfxVolume);
+                    SetSoundVolume(sfx_menu_nav, sfxVolume);
                     PlaySound(sfx_menu_nav);
                 }
             }
@@ -294,7 +403,7 @@ void handle_game_over_input(int *selectedOption) {
                 nameInputIndex--;
                 playerNameInput[nameInputIndex] = '_';
                 if (!soundMuted) {
-                    SetSoundVolume(sfx_menu_nav, pacmanSfxVolume);
+                    SetSoundVolume(sfx_menu_nav, sfxVolume);
                     PlaySound(sfx_menu_nav);
                 }
             }
@@ -307,7 +416,7 @@ void handle_game_over_input(int *selectedOption) {
                 check_and_update_high_scores(pacman.score);
                 save_high_scores();
                 if (!soundMuted) {
-                    SetSoundVolume(sfx_menu_nav, pacmanSfxVolume);
+                    SetSoundVolume(sfx_menu_nav, sfxVolume);
                     PlaySound(sfx_menu_nav);
                 }
             }
@@ -329,6 +438,10 @@ void handle_game_over_input(int *selectedOption) {
         playerNameInput[sizeof(playerNameInput) - 1] = '\0';
         nameInputIndex = 0;
         nameInputComplete = false;
+        if (!soundMuted) {
+            SetSoundVolume(sfx_menu_nav, sfxVolume);
+            PlaySound(sfx_menu_nav);
+        }
     }
 }
 
@@ -386,7 +499,7 @@ void render_about(int screenWidth, int screenHeight, Font font) {
 //   font - Font used for rendering text.
 //   selectedOption - Currently selected settings option.
 void render_settings_menu(int screenWidth, int screenHeight, Font font, int selectedOption) {
-    const char *options[] = {"BG MUSIC VOLUME", "PAC-MAN SFX VOLUME", "MUTE"};
+    const char *options[] = {"BG MUSIC VOLUME", "SFX VOLUME", "MUTE"}; // Updated to "SFX VOLUME" for all sound effects
     int numOptions = 3;
     int fontSize = 16;
     int spacing = 30;
@@ -413,7 +526,7 @@ void render_settings_menu(int screenWidth, int screenHeight, Font font, int sele
         // Draw sliders or mute status
         if (i < 2) {
             // Sliders for volumes
-            float volume = (i == 0) ? bgMusicVolume : pacmanSfxVolume;
+            float volume = (i == 0) ? bgMusicVolume : sfxVolume;
             DrawRectangle(sliderX, y + 2, sliderWidth, sliderHeight, GRAY);
             DrawRectangle(sliderX, y + 2, sliderWidth * volume, sliderHeight, color);
             char valueText[16];
@@ -457,7 +570,7 @@ void render_pause_menu(int screenWidth, int screenHeight, Font font) {
             DrawTextEx(font, options[i], (Vector2){screenWidth / 2 - textSize.x / 2, startY + i * spacing}, fontSize, 2, color);
         }
     } else if (pauseMenuState == PAUSE_MENU_SETTINGS) {
-        const char *options[] = {"BG MUSIC VOLUME", "PAC-MAN SFX VOLUME", "MUTE"};
+        const char *options[] = {"BG MUSIC VOLUME", "SFX VOLUME", "MUTE"}; // Updated to "SFX VOLUME" for all sound effects
         int numOptions = 3;
         int fontSize = 16;
         int spacing = 30;
@@ -484,7 +597,7 @@ void render_pause_menu(int screenWidth, int screenHeight, Font font) {
             // Draw sliders or mute status
             if (i < 2) {
                 // Sliders for volumes
-                float volume = (i == 0) ? bgMusicVolume : pacmanSfxVolume;
+                float volume = (i == 0) ? bgMusicVolume : sfxVolume;
                 DrawRectangle(sliderX, y + 2, sliderWidth, sliderHeight, GRAY);
                 DrawRectangle(sliderX, y + 2, sliderWidth * volume, sliderHeight, color);
                 char valueText[16];

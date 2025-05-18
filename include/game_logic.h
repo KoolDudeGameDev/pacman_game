@@ -166,8 +166,9 @@ extern int selectedMessageIndex;
 extern PauseMenuState pauseMenuState;
 extern int pauseSelectedOption;   // Selected option in pause menu
 extern float bgMusicVolume;       // Background music volume (0.0 to 1.0)
-extern float pacmanSfxVolume;     // Pac-Man SFX volume (0.0 to 1.0)
+extern float sfxVolume;           // SFX volume (0.0 to 1.0)
 extern bool soundMuted;           // Global mute state
+extern bool playPacmanMove;       // Flag to control sfx_pacman_move playback
 
 // Sound effects
 extern Sound sfx_menu;           // Background sound for menu
