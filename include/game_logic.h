@@ -24,8 +24,7 @@ typedef enum {
 
 // Game states
 typedef enum {
-    STATE_KOOLDUDE_LOGO, // Kyle Ibo Dev Logo
-    STATE_DEV_LOGO,      // xAI Dev Logo
+    STATE_PERSONAL_LOGO, // Personal logo
     STATE_RAYLIB_LOGO,   // Raylib logo
     STATE_LOGO,          // Game logo
     STATE_MENU,

@@ -1,78 +1,139 @@
 #include "logo_animation.h"
 
-// KoolDude Logo Functions
+// Static text for personal logo
+static const char* personalText[] = {
+    "Made by Kyle Gregory Ibo",
+    "Cebu Technological University - Ginatilan Ext. Campus",
+    "BIT - CompTech"
+};
+
+// Personal Logo Functions
 // ----------------------------------------------------------------------------------------
-void init_kool_dude_logo(LogoAnimation* anim, int screenWidth, int screenHeight) {
-    int fontSize = 80;      // Scaled for 1280x720
-    anim->devLogoPositionX = screenWidth / 2 - MeasureText("Kool_Dude", fontSize) / 2;
-    anim->devLogoPositionY = screenHeight / 2 - fontSize / 2;
-    anim->devLogoAlpha = 0.0f;
-    anim->devFramesCounter = 0;
+void init_personal_logo(LogoAnimation* anim, int screenWidth, int screenHeight) {
+    anim->personalTimer = 0.0f;
+    anim->personalAlpha = 0.0f;
+    anim->currentCharIndex = 0;
+    anim->currentLine = 0;
+    anim->typingTimer = 0.0f;
+    anim->spriteY = screenHeight / 2.0f - 50.0f; // Start above text
+    anim->spriteVelocity = 0.0f;
+    anim->cursorVisible = true;
+    anim->cursorTimer = 0.0f;
 }
 
-bool update_kool_dude_logo(LogoAnimation* anim) {
-    anim->devFramesCounter++;
+bool update_personal_logo(LogoAnimation* anim) {
+    anim->personalTimer += GetFrameTime();
+    anim->typingTimer += GetFrameTime();
+    anim->cursorTimer += GetFrameTime();
 
-    // Fade in and out animation
-    if (anim->devFramesCounter < 60) {
-        anim->devLogoAlpha = (float)anim->devFramesCounter / 60.0f;
-    } else if (anim->devFramesCounter < 180) {
-        anim->devLogoAlpha = 1.0f;
-    } else if (anim->devFramesCounter < 240) {
-        anim->devLogoAlpha = 1.0f - ((float)(anim->devFramesCounter - 180) / 60.0f);
+    // Fade-in (0-1s)
+    if (anim->personalTimer < 1.0f) {
+        anim->personalAlpha = anim->personalTimer / 1.0f;
+    }
+    // Main animation (1-10s, or until typing is complete with a pause)
+    else if (anim->personalTimer < 10.0f) {
+        anim->personalAlpha = 1.0f;
+        // Typing effect (0.1s per character)
+        if (anim->typingTimer >= 0.08f && anim->currentLine < 3) {
+            anim->currentCharIndex++;
+            anim->typingTimer = 0.0f;
+            // Move to next line when current line is complete
+            if (anim->currentCharIndex > (int)strlen(personalText[anim->currentLine])) {
+                anim->currentLine++;
+                anim->currentCharIndex = 0;
+            }
+        }
+    }
+    // Fade-out (10-11s, or after typing is complete)
+    else if (anim->personalTimer < 11.0f) {
+        // Ensure all text is typed before fading out
+        if (anim->currentLine >= 3) {
+            anim->personalAlpha = 1.0f - (anim->personalTimer - 10.0f) / 1.0f;
+        } else {
+            // If typing isn't complete, extend the main phase
+            anim->personalTimer = 10.0f;
+        }
     }
 
-    // Return true if the animation is complete (after 240 frames, ~4 seconds at 60 FPS)
-    return anim->devFramesCounter >= 240;
-}
-
-void render_kool_dude_logo(const LogoAnimation* anim, Font font) {
-    ClearBackground(BLACK);
-    int fontSize = 80;      // Scaled for 1280x720
-    DrawTextEx(font, "Kool_Dude", (Vector2){anim->devLogoPositionX, anim->devLogoPositionY}, fontSize, 1, Fade(WHITE, anim->devLogoAlpha));
-}
-
-// xAI Dev Logo Functions
-// ----------------------------------------------------------------------------------------
-void init_dev_logo(LogoAnimation* anim) {
-    anim->timer = 0.0f;
-    anim->alphaGeneral = 0.0f;
-    anim->scale = 1.0f; // Not used anymore, but kept for struct compatibility
-}
-
-bool update_dev_logo(LogoAnimation* anim) {
-    anim->timer += 1.0f; // Increment as a frame counter (1 frame per update at 60 FPS)
-
-    // Fade-in for first second (60 frames), stay visible for 2 seconds (120 frames), fade-out for 1 second (60 frames)
-    if (anim->timer < 60) {
-        anim->alphaGeneral = anim->timer / 60.0f;
-    } else if (anim->timer < 180) {
-        anim->alphaGeneral = 1.0f;
-    } else if (anim->timer < 240) {
-        anim->alphaGeneral = 1.0f - ((anim->timer - 180) / 60.0f);
+    // Cursor blink (0.5s interval)
+    if (anim->cursorTimer >= 0.5f) {
+        anim->cursorVisible = !anim->cursorVisible;
+        anim->cursorTimer = 0.0f;
     }
 
-    // Return true if the animation is complete (after 240 frames, ~4 seconds at 60 FPS)
-    return anim->timer >= 240;
+    // Sprite bounce (simple physics)
+    anim->spriteVelocity += 300.0f * GetFrameTime(); // Gravity
+    anim->spriteY += anim->spriteVelocity * GetFrameTime();
+    // Bounce when hitting bottom boundary
+    if (anim->spriteY > GetScreenHeight() / 2.0f - 20.0f) {
+        anim->spriteY = GetScreenHeight() / 2.0f - 20.0f;
+        anim->spriteVelocity = -150.0f; // Bounce upward
+    }
+
+    // Return true when animation is complete (after 11 seconds and all text is typed)
+    return anim->personalTimer >= 11.0f && anim->currentLine >= 3;
 }
 
-void render_dev_logo(const LogoAnimation* anim, int screenWidth, int screenHeight, Font font) {
+void render_personal_logo(const LogoAnimation* anim, int screenWidth, int screenHeight, Font font, Sound sfx) {
     ClearBackground(BLACK);
-    int fontSize = 40;      // Scaled for 1280x720
-    int textWidth = MeasureText("xAI Dev Team", fontSize);
-    Vector2 textPos = {screenWidth / 2 - textWidth / 2, screenHeight / 2};
-    DrawTextEx(font, "xAI Dev Team", textPos, fontSize, 1, Fade(WHITE, anim->alphaGeneral));
+
+    int fontSize = 20; // Pixelated font size
+    float lineSpacing = 30.0f;
+    static int lastCharIndex = -1; // Track last character index for sound
+    static int lastLine = -1;      // Track last line for sound
+
+    // Render text lines with typing effect
+    float startY = screenHeight / 2.0f + 20.0f;
+    for (int line = 0; line <= anim->currentLine && line < 3; line++) {
+        int charsToShow = (line == anim->currentLine) ? anim->currentCharIndex : (int)strlen(personalText[line]);
+        char temp[256] = {0};
+        strncpy(temp, personalText[line], charsToShow);
+        int textWidth = MeasureTextEx(font, temp, fontSize, 1).x;
+        Vector2 textPos = { screenWidth / 2.0f - textWidth / 2.0f, startY + line * lineSpacing };
+        DrawTextEx(font, temp, textPos, fontSize, 1, Fade(WHITE, anim->personalAlpha));
+
+        // Draw blinking cursor for current line
+        if (line == anim->currentLine && anim->cursorVisible && anim->currentLine < 3) {
+            char cursorText[256] = {0};
+            strncpy(cursorText, personalText[line], charsToShow);
+            strcat(cursorText, "_");
+            textWidth = MeasureTextEx(font, cursorText, fontSize, 1).x;
+            textPos.x = screenWidth / 2.0f - textWidth / 2.0f;
+            DrawTextEx(font, cursorText, textPos, fontSize, 1, Fade(WHITE, anim->personalAlpha));
+        }
+    }
+
+    // Play typing sound when a new character is rendered
+    if ((anim->currentCharIndex != lastCharIndex || anim->currentLine != lastLine) && 
+        anim->currentLine < 3 && anim->currentCharIndex <= (int)strlen(personalText[anim->currentLine])) {
+        if (!IsSoundPlaying(sfx) && !soundMuted) {
+            PlaySound(sfx);
+        }
+        lastCharIndex = anim->currentCharIndex;
+        lastLine = anim->currentLine;
+    }
+
+    // Render bouncing "KGI" sprite (text-based placeholder)
+    const char* kgiText = "Pac-Man Remake";
+    int kgiFontSize = 40;
+    int kgiWidth = MeasureTextEx(font, kgiText, kgiFontSize, 1).x;
+    Vector2 kgiPos = { screenWidth / 2.0f - kgiWidth / 2.0f, anim->spriteY };
+    DrawTextEx(font, kgiText, kgiPos, kgiFontSize, 1, Fade(YELLOW, anim->personalAlpha));
+
+    // Render CRT scanlines
+    for (int y = 0; y < screenHeight; y += 4) {
+        DrawRectangle(0, y, screenWidth, 2, Fade(BLACK, 0.2f * anim->personalAlpha));
+    }
 }
 
 // Raylib Logo Functions
 // ----------------------------------------------------------------------------------------
 void init_raylib_logo(LogoAnimation* anim, int screenWidth, int screenHeight) {
-    // Use the original 256x256 size, centered on the 1280x720 screen
-    anim->logoPositionX = screenWidth / 2 - 128; // 128 = 256/2
+    anim->logoPositionX = screenWidth / 2 - 128;
     anim->logoPositionY = screenHeight / 2 - 128;
     anim->framesCounter = 0;
     anim->lettersCount = 0;
-    anim->topSideRecWidth = 16;    // Original size, not scaled
+    anim->topSideRecWidth = 16;
     anim->leftSideRecHeight = 16;
     anim->bottomSideRecWidth = 16;
     anim->rightSideRecHeight = 16;
@@ -81,21 +142,21 @@ void init_raylib_logo(LogoAnimation* anim, int screenWidth, int screenHeight) {
 }
 
 bool update_raylib_logo(LogoAnimation* anim) {
-    if (anim->logoState == 0) { // State 0: Small box blinking
+    if (anim->logoState == 0) {
         anim->framesCounter++;
         if (anim->framesCounter == 120) {
             anim->logoState = 1;
             anim->framesCounter = 0;
         }
-    } else if (anim->logoState == 1) { // State 1: Top and left bars growing
+    } else if (anim->logoState == 1) {
         anim->topSideRecWidth += 4;
         anim->leftSideRecHeight += 4;
         if (anim->topSideRecWidth == 256) anim->logoState = 2;
-    } else if (anim->logoState == 2) { // State 2: Bottom and right bars growing
+    } else if (anim->logoState == 2) {
         anim->bottomSideRecWidth += 4;
         anim->rightSideRecHeight += 4;
         if (anim->bottomSideRecWidth == 256) anim->logoState = 3;
-    } else if (anim->logoState == 3) { // State 3: Letters appearing (one by one)
+    } else if (anim->logoState == 3) {
         anim->framesCounter++;
         if (anim->framesCounter / 12) {
             anim->lettersCount++;
@@ -105,7 +166,6 @@ bool update_raylib_logo(LogoAnimation* anim) {
             anim->alpha -= 0.02f;
             if (anim->alpha <= 0.0f) {
                 anim->alpha = 0.0f;
-                // Reset logo variables for potential replay
                 anim->framesCounter = 0;
                 anim->lettersCount = 0;
                 anim->topSideRecWidth = 16;
@@ -114,7 +174,7 @@ bool update_raylib_logo(LogoAnimation* anim) {
                 anim->rightSideRecHeight = 16;
                 anim->alpha = 1.0f;
                 anim->logoState = 0;
-                return true; // Animation complete
+                return true;
             }
         }
     }
@@ -170,7 +230,7 @@ bool update_game_logo(LogoAnimation* anim) {
 
 void render_game_logo(const LogoAnimation* anim, int screenWidth, int screenHeight, Font font) {
     ClearBackground(BLACK);
-    int fontSize = 40;      // Scaled for 1280x720
+    int fontSize = 40;
     Color textColor = Fade(YELLOW, anim->alphaGeneral);
     DrawTextEx(font, "Pac-Man", (Vector2){screenWidth / 2 - 50, screenHeight / 2 - 40}, fontSize, 1, textColor);
     textColor = Fade(WHITE, anim->alphaGeneral);

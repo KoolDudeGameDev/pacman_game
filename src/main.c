@@ -63,7 +63,7 @@ int main(void) {
     
     // Logo animation state
     LogoAnimation logoAnim;
-    init_kool_dude_logo(&logoAnim, screenWidth, screenHeight);      // First state
+    init_personal_logo(&logoAnim, screenWidth, screenHeight);       // First state
 
     // Load ghost textures
     LoadGhostTextures(ghosts);
@@ -80,7 +80,7 @@ int main(void) {
     // Fade to black transition variables
     float transitionAlpha = 0.0f;
     bool fadingOut = false;
-    GameState nextState = STATE_KOOLDUDE_LOGO;
+    GameState nextState = STATE_PERSONAL_LOGO;
     GameState prevState = STATE_MENU;
 
     // Game over fade transition
@@ -99,22 +99,29 @@ int main(void) {
             ToggleFullscreen();
         }
 
+        if (IsKeyPressed(KEY_ZERO)) { // Press '0' to trigger state personal
+            TraceLog(LOG_INFO, "Forcing transition to STATE_PERSONAL_LOGO");
+            fadingOut = true;
+            nextState = STATE_PERSONAL_LOGO;
+            prevState = gameState;
+        }
+
         if (IsKeyPressed(KEY_ONE)) { // Press '1' to trigger state menu
-            TraceLog(LOG_INFO, "Forcing transition to STATE_GAME_OVER");
+            TraceLog(LOG_INFO, "Forcing transition to STATE_MENU");
             fadingOut = true;
             nextState = STATE_MENU;
             prevState = gameState;
         }
 
         if (IsKeyPressed(KEY_TWO)) { // Press '2' to trigger state level complete
-            TraceLog(LOG_INFO, "Forcing transition to STATE_GAME_OVER");
+            TraceLog(LOG_INFO, "Forcing transition to STATE_LEVEL_COMPLETE");
             fadingOut = true;
             nextState = STATE_LEVEL_COMPLETE;
             prevState = gameState;
         }
 
          if (IsKeyPressed(KEY_THREE)) { // Press '3' to trigger state game over
-            TraceLog(LOG_INFO, "Forcing transition to STATE_LEVEL_COMPLETE");
+            TraceLog(LOG_INFO, "Forcing transition to STATE_GAME_OVER");
             fadingOut = true;
             nextState = STATE_GAME_OVER;
             prevState = gameState;
@@ -199,16 +206,8 @@ int main(void) {
         }
 
         switch (gameState) {
-            case STATE_KOOLDUDE_LOGO:
-                if (update_kool_dude_logo(&logoAnim)) {
-                    fadingOut = true;
-                    nextState = STATE_DEV_LOGO;
-                    init_dev_logo(&logoAnim);
-                }
-                break;
-            
-            case STATE_DEV_LOGO:
-                if (update_dev_logo(&logoAnim)) {
+            case STATE_PERSONAL_LOGO:
+                if (update_personal_logo(&logoAnim)) {
                     fadingOut = true;
                     nextState = STATE_RAYLIB_LOGO;
                     init_raylib_logo(&logoAnim, screenWidth, screenHeight);
@@ -441,12 +440,8 @@ int main(void) {
         float fruitsStartX = mazeOffsetX + 50;
 
         switch (gameState) {
-            case STATE_KOOLDUDE_LOGO:
-                render_kool_dude_logo(&logoAnim, font);
-                break;
-
-            case STATE_DEV_LOGO:
-                render_dev_logo(&logoAnim, screenWidth, screenHeight, font);
+            case STATE_PERSONAL_LOGO:
+                render_personal_logo(&logoAnim, screenWidth, screenHeight, font, sfx_menu_nav);
                 break;
 
             case STATE_RAYLIB_LOGO:

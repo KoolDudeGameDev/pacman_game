@@ -3,7 +3,7 @@
 // Global Variables
 
 Texture2D spriteSheet;
-GameState gameState = STATE_KOOLDUDE_LOGO;       // Initial state
+GameState gameState = STATE_PERSONAL_LOGO;       // Initial state
 GhostMode ghostMode = MODE_SCATTER;       // Start in Scatter mode
 float modeTimer = 0.0f;                 // Timer for switching between Chase and Scatter
 float readyTimer = 0.0f;                // Timer for "READY!" phase
