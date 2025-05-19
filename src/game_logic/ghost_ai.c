@@ -693,16 +693,13 @@ void update_ghosts(void) {
         // Collision with Pac-Man (handled above for frightened ghosts)
         if (collisionCooldown <= 0.0f && ghosts[i].state == GHOST_NORMAL &&
             CheckCollision(ghosts[i].x, ghosts[i].y, pacman.x, pacman.y, TILE_SIZE / 2.0f)) {
-            pacman.lives--;
-            collisionCooldown = 1.0f;   // Longer cooldown for death
-            if (pacman.lives <= 0) {
-                gameState = STATE_GAME_OVER;
-            } else {
-                gameState = STATE_DEATH_ANIM;
-                deathAnimTimer = 2.0f;
-                deathAnimFrame = 0;
-                break;
-            }
+            gameState = STATE_DEATH_ANIM;
+            deathAnimTimer = 1.0f;
+            deathAnimFrame = 0;
+            collisionCooldown = 1.0f; // Longer cooldown for death
+            playPacmanMove = false;
+            StopSound(sfx_pacman_move);
+            break;
         }
     }
 

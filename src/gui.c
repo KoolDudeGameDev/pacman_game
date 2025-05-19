@@ -111,8 +111,8 @@ void handle_settings_input(int *selectedOption) {
         switch (*selectedOption) {
             case 0: // BG Music Volume
                 bgMusicVolume = fmax(0.0f, bgMusicVolume - 0.1f);
-                SetSoundVolume(sfx_menu, soundMuted ? 0.0f : bgMusicVolume);
-                SetSoundVolume(sfx_pacman_move, soundMuted ? 0.0f : bgMusicVolume);
+                SetSoundVolume(sfx_menu, soundMuted ? 0.0f : bgMusicVolume * 0.3f);
+                SetSoundVolume(sfx_pacman_move, soundMuted ? 0.0f : bgMusicVolume * 0.3f);
                 break;
             case 1: // SFX Volume (controls all sound effects)
                 sfxVolume = fmax(0.0f, sfxVolume - 0.1f);
@@ -154,8 +154,8 @@ void handle_settings_input(int *selectedOption) {
         switch (*selectedOption) {
             case 0: // BG Music Volume
                 bgMusicVolume = fmin(1.0f, bgMusicVolume + 0.1f);
-                SetSoundVolume(sfx_menu, soundMuted ? 0.0f : bgMusicVolume);
-                SetSoundVolume(sfx_pacman_move, soundMuted ? 0.0f : bgMusicVolume);
+                SetSoundVolume(sfx_menu, soundMuted ? 0.0f : bgMusicVolume * 0.3f);
+                SetSoundVolume(sfx_pacman_move, soundMuted ? 0.0f : bgMusicVolume * 0.3f);
                 break;
             case 1: // SFX Volume (controls all sound effects)
                 sfxVolume = fmin(1.0f, sfxVolume + 0.1f);
@@ -280,8 +280,8 @@ bool handle_pause_input(bool *pausedThisFrame) {
                 switch (pauseSelectedOption) {
                     case 0: // BG Music Volume
                         bgMusicVolume = fmax(0.0f, bgMusicVolume - 0.1f);
-                        SetSoundVolume(sfx_menu, soundMuted ? 0.0f : bgMusicVolume);
-                        SetSoundVolume(sfx_pacman_move, soundMuted ? 0.0f : bgMusicVolume);
+                        SetSoundVolume(sfx_menu, soundMuted ? 0.0f : bgMusicVolume * 0.3f);
+                        SetSoundVolume(sfx_pacman_move, soundMuted ? 0.0f : bgMusicVolume * 0.3f);
                         break;
                     case 1: // SFX Volume (controls all sound effects)
                         sfxVolume = fmax(0.0f, sfxVolume - 0.1f);
@@ -323,14 +323,14 @@ bool handle_pause_input(bool *pausedThisFrame) {
                 switch (pauseSelectedOption) {
                     case 0: // BG Music Volume
                         bgMusicVolume = fmin(1.0f, bgMusicVolume + 0.1f);
-                        SetSoundVolume(sfx_menu, soundMuted ? 0.0f : bgMusicVolume); // Apply to background music
+                        SetSoundVolume(sfx_menu, soundMuted ? 0.0f : bgMusicVolume * 0.3f); // Apply to background music
+                        SetSoundVolume(sfx_pacman_move, soundMuted ? 0.0f : sfxVolume * 0.3f);
                         break;
                     case 1: // SFX Volume (controls all sound effects)
                         sfxVolume = fmin(1.0f, sfxVolume + 0.1f);
                         // Update volume for all sound effects
                         SetSoundVolume(sfx_menu_nav, soundMuted ? 0.0f : sfxVolume);
                         SetSoundVolume(sfx_ready, soundMuted ? 0.0f : sfxVolume);
-                        SetSoundVolume(sfx_pacman_move, soundMuted ? 0.0f : sfxVolume);
                         SetSoundVolume(sfx_pacman_chomp, soundMuted ? 0.0f : sfxVolume);
                         SetSoundVolume(sfx_pacman_death, soundMuted ? 0.0f : sfxVolume);
                         SetSoundVolume(sfx_eat_fruit, soundMuted ? 0.0f : sfxVolume);
@@ -613,7 +613,7 @@ void render_pause_menu(int screenWidth, int screenHeight, Font font) {
         }
 
         // Draw navigation instructions
-        DrawTextEx(font, "Press ESC to return to Pause Menu", 
+        DrawTextEx(font, "Press ENTER to return to Pause Menu", 
                    (Vector2){screenWidth / 2 - 120, startY + numOptions * spacing + 20}, 10.0f, 1, GRAY);
     }
 }

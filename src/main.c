@@ -33,10 +33,10 @@ int main(void) {
     sfx_game_over = LoadSound("assets/sounds/pacman_game_over.mp3");
 
     // Set initial volumes
-    SetSoundVolume(sfx_menu, soundMuted ? 0.0f : bgMusicVolume);
+    SetSoundVolume(sfx_menu, soundMuted ? 0.0f : bgMusicVolume * 0.3f);
     SetSoundVolume(sfx_menu_nav, soundMuted ? 0.0f : sfxVolume);
     SetSoundVolume(sfx_ready, soundMuted ? 0.0f : sfxVolume);
-    SetSoundVolume(sfx_pacman_move, soundMuted ? 0.0f : bgMusicVolume);
+    SetSoundVolume(sfx_pacman_move, soundMuted ? 0.0f : bgMusicVolume * 0.3f);
     SetSoundVolume(sfx_pacman_chomp, soundMuted ? 0.0f : sfxVolume);
     SetSoundVolume(sfx_pacman_death, soundMuted ? 0.0f : sfxVolume);
     SetSoundVolume(sfx_eat_fruit, soundMuted ? 0.0f : sfxVolume);
@@ -88,7 +88,7 @@ int main(void) {
     bool gameOverFadingIn = true;   // True during fade-in, false during fade-out
 
     // Disable ESC key from closing the window
-    SetExitKey(KEY_ONE);
+    SetExitKey(KEY_F10);
 
     // Game Loop
     // ----------------------------------------------------------------------------------------
@@ -99,17 +99,24 @@ int main(void) {
             ToggleFullscreen();
         }
 
-        if (IsKeyPressed(KEY_TWO)) { // Press '2' to trigger game over
+        if (IsKeyPressed(KEY_ONE)) { // Press '1' to trigger state menu
             TraceLog(LOG_INFO, "Forcing transition to STATE_GAME_OVER");
             fadingOut = true;
-            nextState = STATE_GAME_OVER;
+            nextState = STATE_MENU;
             prevState = gameState;
         }
 
-         if (IsKeyPressed(KEY_THREE)) { // Press '3' to trigger game over
-            TraceLog(LOG_INFO, "Forcing transition to STATE_LEVEL_COMPLETE");
+        if (IsKeyPressed(KEY_TWO)) { // Press '2' to trigger state level complete
+            TraceLog(LOG_INFO, "Forcing transition to STATE_GAME_OVER");
             fadingOut = true;
             nextState = STATE_LEVEL_COMPLETE;
+            prevState = gameState;
+        }
+
+         if (IsKeyPressed(KEY_THREE)) { // Press '3' to trigger state game over
+            TraceLog(LOG_INFO, "Forcing transition to STATE_LEVEL_COMPLETE");
+            fadingOut = true;
+            nextState = STATE_GAME_OVER;
             prevState = gameState;
         }
 
@@ -142,7 +149,7 @@ int main(void) {
                     pacman.lives = 3;
                     init_maze();
                     if (!soundMuted) {
-                        SetSoundVolume(sfx_menu, bgMusicVolume);
+                        SetSoundVolume(sfx_menu, bgMusicVolume * 0.3f);
                         PlaySound(sfx_menu);
                     }
                     playPacmanMove = false;
@@ -166,6 +173,7 @@ int main(void) {
                 if (gameState == STATE_MENU && prevState == STATE_GAME_OVER) {
                     gameOverFadeAlpha = 0.0f;
                     gameOverFadingIn = true;
+                    StopSound(sfx_game_over);
                 }
 
                 // Stop menu loop sound when exiting STATE_MENU
@@ -225,7 +233,8 @@ int main(void) {
             case STATE_MENU:
                 // Start menu loop sound
                 if (!IsSoundPlaying(sfx_menu) && !soundMuted) {
-                    SetSoundVolume(sfx_menu, bgMusicVolume);
+                    StopSound(sfx_game_over);
+                    SetSoundVolume(sfx_menu, bgMusicVolume * 0.3f);
                     PlaySound(sfx_menu);
                     isMenuLoopPlaying = true;
                 }
@@ -274,7 +283,7 @@ int main(void) {
                 update_fruit();
 
                 if (!soundMuted && !IsSoundPlaying(sfx_pacman_move)) {
-                    SetSoundVolume(sfx_pacman_move, bgMusicVolume);
+                    SetSoundVolume(sfx_pacman_move, bgMusicVolume * 0.3f);
                     PlaySound(sfx_pacman_move);
                 }
                 if (powerPelletTimer > 0.0f) {
@@ -354,8 +363,8 @@ int main(void) {
                 deathAnimTimer -= GetFrameTime();
                 if (deathAnimTimer <= 0.0f) {
                     // Decrement lives at the end of the animation
-                    //pacman.lives--;
-                    deathAnimTimer = 6.0f; // Reset timer for next death
+                    pacman.lives--;
+                    deathAnimTimer = 6.0f;  // Reset timer for next death
                     deathAnimFrame = 0;
                     deathSfxPlayed = false; // Reset flag for next death
                     if (pacman.lives > 0) {

@@ -44,7 +44,7 @@ int selectedMessageIndex = 0;
 
 PauseMenuState pauseMenuState = PAUSE_MENU_MAIN;
 int pauseSelectedOption = 0;
-float bgMusicVolume = 0.3f;          // Default full volume
+float bgMusicVolume = 1.0f;          // Default full volume
 float sfxVolume = 1.0f;              // Default full volume
 bool soundMuted = false;             // Default unmuted
 bool playPacmanMove = false;         // Flag to control sfx_pacman_move playback
