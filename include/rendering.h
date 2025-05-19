@@ -31,6 +31,7 @@ void DrawArc(Vector2 center, float radius, float startAngle, float endAngle, int
 
 // Rendering Functions
 // ----------------------------------------------------------------------------------------
+
 // Renders the maze, including walls, pellets, power pellets, and ghost gate.
 // Parameters:
 //   offsetX - X offset for rendering the maze in pixels.

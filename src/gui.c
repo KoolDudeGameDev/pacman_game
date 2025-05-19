@@ -537,7 +537,7 @@ void render_menu(int screenWidth, int screenHeight, Font font, int selectedOptio
 
         // Draw glow effect for selected option
         if (i == selectedOption) {
-            DrawTextEx(font, options[i], textPos, fontSize, 1, Fade(YELLOW, 0.8f)); // Glow
+            DrawTextEx(font, options[i], textPos, fontSize, 1, Fade(YELLOW, 0.3f)); // Glow
         }
         DrawTextEx(font, options[i], textPos, fontSize, 1, color);
     }

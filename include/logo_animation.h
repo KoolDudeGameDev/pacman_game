@@ -58,6 +58,6 @@ void render_raylib_logo(const LogoAnimation* anim);
 // Functions for Game logo
 void init_game_logo(LogoAnimation* anim);
 bool update_game_logo(LogoAnimation* anim);
-void render_game_logo(const LogoAnimation* anim, int screenWidth, int screenHeight, Font font, Texture2D pacmanSprite, Ghost* ghosts, Sound sfxEnter, Sound sfxBgm);
+void render_game_logo(const LogoAnimation* anim, int screenWidth, int screenHeight, Font font, Texture2D pacmanSprite, Ghost* ghostArray, Sound sfxEnter, Sound sfxBgm);
 
 #endif

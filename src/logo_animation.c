@@ -122,7 +122,7 @@ void render_personal_logo(const LogoAnimation* anim, int screenWidth, int screen
         lastCharIndex = anim->personalCharIndex;
         lastLine = anim->personalLine;
     }
-
+    
     // Render bouncing "KGI" sprite (text-based placeholder)
     const char* kgiText = "KGI";
     int kgiFontSize = 40;
@@ -286,7 +286,7 @@ bool update_game_logo(LogoAnimation* anim) {
     return false; // Continue until Enter is pressed and fade-out completes
 }
 
-void render_game_logo(const LogoAnimation* anim, int screenWidth, int screenHeight, Font font, Texture2D pacmanSprite, Ghost* ghosts, Sound sfxEnter, Sound sfxBgm) {
+void render_game_logo(const LogoAnimation* anim, int screenWidth, int screenHeight, Font font, Texture2D pacmanSprite, Ghost* ghostArray, Sound sfxEnter, Sound sfxBgm) {
     ClearBackground(BLACK);
 
     // Draw faded maze background (simplified pattern)
@@ -359,7 +359,7 @@ void render_game_logo(const LogoAnimation* anim, int screenWidth, int screenHeig
         Rectangle ghostSourceRec = { xOffset, yOffset, 16.0f, 16.0f };
         // Position ghosts trailing Pac-Man (40px apart)
         Rectangle ghostDestRec = { anim->pacmanSpriteX - 40.0f * (i + 1), boxY - 32, 32.0f, 32.0f };
-        DrawTexturePro(ghosts[i].normalSprite[anim->ghostCurrentFrame], ghostSourceRec, ghostDestRec, pacmanOrigin, 0.0f, Fade(WHITE, anim->alphaGeneral));
+        DrawTexturePro(ghostArray[i].normalSprite[anim->ghostCurrentFrame], ghostSourceRec, ghostDestRec, pacmanOrigin, 0.0f, Fade(WHITE, anim->alphaGeneral));
     }
 
     // Draw prompt
