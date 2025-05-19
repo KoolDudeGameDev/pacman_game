@@ -106,6 +106,13 @@ int main(void) {
             prevState = gameState;
         }
 
+        if (IsKeyPressed(KEY_NINE)) { // Press '0' to trigger state personal
+            TraceLog(LOG_INFO, "Forcing transition to STATE_LOGO");
+            fadingOut = true;
+            nextState = STATE_LOGO;
+            prevState = gameState;
+        }
+
         if (IsKeyPressed(KEY_ONE)) { // Press '1' to trigger state menu
             TraceLog(LOG_INFO, "Forcing transition to STATE_MENU");
             fadingOut = true;
@@ -125,6 +132,15 @@ int main(void) {
             fadingOut = true;
             nextState = STATE_GAME_OVER;
             prevState = gameState;
+        }
+
+        // Handle Enter key for STATE_LOGO
+        if (gameState == STATE_LOGO && IsKeyPressed(KEY_ENTER) && !logoAnim.enterPressed) {
+            logoAnim.enterPressed = true;
+            logoAnim.enterPressedTime = logoAnim.timer;
+            if (!soundMuted) {
+                PlaySound(sfx_menu_nav);
+            }
         }
 
         // Fade to black transition for state changes
@@ -187,6 +203,11 @@ int main(void) {
                 if (prevState == STATE_MENU && isMenuLoopPlaying) {
                     StopSound(sfx_menu);
                     isMenuLoopPlaying = false;
+                }
+
+                // Stop logo background sound when exiting STATE_LOGO
+                if (prevState == STATE_LOGO) {
+                    StopSound(sfx_ready);
                 }
             }
         } else if (transitionAlpha > 0.0f) {
@@ -449,7 +470,7 @@ int main(void) {
                 break;
 
             case STATE_LOGO:
-                render_game_logo(&logoAnim, screenWidth, screenHeight, font);
+                render_game_logo(&logoAnim, screenWidth, screenHeight, font, pacman.sprite, ghosts, sfx_menu_nav, sfx_ready);
                 break;
 
             case STATE_MENU:
