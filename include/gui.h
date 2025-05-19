@@ -39,13 +39,7 @@ bool handle_pause_input(bool *pausedThisFrame);
 //   selectedOption - Pointer to the selected menu option to set when returning to the menu.
 void handle_game_over_input(int *selectedOption);
 
-// Renders the main menu (STATE_MENU) with options and navigation instructions.
-// Parameters:
-//   screenWidth - Width of the screen in pixels.
-//   screenHeight - Height of the screen in pixels.
-//   font - Font used for rendering text.
-//   selectedOption - Currently selected menu option.
-void render_menu(int screenWidth, int screenHeight, Font font, int selectedOption);
+void render_menu(int screenWidth, int screenHeight, Font font, int selectedOption, Texture2D pacmanSprite, Ghost* ghostArray);
 
 // Renders the high scores screen (STATE_HIGHSCORES) with the top scores.
 // Parameters:

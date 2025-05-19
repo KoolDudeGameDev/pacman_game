@@ -1,6 +1,16 @@
 #include "gui.h"
 #include "rendering.h"
 
+// Static variables for menu animations
+static float menuAnimTimer = 0.0f;
+static float pacmanSpriteX = -32.0f;
+static float pelletBlinkTimer = 0.0f;
+static bool pelletVisible = true;
+static float pacmanAnimTimer = 0.0f;
+static int pacmanFrame = 0;
+static float ghostAnimTimer = 0.0f;
+static int ghostFrame = 0;
+
 // Initializes GUI-related variables, such as selected menu options.
 void init_gui(void) {
     // Initialize menu selection
@@ -445,21 +455,106 @@ void handle_game_over_input(int *selectedOption) {
     }
 }
 
-// Renders the main menu (STATE_MENU) with options and navigation instructions.
-// Parameters:
-//   screenWidth - Width of the screen in pixels.
-//   screenHeight - Height of the screen in pixels.
-//   font - Font used for rendering text.
-//   selectedOption - Currently selected menu option.
-void render_menu(int screenWidth, int screenHeight, Font font, int selectedOption) {
+void render_menu(int screenWidth, int screenHeight, Font font, int selectedOption, Texture2D pacmanSprite, Ghost* ghostArray) {
     ClearBackground(BLACK);
-    DrawTextEx(font, "Pac-Man", (Vector2){screenWidth / 2 - 50, screenHeight / 2 - 100}, 20.0f, 1, YELLOW);
-    DrawTextEx(font, "Start", (Vector2){screenWidth / 2 - 20, screenHeight / 2 - 40}, 16.0f, 1, selectedOption == 0 ? YELLOW : WHITE);
-    DrawTextEx(font, "Highscores", (Vector2){screenWidth / 2 - 40, screenHeight / 2 - 10}, 16.0f, 1, selectedOption == 1 ? YELLOW : WHITE);
-    DrawTextEx(font, "About", (Vector2){screenWidth / 2 - 20, screenHeight / 2 + 20}, 16.0f, 1, selectedOption == 2 ? YELLOW : WHITE);
-    DrawTextEx(font, "Settings", (Vector2){screenWidth / 2 - 30, screenHeight / 2 + 50}, 16.0f, 1, selectedOption == 3 ? YELLOW : WHITE);
-    DrawTextEx(font, "Exit", (Vector2){screenWidth / 2 - 20, screenHeight / 2 + 80}, 16.0f, 1, selectedOption == 4 ? YELLOW : WHITE);
-    DrawTextEx(font, "Use UP/DOWN to select, ENTER to confirm", (Vector2){screenWidth / 2 - 120, screenHeight / 2 + 110}, 10.0f, 1, GRAY);
+
+    // Update animation timers
+    menuAnimTimer += GetFrameTime();
+    pelletBlinkTimer += GetFrameTime();
+    pacmanAnimTimer += GetFrameTime();
+    ghostAnimTimer += GetFrameTime();
+
+    // Blink pellets every 0.5s
+    if (pelletBlinkTimer >= 0.5f) {
+        pelletVisible = !pelletVisible;
+        pelletBlinkTimer = 0.0f;
+    }
+
+    // Update Pac-Man animation (0.08s per frame, matches render_pacman)
+    if (pacmanAnimTimer >= 0.08f) {
+        pacmanFrame = (pacmanFrame + 1) % 3; // 3 frames: closed, half-open, fully open
+        pacmanAnimTimer = 0.0f;
+    }
+
+    // Update ghost animation (0.2s per frame, matches render_ghosts)
+    if (ghostAnimTimer >= 0.2f) {
+        ghostFrame = (ghostFrame + 1) % 2;
+        ghostAnimTimer = 0.0f;
+    }
+
+    // Move Pac-Man sprite
+    pacmanSpriteX += 100.0f * GetFrameTime(); // Move right at 100px/s
+    if (pacmanSpriteX > screenWidth + 32.0f) {
+        pacmanSpriteX = -32.0f; // Reset to left
+    }
+
+    // Draw faded maze background
+    for (int y = 0; y < screenHeight; y += 20) {
+        for (int x = 0; x < screenWidth; x += 20) {
+            if ((x / 20 + y / 20) % 2 == 0) {
+                DrawRectangle(x, y, 10, 10, Fade(BLUE, 0.1f));
+            }
+            if (pelletVisible && (x / 20 + y / 20) % 4 == 0) {
+                DrawCircle(x + 10, y + 10, 2, Fade(YELLOW, 0.5f));
+            }
+        }
+    }
+
+    // Draw Pac-Man sprite with eating animation
+    float scaleFactor = 32.0f / 16.0f; // Scale to 32x32 pixels
+    float pacmanXOffset = (pacmanFrame == 0) ? 0.0f : (pacmanFrame == 1) ? 18.0f : 36.0f;
+    Rectangle pacmanSourceRec = { pacmanXOffset, 0.0f, 16.0f, 16.0f };
+    Rectangle pacmanDestRec = { pacmanSpriteX, screenHeight / 4.0f - 16.0f, 32.0f, 32.0f };
+    Vector2 pacmanOrigin = { 16.0f, 16.0f };
+    DrawTexturePro(pacmanSprite, pacmanSourceRec, pacmanDestRec, pacmanOrigin, 0.0f, WHITE);
+
+    // Draw ghost sprites trailing Pac-Man
+    for (int i = 0; i < MAX_GHOSTS; i++) {
+        float yOffset;
+        switch (i) {
+            case 0: yOffset = 64.0f; break; // Blinky (red)
+            case 1: yOffset = 80.0f; break; // Pinky (pink)
+            case 2: yOffset = 96.0f; break; // Inky (cyan)
+            case 3: yOffset = 112.0f; break; // Clyde (orange)
+            default: yOffset = 64.0f; break;
+        }
+        float xOffset = 4.0f + ghostFrame * 16.0f; // Right-facing sprite
+        Rectangle ghostSourceRec = { xOffset, yOffset, 16.0f, 16.0f };
+        Rectangle ghostDestRec = { pacmanSpriteX - 40.0f * (i + 1), screenHeight / 4.0f - 16.0f, 32.0f, 32.0f };
+        DrawTexturePro(ghostArray[i].normalSprite[ghostFrame], ghostSourceRec, ghostDestRec, pacmanOrigin, 0.0f, WHITE);
+    }
+
+    // Draw menu items with pulsing effect
+    const char *options[] = {"Start", "Highscores", "About", "Settings", "Exit"};
+    float baseFontSize = 16.0f;
+    float startY = screenHeight / 2.0f - 40.0f;
+    for (int i = 0; i < 5; i++) {
+        float scale = (i == selectedOption) ? 1.0f + 0.2f * sinf(menuAnimTimer * 4.0f) : 1.0f;
+        float fontSize = baseFontSize * scale;
+        Vector2 textSize = MeasureTextEx(font, options[i], fontSize, 1);
+        Vector2 textPos = { screenWidth / 2.0f - textSize.x / 2.0f, startY + i * 30.0f };
+        Color color = (i == selectedOption) ? YELLOW : WHITE;
+
+        // Draw glow effect for selected option
+        if (i == selectedOption) {
+            DrawTextEx(font, options[i], textPos, fontSize, 1, Fade(YELLOW, 0.8f)); // Glow
+        }
+        DrawTextEx(font, options[i], textPos, fontSize, 1, color);
+    }
+
+    // Draw title
+    Vector2 titleSize = MeasureTextEx(font, "Pac-Man", 20.0f, 1);
+    DrawTextEx(font, "Pac-Man", (Vector2){screenWidth / 2.0f - titleSize.x / 2.0f, screenHeight / 2.0f - 100.0f}, 20.0f, 1, YELLOW);
+
+    // Draw navigation instructions
+    Vector2 navSize = MeasureTextEx(font, "Use UP/DOWN to select, ENTER to confirm", 10.0f, 1);
+    DrawTextEx(font, "Use UP/DOWN to select, ENTER to confirm", 
+               (Vector2){screenWidth / 2.0f - navSize.x / 2.0f, screenHeight / 2.0f + 110.0f}, 10.0f, 1, GRAY);
+
+    // Draw CRT scanlines
+    for (int y = 0; y < screenHeight; y += 4) {
+        DrawRectangle(0, y, screenWidth, 2, Fade(BLACK, 0.2f));
+    }
 }
 
 // Renders the high scores screen (STATE_HIGHSCORES) with the top scores.

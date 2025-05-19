@@ -263,7 +263,7 @@ int main(void) {
                     fadingOut = true;
                     nextState = STATE_MENU;
                 }
-                break;
+                break; 
 
             case STATE_HIGHSCORES:
                 handle_highscores_input(&selectedOption);
@@ -474,7 +474,7 @@ int main(void) {
                 break;
 
             case STATE_MENU:
-                render_menu(screenWidth, screenHeight, font, selectedOption);
+                render_menu(screenWidth, screenHeight, font, selectedOption, pacman.sprite, ghosts);
                 break;
 
             case STATE_HIGHSCORES:
