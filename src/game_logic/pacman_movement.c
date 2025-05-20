@@ -139,6 +139,7 @@ void update_pacman(void) {
         PlaySound(sfx_pacman_chomp);
         update_pellet_count();
         if (is_maze_cleared()) {        // Check if maze is cleared after collecting pellet
+            level ++;                   // Increment level
             gameState = STATE_LEVEL_COMPLETE;
             deathAnimTimer = 6.0f;
             powerPelletTimer = 0.0f;

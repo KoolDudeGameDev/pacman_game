@@ -48,19 +48,71 @@ typedef struct {
     bool skip;              // Flag to skip animation when Enter is pressed
 } LogoAnimation;
 
-// Functions for Personal logo
+// Initializes the personal logo animation state.
+// Parameters:
+//   anim - Pointer to the LogoAnimation structure to initialize.
+//   screenWidth - Width of the screen in pixels.
+//   screenHeight - Height of the screen in pixels.
 void init_personal_logo(LogoAnimation* anim, int screenWidth, int screenHeight);
+
+// Updates the personal logo animation state.
+// Parameters:
+//   anim - Pointer to the LogoAnimation structure.
+// Returns:
+//   true if the animation is complete, false otherwise.
 bool update_personal_logo(LogoAnimation* anim);
+
+// Renders the personal logo animation.
+// Parameters:
+//   anim - Pointer to the LogoAnimation structure.
+//   screenWidth - Width of the screen in pixels.
+//   screenHeight - Height of the screen in pixels.
+//   font - Font to use for rendering text.
+//   sfx - Sound effect to play during animation.
 void render_personal_logo(const LogoAnimation* anim, int screenWidth, int screenHeight, Font font, Sound sfx);
 
-// Functions for Raylib logo
+// Initializes the Raylib logo animation state.
+// Parameters:
+//   anim - Pointer to the LogoAnimation structure to initialize.
+//   screenWidth - Width of the screen in pixels.
+//   screenHeight - Height of the screen in pixels.
 void init_raylib_logo(LogoAnimation* anim, int screenWidth, int screenHeight);
+
+// Updates the Raylib logo animation state.
+// Parameters:
+//   anim - Pointer to the LogoAnimation structure.
+// Returns:
+//   true if the animation is complete, false otherwise.
 bool update_raylib_logo(LogoAnimation* anim);
+
+// Renders the Raylib logo animation.
+// Parameters:
+//   anim - Pointer to the LogoAnimation structure.
 void render_raylib_logo(const LogoAnimation* anim);
 
-// Functions for Game logo
+// Initializes the main game logo animation state.
+// Parameters:
+//   anim - Pointer to the LogoAnimation structure to initialize.
 void init_game_logo(LogoAnimation* anim);
+
+// Updates the main game logo animation state.
+// Parameters:
+//   anim - Pointer to the LogoAnimation structure.
+// Returns:
+//   true if the animation is complete, false otherwise.
 bool update_game_logo(LogoAnimation* anim);
-void render_game_logo(const LogoAnimation* anim, int screenWidth, int screenHeight, Font font, Texture2D pacmanSprite, Ghost* ghostArray, Sound sfxEnter, Sound sfxBgm);
+
+// Renders the main game logo animation.
+// Parameters:
+//   anim - Pointer to the LogoAnimation structure.
+//   screenWidth - Width of the screen in pixels.
+//   screenHeight - Height of the screen in pixels.
+//   font - Font to use for rendering text.
+//   pacmanSprite - Texture for the Pac-Man sprite.
+//   ghostArray - Pointer to the array of Ghost structures for rendering.
+//   sfxEnter - Sound effect for the enter key.
+//   sfxBgm - Sound effect for background music.
+void render_game_logo(const LogoAnimation* anim, int screenWidth, int screenHeight, Font font, 
+                    Texture2D pacmanSprite, Ghost* ghostArray, Sound sfxEnter, Sound sfxBgm);
 
 #endif

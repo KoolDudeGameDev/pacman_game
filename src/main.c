@@ -11,7 +11,7 @@ int main(void) {
     const int screenWidth = 1280;
     const int screenHeight = 720;
     InitWindow(screenWidth, screenHeight, "Pacman v1.0");
-    Image icon = LoadImage("pac-man-logo-icon-32x32.ico");
+    Image icon = LoadImage("pac-man-logo-icon.ico");
     SetWindowIcon(icon);
     
     SetTargetFPS(60);
@@ -463,7 +463,7 @@ int main(void) {
                     nextState = STATE_READY;
                     deathAnimTimer = 6.0f;      // Reset timer
                     reset_game_state(false, STATE_READY);
-                    level++;                    // Increment level for next iteration
+                    //level++;                    // Increment level for next iteration
                     levelCompleteSfxStopped = false;    // Reset flag for next level
                     playPacmanMove = false;
                     StopSound(sfx_pacman_move);
