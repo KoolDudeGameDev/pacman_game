@@ -1,128 +1,102 @@
 # Pac-Man v1.0
 
-A classic Pac-Man game implementation using the Raylib library. This project includes a fully functional Pac-Man game with maze rendering, ghost AI, pellet collection, and game state management.
-
-## Table of Contents
-- [Features](#features)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Controls](#controls)
-- [Project Structure](#project-structure)
-- [Dependencies](#dependencies)
-- [Building the Project](#building-the-project)
-- [Contributing](#contributing)
-- [License](#license)
+A classic Pac-Man game built with Raylib, featuring a 28x31 tile maze, ghost AI, pellet collection, and retro CRT-style visuals with pulsating maze glow and vignette effects.
 
 ## Features
-- Classic Pac-Man gameplay with a 28x31 tile maze.
-- Four ghosts (Blinky, Pinky, Inky, Clyde) with unique AI behaviors:
-  - Blinky chases Pac-Man directly.
-  - Pinky ambushes by targeting 4 tiles ahead of Pac-Man.
-  - Inky uses a complex targeting system based on Blinky's position.
-  - Clyde switches between chasing Pac-Man and scattering based on distance.
-- Chase and Scatter modes for ghosts, with timed transitions.
-- Pellets and power pellets that allow Pac-Man to eat ghosts temporarily.
-- Logo animations and a menu system with Start/Exit options.
-- Pause functionality and game-over state with score tracking.
+- Authentic Pac-Man gameplay with a 28x31 maze.
+- Four ghosts (Blinky, Pinky, Inky, Clyde) with unique AI:
+  - Blinky: Direct chase.
+  - Pinky: Ambush targeting 4 tiles ahead.
+  - Inky: Complex targeting using Blinky's position.
+  - Clyde: Switches between chase and scatter based on distance.
+- Chase/Scatter modes with timed transitions.
+- Pellets and power pellets enabling temporary ghost-eating.
+- Retro visuals: Pulsating maze glow (light blue, 2Hz) and CRT vignette/noise.
+- Menu with Start/Exit, pause functionality, and score tracking.
+- Logo animations for intro sequence.
 
 ## Installation
 1. Clone the repository:
    ```bash
    git clone <repository-url>
    cd pacman_game
-      If you don’t have Git installed, download it from Git for Windows and install it.
-2. Install the required dependencies (see Dependencies for details).
-3. Ensure you have a working environment for compiling with GCC and Make (e.g., using MinGW-w64).
+   ```
+   If Git is not installed, download it from [Git for Windows](https://gitforwindows.org/).
+
+2. Install dependencies (see [Dependencies](#dependencies)).
+3. Ensure a GCC compiler environment (e.g., MinGW-w64).
 
 ## Usage
-1. Build the project using the provided Makefile (see Building the Project).
+1. Build the project (see [Building the Project](#building-the-project)).
 2. Run the game:
    ```bash
-    pacman.exe
-3. Navigate the menu using the UP/DOWN keys and press ENTER to select an option.
-4. Play the game using the controls listed below.
+   ./pacman.exe
+   ```
+3. Use UP/DOWN keys to navigate the menu and ENTER to select.
+4. Play using the controls below.
 
 ## Controls
-UP/DOWN/LEFT/RIGHT: Move Pac-Man in the respective direction.
-P: Pause/Unpause the game.
-R: Return to the menu from the Game Over screen.
-ENTER: Select menu options (Start/Exit).
+- **UP/DOWN/LEFT/RIGHT**: Move Pac-Man.
+- **P**: Pause/Unpause.
+- **R**: Return to menu from Game Over.
+- **ENTER**: Select menu options (Start/Exit).
+- **F11**: Toggle fullscreen.
 
 ## Project Structure
+```
 pacman_game/
-│
-├── assets/              # Sound and other asset files
-│   └── sounds/
-|
-├── include/
-|   ├── all_libs.h
-│   ├── game_logic.h     # Core game logic definitions
+├── assets/                  # Sounds and sprites
+│   ├── sounds/             # Audio files
+│   └── sprites/            # Sprite sheets (e.g., pacman_general_sprites.png)
+├── include/                # Header files
+│   ├── all_libs.h
+│   ├── game_logic.h
 │   ├── logo_animation.h
 │   ├── rendering.h
-|   ├── resource_dir.h
-|   └── utils.h 
-|
-├── src/                 # Source code
+│   ├── resource_dir.h
+│   └── utils.h
+├── src/                    # Source code
 │   ├── game_logic/
-│   │   ├── game.c            # Game state and maze initialization
-│   │   ├── ghost_ai.c        # Ghost AI and movement logic
-│   │   └── pacman_movement.c # Pac-Man movement and pellet collection
-│   │
-│   ├── logo_animation.c # Logo animation logic
-│   ├── main.c           # Main game loop and rendering
-│   ├── rendering.c      # Rendering functions for maze, Pac-Man, and ghosts
-│   └── utils.c          # Utility functions (e.g., collision detection)
-|
-├── docs/                # Documentation files
+│   │   ├── game.c         # Game state and maze setup
+│   │   ├── ghost_ai.c     # Ghost AI and movement
+│   │   └── pacman_movement.c # Pac-Man movement and pellets
+│   ├── logo_animation.c   # Logo animations
+│   ├── main.c             # Main loop and rendering
+│   ├── rendering.c        # Maze, Pac-Man, and ghost rendering
+│   └── utils.c            # Utility functions
+├── docs/                  # Documentation
 │   └── README.md
-|
-├── .gitignore           # Git ignore file
-└── Makefile             # Build script
+├── .gitignore             # Git ignore file
+└── Makefile               # Build script
+```
 
 ## Dependencies
-Raylib: A simple and easy-to-use library for game development.
-    Download the precompiled Raylib binaries for Windows from the Raylib releases page. Choose the latest release (e.g., raylib-X.X.X_win64_mingw-w64.zip for 64-bit systems).
-    Extract the zip file to a directory, e.g., C:\raylib.
-    Add the Raylib lib/ directory (e.g., C:\raylib\lib) to your system’s PATH environment variable, or copy libraylib.a to your project directory for linking.
-    Ensure the Raylib include/ directory (e.g., C:\raylib\include) is accessible for including headers (you may need to specify this path in your Makefile).
-
-MinGW-w64 (GCC for Windows): Provides the GCC compiler for compiling C code on Windows.
-    Download the MinGW-w64 installer from MinGW-w64 SourceForge
-    Add the MinGW-w64 bin/ directory (e.g., C:\msys64\mingw64\bin) to your system’s PATH environment variable.
-
+- **Raylib**: Game development library.
+  - Download from [Raylib releases](https://github.com/raysan5/raylib/releases) (e.g., `raylib-X.X.X_win64_mingw-w64.zip`).
+  - Extract to `C:\raylib` and add `C:\raylib\lib` to PATH or copy `libraylib.a` to project.
+  - Ensure `C:\raylib\include` is accessible for headers.
+- **MinGW-w64**: GCC compiler for Windows.
+  - Download from [MinGW-w64 SourceForge](https://sourceforge.net/projects/mingw-w64/).
+  - Add `C:\msys64\mingw64\bin` to PATH.
 
 ## Building the Project
-1. Ensure all dependencies are installed.
-2. Navigate to the project directory:
-  ```bash
-  cd path\to\pacman_game
-3. Build the project:
-  ```bash
-  make
-4. Run the game:
-  ```bash
-  pacman.exe
+1. Navigate to project directory:
+   ```bash
+   cd path/to/pacman_game
+   ```
+2. Build using Makefile:
+   ```bash
+   make
+   ```
+3. Run the game:
+   ```bash
+   ./pacman.exe
+   ```
 
 ## Contributing
-Contributions are welcome! Please fork the repository, create a new branch, and submit a pull request with your changes. Ensure your code follows the existing style and includes appropriate comments.
+Fork the repository, create a branch, and submit a pull request with changes. Follow existing code style and add comments for clarity.
 
 ## License
-Copyright (c) 2025 [nameeeee]
+Copyright (c) 2025 [Kyle Ibo]
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.

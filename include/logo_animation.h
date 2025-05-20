@@ -43,6 +43,9 @@ typedef struct {
     float enterPressedTime; // Time when Enter was pressed
     float ghostAnimTimer;   // Timer for ghost animation
     int ghostCurrentFrame;  // Current frame for ghost animation
+
+    // Skip flag for all animations
+    bool skip;              // Flag to skip animation when Enter is pressed
 } LogoAnimation;
 
 // Functions for Personal logo

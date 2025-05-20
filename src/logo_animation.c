@@ -4,7 +4,7 @@
 static const char* personalText[] = {
     "Made by Kyle Gregory Ibo",
     "Cebu Technological University - Ginatilan Ext. Campus",
-    "BIT - CompTech"
+    "BIT - CompTech 2A"
 };
 
 // Static text for game logo
@@ -25,9 +25,20 @@ void init_personal_logo(LogoAnimation* anim, int screenWidth, int screenHeight) 
     anim->spriteVelocity = 0.0f;
     anim->cursorVisible = true;
     anim->cursorTimer = 0.0f;
+    anim->skip = false; // Initialize skip flag
 }
 
 bool update_personal_logo(LogoAnimation* anim) {
+    if (anim->skip) {
+        // Complete typing and animation instantly
+        anim->personalLine = 3;
+        anim->personalCharIndex = strlen(personalText[2]);
+        anim->personalTimer = 10.0f;
+        anim->personalAlpha = 0.0f;
+        anim->cursorVisible = false;
+        return true; // Animation complete
+    }
+
     anim->personalTimer += GetFrameTime();
     anim->personalTypingTimer += GetFrameTime();
     anim->cursorTimer += GetFrameTime();
@@ -124,7 +135,7 @@ void render_personal_logo(const LogoAnimation* anim, int screenWidth, int screen
     }
     
     // Render bouncing "KGI" sprite (text-based placeholder)
-    const char* kgiText = "KGI";
+    const char* kgiText = "Pac-Man Clone";
     int kgiFontSize = 40;
     int kgiWidth = MeasureTextEx(font, kgiText, kgiFontSize, 1).x;
     Vector2 kgiPos = { screenWidth / 2.0f - kgiWidth / 2.0f, anim->spriteY };
@@ -149,9 +160,23 @@ void init_raylib_logo(LogoAnimation* anim, int screenWidth, int screenHeight) {
     anim->rightSideRecHeight = 16;
     anim->logoState = 0;
     anim->alpha = 1.0f;
+    anim->skip = false; // Initialize skip flag
 }
 
 bool update_raylib_logo(LogoAnimation* anim) {
+    if (anim->skip) {
+        // Complete animation instantly
+        anim->logoState = 3;
+        anim->lettersCount = 10;
+        anim->alpha = 0.0f;
+        anim->framesCounter = 0;
+        anim->topSideRecWidth = 16;
+        anim->leftSideRecHeight = 16;
+        anim->bottomSideRecWidth = 16;
+        anim->rightSideRecHeight = 16;
+        return true; // Animation complete
+    }
+
     if (anim->logoState == 0) {
         anim->framesCounter++;
         if (anim->framesCounter == 120) {
@@ -231,6 +256,7 @@ void init_game_logo(LogoAnimation* anim) {
     anim->enterPressedTime = 0.0f;
     anim->ghostAnimTimer = 0.0f;
     anim->ghostCurrentFrame = 0;
+    anim->skip = false; // Initialize skip flag
 }
 
 bool update_game_logo(LogoAnimation* anim) {
@@ -238,6 +264,12 @@ bool update_game_logo(LogoAnimation* anim) {
     anim->borderColorTimer += GetFrameTime();
     anim->promptBlinkTimer += GetFrameTime();
     anim->ghostAnimTimer += GetFrameTime();
+
+    // Handle skip
+    if (anim->skip && !anim->enterPressed) {
+        anim->enterPressed = true;
+        anim->enterPressedTime = anim->timer;
+    }
 
     // Fade-in (0-1s)
     if (anim->timer < 1.0f) {

@@ -11,7 +11,9 @@ int main(void) {
     const int screenWidth = 1280;
     const int screenHeight = 720;
     InitWindow(screenWidth, screenHeight, "Pacman v1.0");
-
+    Image icon = LoadImage("pac-man-logo-icon-32x32.ico");
+    SetWindowIcon(icon);
+    
     SetTargetFPS(60);
 
     // Load a font
@@ -99,6 +101,40 @@ int main(void) {
             ToggleFullscreen();
         }
 
+        // Handle Enter key to skip animations
+        if (IsKeyPressed(KEY_ENTER)) {
+            switch (gameState) {
+                case STATE_PERSONAL_LOGO:
+                    logoAnim.skip = true;
+                    fadingOut = true;
+                    nextState = STATE_RAYLIB_LOGO;
+                    init_raylib_logo(&logoAnim, screenWidth, screenHeight);
+                    if (!soundMuted) {
+                        PlaySound(sfx_menu_nav);
+                    }
+                    break;
+                case STATE_RAYLIB_LOGO:
+                    logoAnim.skip = true;
+                    fadingOut = true;
+                    nextState = STATE_LOGO;
+                    init_game_logo(&logoAnim);
+                    if (!soundMuted) {
+                        PlaySound(sfx_menu_nav);
+                    }
+                    break;
+                case STATE_LOGO:
+                    if (!logoAnim.enterPressed) {
+                        logoAnim.skip = true;
+                        if (!soundMuted) {
+                            PlaySound(sfx_menu_nav);
+                        }
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+
         if (IsKeyPressed(KEY_ZERO)) { // Press '0' to trigger state personal
             TraceLog(LOG_INFO, "Forcing transition to STATE_PERSONAL_LOGO");
             fadingOut = true;
@@ -106,7 +142,7 @@ int main(void) {
             prevState = gameState;
         }
 
-        if (IsKeyPressed(KEY_NINE)) { // Press '0' to trigger state personal
+        if (IsKeyPressed(KEY_NINE)) { // Press '9' to trigger state logo
             TraceLog(LOG_INFO, "Forcing transition to STATE_LOGO");
             fadingOut = true;
             nextState = STATE_LOGO;
@@ -695,6 +731,7 @@ int main(void) {
 
     // De-Initialization
     // ----------------------------------------------------------------------------------------
+    UnloadImage(icon);
     UnloadFont(font);
     UnloadSound(sfx_menu);
     UnloadSound(sfx_menu_nav);
