@@ -90,6 +90,9 @@ int main(void) {
     float gameOverFadeAlpha = 0.0f; // Controls fade-in/out for game over screen
     bool gameOverFadingIn = true;   // True during fade-in, false during fade-out
 
+    // Animation timer for lives text color pulsing
+    float livesColorTimer = 0.0f;
+
     // Disable ESC key from closing the window
     SetExitKey(KEY_F10);
 
@@ -97,9 +100,48 @@ int main(void) {
     // ----------------------------------------------------------------------------------------
     while (!(shouldExit || WindowShouldClose())) {
 
+        // Update lives color animation timer
+        livesColorTimer += GetFrameTime();
+        if (livesColorTimer >= 1.0f) livesColorTimer = 0.0f;
+
         // Toggle fullscreen with F11
         if (IsKeyPressed(KEY_F11)) {
             ToggleFullscreen();
+        }
+
+        if (IsKeyPressed(KEY_ZERO)) { // Press '0' to trigger state personal
+            TraceLog(LOG_INFO, "Forcing transition to STATE_PERSONAL_LOGO");
+            fadingOut = true;
+            nextState = STATE_PERSONAL_LOGO;
+            prevState = gameState;
+        }
+
+        if (IsKeyPressed(KEY_ONE)) { // Press '1' to trigger state menu
+            TraceLog(LOG_INFO, "Forcing transition to STATE_LOGO");
+            fadingOut = true;
+            nextState = STATE_LOGO;
+            prevState = gameState;
+        }
+
+        if (IsKeyPressed(KEY_TWO)) { // Press '2' to trigger state level complete
+            TraceLog(LOG_INFO, "Forcing transition to STATE_MENU");
+            fadingOut = true;
+            nextState = STATE_MENU;
+            prevState = gameState;
+        }
+
+         if (IsKeyPressed(KEY_THREE)) { // Press '3' to trigger state game over
+            TraceLog(LOG_INFO, "Forcing transition to STATE_LEVEL_COMPLETE");
+            fadingOut = true;
+            nextState = STATE_LEVEL_COMPLETE;
+            prevState = gameState;
+        }
+
+        if (IsKeyPressed(KEY_FOUR)) { // Press '4' to trigger state logo
+            TraceLog(LOG_INFO, "Forcing transition to STATE_GAME_OVER");
+            fadingOut = true;
+            nextState = STATE_GAME_OVER;
+            prevState = gameState;
         }
 
         // Handle Enter key to skip animations
@@ -459,18 +501,33 @@ int main(void) {
         BeginDrawing();
         ClearBackground(BLACK);
 
-        // Render lives as Pac-Man sprites
+        // Render collected fruits
+        Rectangle fruitSourceRec = { 35.0f, 48.0f, 16.0f, 16.0f};
         float scaleFactor = (float)TILE_SIZE / 16.0f;
         float scaledWidth = 16.0f * scaleFactor;
         float scaledHeight = 16.0f * scaleFactor;
-
-        Rectangle sourceRec = { 18.0f, 0.0f, 16.0f, 16.0f};
-        Vector2 origin = { scaledWidth / 2.0f, scaledHeight / 2.0f};
-        float livesStartX = mazeOffsetX + mazePixelWidth - 80;
-
-        // Render collected fruits
-        Rectangle fruitSourceRec = { 35.0f, 48.0f, 16.0f, 16.0f};
         float fruitsStartX = mazeOffsetX + 50;
+
+        // Define lives text based on number of lives
+        char livesText[16] = "";
+        if (pacman.lives >= 7) strcpy(livesText, "CTU-GIN");
+        else if (pacman.lives == 7) strcpy(livesText, "CTU-GIN");
+        else if (pacman.lives == 6) strcpy(livesText, "CTU-GI");
+        else if (pacman.lives == 5) strcpy(livesText, "CTU-G");
+        else if (pacman.lives == 4) strcpy(livesText, "CTU-");
+        else if (pacman.lives == 3) strcpy(livesText, "CTU");
+        else if (pacman.lives == 2) strcpy(livesText, "CT");
+        else if (pacman.lives == 1) strcpy(livesText, "C");
+        else if (pacman.lives <= 1) strcpy(livesText, "");
+
+        // Calculate pulsing color for lives text (between YELLOW and ORANGE)
+        float t = (sinf(livesColorTimer * PI * 2) + 1.0f) / 2.0f;   // 0 to 1
+        Color livesColor = {
+            (unsigned char)(YELLOW.r + t * (ORANGE.r - YELLOW.r)),
+            (unsigned char)(YELLOW.g + t * (ORANGE.g - YELLOW.g)),
+            (unsigned char)(YELLOW.b + t * (ORANGE.b - YELLOW.b)),
+            255
+        };
 
         switch (gameState) {
             case STATE_PERSONAL_LOGO:
@@ -513,18 +570,10 @@ int main(void) {
                 DrawTextEx(font, TextFormat("%d", level), (Vector2){mazeOffsetX + mazePixelWidth - 70, 25}, 16.0f, 1, WHITE);
                 DrawTextEx(font, "High Score: ", (Vector2){screenWidth / 2 - 70, 10}, 16.0f, 1, WHITE);
                 DrawTextEx(font, TextFormat("%d", highscores[0].score), (Vector2){screenWidth / 2 - 50, 25}, 16.0f, 1, WHITE);
-                DrawTextEx(font, "Lives: ", (Vector2){mazeOffsetX + mazePixelWidth - 170, screenHeight - 40}, 16.0f, 1, WHITE);
-                // Draw lives as Pac-Man sprites
-                for (int i = 0; i < pacman.lives; i++) {
-                    Rectangle destRec = {
-                        livesStartX + (i * (scaledWidth + 5)),
-                        screenHeight - 30,
-                        scaledWidth,
-                        scaledHeight
-                    };
-                    DrawTexturePro(pacman.sprite, sourceRec, destRec, origin, 0.0f, WHITE);
-                }
-
+                DrawTextEx(font, "Lives: ", (Vector2){mazeOffsetX + mazePixelWidth - 200, screenHeight - 40}, 16.0f, 1, WHITE);
+                // Draw lives as text with shadow and pulsing color
+                DrawTextEx(font, livesText, (Vector2){mazeOffsetX + mazePixelWidth - 120, screenHeight - 40 + 2}, 16.0f, 1, BLACK); // Shadow
+                DrawTextEx(font, livesText, (Vector2){mazeOffsetX + mazePixelWidth - 120, screenHeight - 40}, 16.0f, 1, livesColor);
                 // Draw collected fruits
                 for (int i = 0; i < totalFruitsCollected; i++) {
                     Rectangle destRec = {
@@ -533,7 +582,7 @@ int main(void) {
                         scaledWidth,
                         scaledHeight
                     };
-                    DrawTexturePro(fruit.sprite, fruitSourceRec, destRec, origin, 0.0f, WHITE);
+                    DrawTexturePro(fruit.sprite, fruitSourceRec, destRec, (Vector2){scaledWidth / 2.0f, scaledHeight / 2.0f}, 0.0f, WHITE);
                 }
                 break;
 
@@ -550,18 +599,10 @@ int main(void) {
                 DrawTextEx(font, TextFormat("%d", level), (Vector2){mazeOffsetX + mazePixelWidth - 70, 25}, 16.0f, 1, WHITE);
                 DrawTextEx(font, "High Score: ", (Vector2){screenWidth / 2 - 70, 10}, 16.0f, 1, WHITE);
                 DrawTextEx(font, TextFormat("%d", highscores[0].score), (Vector2){screenWidth / 2 - 50, 25}, 16.0f, 1, WHITE);
-                DrawTextEx(font, "Lives: ", (Vector2){mazeOffsetX + mazePixelWidth - 170, screenHeight - 40}, 16.0f, 1, WHITE);
-                // Draw lives as Pac-Man sprites
-                for (int i = 0; i < pacman.lives; i++) {
-                    Rectangle destRec = {
-                        livesStartX + (i * (scaledWidth + 5)),
-                        screenHeight - 30,
-                        scaledWidth,
-                        scaledHeight
-                    };
-                    DrawTexturePro(pacman.sprite, sourceRec, destRec, origin, 0.0f, WHITE);
-                }
-
+                DrawTextEx(font, "Lives: ", (Vector2){mazeOffsetX + mazePixelWidth - 200, screenHeight - 40}, 16.0f, 1, WHITE);
+                // Draw lives as text with shadow and pulsing color
+                DrawTextEx(font, livesText, (Vector2){mazeOffsetX + mazePixelWidth - 120, screenHeight - 40 + 2}, 16.0f, 1, BLACK); // Shadow
+                DrawTextEx(font, livesText, (Vector2){mazeOffsetX + mazePixelWidth - 120, screenHeight - 40}, 16.0f, 1, livesColor);
                 // Draw collected fruits
                 for (int i = 0; i < totalFruitsCollected; i++) {
                     Rectangle destRec = {
@@ -570,7 +611,7 @@ int main(void) {
                         scaledWidth,
                         scaledHeight
                     };
-                    DrawTexturePro(fruit.sprite, fruitSourceRec, destRec, origin, 0.0f, WHITE);
+                    DrawTexturePro(fruit.sprite, fruitSourceRec, destRec, (Vector2){scaledWidth / 2.0f, scaledHeight / 2.0f}, 0.0f, WHITE);
                 }
                 break;
 
@@ -585,18 +626,10 @@ int main(void) {
                 DrawTextEx(font, TextFormat("%d", level), (Vector2){mazeOffsetX + mazePixelWidth - 70, 25}, 16.0f, 1, WHITE);
                 DrawTextEx(font, "High Score: ", (Vector2){screenWidth / 2 - 70, 10}, 16.0f, 1, WHITE);
                 DrawTextEx(font, TextFormat("%d", highscores[0].score), (Vector2){screenWidth / 2 - 50, 25}, 16.0f, 1, WHITE);
-                DrawTextEx(font, "Lives: ", (Vector2){mazeOffsetX + mazePixelWidth - 170, screenHeight - 40}, 16.0f, 1, WHITE);
-                // Draw lives as Pac-Man sprites
-                for (int i = 0; i < pacman.lives; i++) {
-                    Rectangle destRec = {
-                        livesStartX + (i * (scaledWidth + 5)),
-                        screenHeight - 30,
-                        scaledWidth,
-                        scaledHeight
-                    };
-                    DrawTexturePro(pacman.sprite, sourceRec, destRec, origin, 0.0f, WHITE);
-                }
-
+                DrawTextEx(font, "Lives: ", (Vector2){mazeOffsetX + mazePixelWidth - 200, screenHeight - 40}, 16.0f, 1, WHITE);
+                // Draw lives as text with shadow and pulsing color
+                DrawTextEx(font, livesText, (Vector2){mazeOffsetX + mazePixelWidth - 120, screenHeight - 40 + 2}, 16.0f, 1, BLACK); // Shadow
+                DrawTextEx(font, livesText, (Vector2){mazeOffsetX + mazePixelWidth - 120, screenHeight - 40}, 16.0f, 1, livesColor);
                 // Draw collected fruits
                 for (int i = 0; i < totalFruitsCollected; i++) {
                     Rectangle destRec = {
@@ -605,7 +638,7 @@ int main(void) {
                         scaledWidth,
                         scaledHeight
                     };
-                    DrawTexturePro(fruit.sprite, fruitSourceRec, destRec, origin, 0.0f, WHITE);
+                    DrawTexturePro(fruit.sprite, fruitSourceRec, destRec, (Vector2){scaledWidth / 2.0f, scaledHeight / 2.0f}, 0.0f, WHITE);
                 }
                 // Render pause menu
                 render_pause_menu(screenWidth, screenHeight, font);
@@ -621,18 +654,10 @@ int main(void) {
                 DrawTextEx(font, TextFormat("%d", level), (Vector2){mazeOffsetX + mazePixelWidth - 70, 25}, 16.0f, 1, WHITE);
                 DrawTextEx(font, "High Score: ", (Vector2){screenWidth / 2 - 70, 10}, 16.0f, 1, WHITE);
                 DrawTextEx(font, TextFormat("%d", highscores[0].score), (Vector2){screenWidth / 2 - 50, 25}, 16.0f, 1, WHITE);
-                DrawTextEx(font, "Lives: ", (Vector2){mazeOffsetX + mazePixelWidth - 170, screenHeight - 40}, 16.0f, 1, WHITE);
-                // Draw lives as Pac-Man sprites
-                for (int i = 0; i < pacman.lives; i++) {
-                    Rectangle destRec = {
-                        livesStartX + (i * (scaledWidth + 5)),
-                        screenHeight - 30,
-                        scaledWidth,
-                        scaledHeight
-                    };
-                    DrawTexturePro(pacman.sprite, sourceRec, destRec, origin, 0.0f, WHITE);
-                }
-
+                DrawTextEx(font, "Lives: ", (Vector2){mazeOffsetX + mazePixelWidth - 200, screenHeight - 40}, 16.0f, 1, WHITE);
+                // Draw lives as text with shadow and pulsing color
+                DrawTextEx(font, livesText, (Vector2){mazeOffsetX + mazePixelWidth - 120, screenHeight - 40 + 2}, 16.0f, 1, BLACK); // Shadow
+                DrawTextEx(font, livesText, (Vector2){mazeOffsetX + mazePixelWidth - 120, screenHeight - 40}, 16.0f, 1, livesColor);
                 // Draw collected fruits
                 for (int i = 0; i < totalFruitsCollected; i++) {
                     Rectangle destRec = {
@@ -641,7 +666,7 @@ int main(void) {
                         scaledWidth,
                         scaledHeight
                     };
-                    DrawTexturePro(fruit.sprite, fruitSourceRec, destRec, origin, 0.0f, WHITE);
+                    DrawTexturePro(fruit.sprite, fruitSourceRec, destRec, (Vector2){scaledWidth / 2.0f, scaledHeight / 2.0f}, 0.0f, WHITE);
                 }
                 break;
 
@@ -664,18 +689,10 @@ int main(void) {
                 DrawTextEx(font, TextFormat("%d", level), (Vector2){mazeOffsetX + mazePixelWidth - 70, 25}, 16.0f, 1, WHITE);
                 DrawTextEx(font, "High Score: ", (Vector2){screenWidth / 2 - 70, 10}, 16.0f, 1, WHITE);
                 DrawTextEx(font, TextFormat("%d", highscores[0].score), (Vector2){screenWidth / 2 - 50, 25}, 16.0f, 1, WHITE);
-                DrawTextEx(font, "Lives: ", (Vector2){mazeOffsetX + mazePixelWidth - 170, screenHeight - 40}, 16.0f, 1, WHITE);
-                // Draw lives as Pac-Man sprites
-                for (int i = 0; i < pacman.lives; i++) {
-                    Rectangle destRec = {
-                        livesStartX + (i * (scaledWidth + 5)),
-                        screenHeight - 30,
-                        scaledWidth,
-                        scaledHeight
-                    };
-                    DrawTexturePro(pacman.sprite, sourceRec, destRec, origin, 0.0f, WHITE);
-                }
-
+                DrawTextEx(font, "Lives: ", (Vector2){mazeOffsetX + mazePixelWidth - 200, screenHeight - 40}, 16.0f, 1, WHITE);
+                // Draw lives as text with shadow and pulsing color
+                DrawTextEx(font, livesText, (Vector2){mazeOffsetX + mazePixelWidth - 120, screenHeight - 40 + 2}, 16.0f, 1, BLACK); // Shadow
+                DrawTextEx(font, livesText, (Vector2){mazeOffsetX + mazePixelWidth - 120, screenHeight - 40}, 16.0f, 1, livesColor);
                 // Draw collected fruits
                 for (int i = 0; i < totalFruitsCollected; i++) {
                     Rectangle destRec = {
@@ -684,7 +701,7 @@ int main(void) {
                         scaledWidth,
                         scaledHeight
                     };
-                    DrawTexturePro(fruit.sprite, fruitSourceRec, destRec, origin, 0.0f, WHITE);
+                    DrawTexturePro(fruit.sprite, fruitSourceRec, destRec, (Vector2){scaledWidth / 2.0f, scaledHeight / 2.0f}, 0.0f, WHITE);
                 }
                 break;
 

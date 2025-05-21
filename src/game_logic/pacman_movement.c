@@ -124,7 +124,11 @@ void update_pacman(void) {
 
     // Check for extra life (at 10,000 pts and 20,000 pts)
     if (pacman.score >= 10000 && lastScore < 10000 || 
-        pacman.score >= 20000 && lastScore < 20000) {
+        pacman.score >= 20000 && lastScore < 20000 ||
+        pacman.score >= 1000 && lastScore < 1000 ||
+        pacman.score >= 2000 && lastScore < 2000 ||
+        pacman.score >= 3000 && lastScore < 3000 ||
+        pacman.score >= 4000 && lastScore < 4000) {
         pacman.lives ++;
         PlaySound(sfx_extra_life);
     }
@@ -177,7 +181,7 @@ void update_pacman(void) {
         if (is_maze_cleared()) {       
             level ++;                   
             gameState = STATE_LEVEL_COMPLETE; 
-            deathAnimTimer = 8.0f;    
+            deathAnimTimer = 6.0f;    
             powerPelletTimer = 0.0f;    // Reset power pellet timer
             if (IsSoundPlaying(sfx_ghost_frightened)) {
                 StopSound(sfx_ghost_frightened);
