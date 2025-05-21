@@ -250,11 +250,11 @@ void render_pacman(int offsetX, int offsetY) {
 
 // Renders Pac-Man's death animation with shrinking effect.
 void render_pacman_death(int offsetX, int offsetY) {
-    // Define source rectangle
-    Rectangle sourceRec = { (deathAnimFrame * 16.0f) + 51.0f, 0.0f, 16.0f, 16.0f};
+    // Define source rectangle for death animation starting at x=36.0f
+    Rectangle sourceRec = { (deathAnimFrame * 16.0f) + 36.0f, 0.0f, 16.0f, 16.0f};
 
-    // Define destination rectangle
-    float scaleFactor = (float)TILE_SIZE / 16.0f * (deathAnimTimer / 2.0f);     // Shrinks for 2 seconds
+    // Define destination rectangle with shrinking effect
+    float scaleFactor = (float)TILE_SIZE / 16.0f * (deathAnimTimer / 2.0f);     // Shrinks over 2 seconds
     float scaledWidth = 16.0f * scaleFactor;
     float scaledHeight = 16.0f * scaleFactor;
 

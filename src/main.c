@@ -11,8 +11,9 @@ int main(void) {
     const int screenWidth = 1280;
     const int screenHeight = 720;
     InitWindow(screenWidth, screenHeight, "Pacman v1.0");
-    Image icon = LoadImage("pac-man-logo-icon.ico");
+    Image icon = LoadImage("assets/pac-man-logo-icon.ico");
     SetWindowIcon(icon);
+        UnloadImage(icon);
     
     SetTargetFPS(60);
 
@@ -133,41 +134,6 @@ int main(void) {
                 default:
                     break;
             }
-        }
-
-        if (IsKeyPressed(KEY_ZERO)) { // Press '0' to trigger state personal
-            TraceLog(LOG_INFO, "Forcing transition to STATE_PERSONAL_LOGO");
-            fadingOut = true;
-            nextState = STATE_PERSONAL_LOGO;
-            prevState = gameState;
-        }
-
-        if (IsKeyPressed(KEY_NINE)) { // Press '9' to trigger state logo
-            TraceLog(LOG_INFO, "Forcing transition to STATE_LOGO");
-            fadingOut = true;
-            nextState = STATE_LOGO;
-            prevState = gameState;
-        }
-
-        if (IsKeyPressed(KEY_ONE)) { // Press '1' to trigger state menu
-            TraceLog(LOG_INFO, "Forcing transition to STATE_MENU");
-            fadingOut = true;
-            nextState = STATE_MENU;
-            prevState = gameState;
-        }
-
-        if (IsKeyPressed(KEY_TWO)) { // Press '2' to trigger state level complete
-            TraceLog(LOG_INFO, "Forcing transition to STATE_LEVEL_COMPLETE");
-            fadingOut = true;
-            nextState = STATE_LEVEL_COMPLETE;
-            prevState = gameState;
-        }
-
-         if (IsKeyPressed(KEY_THREE)) { // Press '3' to trigger state game over
-            TraceLog(LOG_INFO, "Forcing transition to STATE_GAME_OVER");
-            fadingOut = true;
-            nextState = STATE_GAME_OVER;
-            prevState = gameState;
         }
 
         // Handle Enter key for STATE_LOGO
@@ -418,29 +384,39 @@ int main(void) {
 
                 deathAnimTimer -= GetFrameTime();
                 if (deathAnimTimer <= 0.0f) {
+                    // Update death animation frame based on time
+                    // Total animation duration is 2 seconds (reduced from 6 for consistency)
+                    float frameDuration = 2.0f / PACMAN_DEATH_FRAMES;
+                    int newFrame = (int)((2.0f - deathAnimTimer) / frameDuration);
+                    deathAnimFrame = (newFrame < PACMAN_DEATH_FRAMES) ? newFrame : (PACMAN_DEATH_FRAMES - 1);
+
                     // Decrement lives at the end of the animation
                     pacman.lives--;
-                    deathAnimTimer = 6.0f;  // Reset timer for next death
-                    deathAnimFrame = 0;
-                    deathSfxPlayed = false; // Reset flag for next death
                     if (pacman.lives > 0) {
                         reset_game_state(false, STATE_READY);
                         gameState = STATE_READY;
+                        deathAnimTimer = 2.0f;  // Reset timer for next death
+                        deathAnimFrame = 0;
+                        deathSfxPlayed = false; // Reset flag for next death
                         playPacmanMove = false;
                     } else {
+                        // Delay game over transition to allow animation to complete
                         fadingOut = true;
                         nextState = STATE_GAME_OVER;
                         prevState = STATE_DEATH_ANIM;
                         gameOverFadeAlpha = 0.0f;
                         gameOverFadingIn = true;
+                        deathAnimTimer = 2.0f;  // Reset timer
+                        deathAnimFrame = 0;
+                        deathSfxPlayed = false; // Reset flag
                         playPacmanMove = false;
                         StopSound(sfx_pacman_move);
                     }
                 } else {
                     // Update death animation frame based on time
-                    // Total animation duration is 6 secs
-                    float frameDuration = 6.0f / PACMAN_DEATH_FRAMES;
-                    int newFrame = (int)((6.0f - deathAnimTimer) / frameDuration);
+                    // Total animation duration is 2 seconds
+                    float frameDuration = 2.0f / PACMAN_DEATH_FRAMES;
+                    int newFrame = (int)((2.0f - deathAnimTimer) / frameDuration);
                     deathAnimFrame = (newFrame < PACMAN_DEATH_FRAMES) ? newFrame : (PACMAN_DEATH_FRAMES - 1);
                 }
                 break;
@@ -731,7 +707,6 @@ int main(void) {
 
     // De-Initialization
     // ----------------------------------------------------------------------------------------
-    UnloadImage(icon);
     UnloadFont(font);
     UnloadSound(sfx_menu);
     UnloadSound(sfx_menu_nav);

@@ -564,13 +564,16 @@ void render_menu(int screenWidth, int screenHeight, Font font, int selectedOptio
 //   font - Font used for rendering text.
 void render_highscores(int screenWidth, int screenHeight, Font font) {
     ClearBackground(BLACK);
-    DrawTextEx(font, "High Scores", (Vector2){screenWidth / 2 - 50, screenHeight / 2 - 100}, 20.0f, 1, YELLOW);
+    Vector2 titleSize = MeasureTextEx(font, "High Scores", 20.0f, 1);
+    DrawTextEx(font, "High Scores", (Vector2){screenWidth / 2 - titleSize.x / 2, screenHeight / 2 - 100}, 20.0f, 1, YELLOW);
     for (int i = 0; i < MAX_HIGH_SCORES; i++) {
         char scoreText[32];
         sprintf(scoreText, "%d. %s - %d", i + 1, highscores[i].name, highscores[i].score);
-        DrawTextEx(font, scoreText, (Vector2){screenWidth / 2 - 50, screenHeight / 2 - 60 + i * 20}, 16.0f, 1, WHITE);
+        Vector2 scoreSize = MeasureTextEx(font, scoreText, 16.0f, 1);
+        DrawTextEx(font, scoreText, (Vector2){screenWidth / 2 - scoreSize.x / 2, screenHeight / 2 - 60 + i * 20}, 16.0f, 1, WHITE);
     }
-    DrawTextEx(font, "Press ENTER or ESC to return", (Vector2){screenWidth / 2 - 100, screenHeight / 2 + 100}, 10.0f, 1, GRAY);
+    Vector2 returnSize = MeasureTextEx(font, "Press ENTER or ESC to return", 10.0f, 1);
+    DrawTextEx(font, "Press ENTER or ESC to return", (Vector2){screenWidth / 2 - returnSize.x / 2, screenHeight / 2 + 100}, 10.0f, 1, GRAY);
 }
 
 // Renders the about screen (STATE_ABOUT) with game information.
@@ -580,11 +583,16 @@ void render_highscores(int screenWidth, int screenHeight, Font font) {
 //   font - Font used for rendering text.
 void render_about(int screenWidth, int screenHeight, Font font) {
     ClearBackground(BLACK);
-    DrawTextEx(font, "About Pac-Man Remake", (Vector2){screenWidth / 2 - 70, screenHeight / 2 - 100}, 20.0f, 1, YELLOW);
-    DrawTextEx(font, "Developed by Kyle Ibo", (Vector2){screenWidth / 2 - 70, screenHeight / 2 - 40}, 16.0f, 1, WHITE);
-    DrawTextEx(font, "Powered by Raylib", (Vector2){screenWidth / 2 - 50, screenHeight / 2 - 10}, 16.0f, 1, WHITE);
-    DrawTextEx(font, "Version 1.0", (Vector2){screenWidth / 2 - 30, screenHeight / 2 + 20}, 16.0f, 1, WHITE);
-    DrawTextEx(font, "Press ENTER or ESC to return", (Vector2){screenWidth / 2 - 100, screenHeight / 2 + 80}, 10.0f, 1, GRAY);
+    Vector2 titleSize = MeasureTextEx(font, "About Pac-Man Remake", 20.0f, 1);
+    DrawTextEx(font, "About Pac-Man Remake", (Vector2){screenWidth / 2 - titleSize.x / 2, screenHeight / 2 - 100}, 20.0f, 1, YELLOW);
+    Vector2 devSize = MeasureTextEx(font, "Developed by Kyle Gregory Ibo", 16.0f, 1);
+    DrawTextEx(font, "Developed by Kyle Gregory Ibo", (Vector2){screenWidth / 2 - devSize.x / 2, screenHeight / 2 - 40}, 16.0f, 1, WHITE);
+    Vector2 raylibSize = MeasureTextEx(font, "Powered by Raylib", 16.0f, 1);
+    DrawTextEx(font, "Powered by Raylib", (Vector2){screenWidth / 2 - raylibSize.x / 2, screenHeight / 2 - 10}, 16.0f, 1, WHITE);
+    Vector2 versionSize = MeasureTextEx(font, "Version 1.0", 16.0f, 1);
+    DrawTextEx(font, "Version 1.0", (Vector2){screenWidth / 2 - versionSize.x / 2, screenHeight / 2 + 20}, 16.0f, 1, WHITE);
+    Vector2 returnSize = MeasureTextEx(font, "Press ENTER or ESC to return", 10.0f, 1);
+    DrawTextEx(font, "Press ENTER or ESC to return", (Vector2){screenWidth / 2 - returnSize.x / 2, screenHeight / 2 + 80}, 10.0f, 1, GRAY);
 }
 
 // Renders the settings menu (STATE_SETTINGS) with volume sliders and mute toggle.
@@ -804,7 +812,7 @@ void render_level_complete(int screenWidth, int screenHeight, Font font, float a
     DrawRectangleRounded(backgroundRect, 0.2f, 20, Fade(DARKGRAY, backgroundAlpha * 0.7f));
 
     // Score breakdown with centered text
-    float leftPadding = backgroundRect.x + 10; // 10 pixels padding from left edge
+    float leftPadding = backgroundRect.x + 20; // 20 pixels padding from left edge
     DrawTextEx(font, pelletsText,
                (Vector2){ leftPadding, screenHeight / 2.0f + 0 }, 10.0f, 1, Fade(WHITE, pelletsAlpha));
     DrawTextEx(font, powerPelletsText,
@@ -833,23 +841,32 @@ void render_level_complete(int screenWidth, int screenHeight, Font font, float a
 void render_game_over(int screenWidth, int screenHeight, Font font, float gameOverFadeAlpha) {
     ClearBackground(BLACK);
 
+    // Declare variables once to avoid shadowing
+    char scoreText[32];
+    Vector2 scoreSize;
+
     // Game Over text
+    Vector2 gameOverSize = MeasureTextEx(font, "Game Over", 24.0f, 1);
     DrawTextEx(font, "Game Over",
-            (Vector2){screenWidth / 2 - MeasureTextEx(font, "Game Over", 24.0f, 1).x / 2, screenHeight / 2 - 100},
+            (Vector2){screenWidth / 2 - gameOverSize.x / 2, screenHeight / 2 - 150},
             24.0f, 1, Fade(YELLOW, gameOverFadeAlpha));
 
     // Score and motivational message
-    DrawTextEx(font, TextFormat("Final Score: %d", pacman.score),
-            (Vector2){screenWidth / 2 - MeasureTextEx(font, TextFormat("Final Score: %d", pacman.score), 16.0f, 1).x / 2, screenHeight / 2 - 40},
+    sprintf(scoreText, "Final Score: %d", pacman.score);
+    scoreSize = MeasureTextEx(font, scoreText, 16.0f, 1);
+    DrawTextEx(font, scoreText,
+            (Vector2){screenWidth / 2 - scoreSize.x / 2, screenHeight / 2 - 90},
             16.0f, 1, Fade(WHITE, gameOverFadeAlpha));
+    Vector2 messageSize = MeasureTextEx(font, gameOverMessages[selectedMessageIndex], 12.0f, 1);
     DrawTextEx(font, gameOverMessages[selectedMessageIndex],
-            (Vector2){screenWidth / 2 - MeasureTextEx(font, gameOverMessages[selectedMessageIndex], 12.0f, 1).x / 2, screenHeight / 2 - 10},
+            (Vector2){screenWidth / 2 - messageSize.x / 2, screenHeight / 2 - 60},
             12.0f, 1, Fade(WHITE, gameOverFadeAlpha));
 
     // Add delay and fade-in for name input
     if (!nameInputComplete) {
+        Vector2 initialsLabelSize = MeasureTextEx(font, "Enter Initials:", 16.0f, 1);
         DrawTextEx(font, "Enter Initials:",
-                (Vector2){screenWidth / 2 - MeasureTextEx(font, "Enter Initials:", 16.0f, 1).x / 2, screenHeight / 2 + 20},
+                (Vector2){screenWidth / 2 - initialsLabelSize.x / 2, screenHeight / 2 - 30},
                 16.0f, 1, Fade(YELLOW, gameOverFadeAlpha));
         char displayName[4] = {'_', '_', '_', '\0'};
         for (int i = 0; i < nameInputIndex; i++) {
@@ -859,52 +876,64 @@ void render_game_over(int screenWidth, int screenHeight, Font font, float gameOv
         if (((int)(GetTime() * 2.0f) % 2) == 0 && nameInputIndex < 3) {
             displayName[nameInputIndex] = '|';
         }
+        Vector2 displayNameSize = MeasureTextEx(font, displayName, 16.0f, 1);
         DrawTextEx(font, displayName,
-                (Vector2){screenWidth / 2 - MeasureTextEx(font, displayName, 16.0f, 1).x / 2, screenHeight / 2 + 50},
+                (Vector2){screenWidth / 2 - displayNameSize.x / 2, screenHeight / 2},
                 16.0f, 1, Fade(WHITE, gameOverFadeAlpha));
+        Vector2 confirmSize = MeasureTextEx(font, "Press ENTER to confirm", 10.0f, 1);
         DrawTextEx(font, "Press ENTER to confirm",
-                (Vector2){screenWidth / 2 - MeasureTextEx(font, "Press ENTER to confirm", 10.0f, 1).x / 2, screenHeight / 2 + 80},
+                (Vector2){screenWidth / 2 - confirmSize.x / 2, screenHeight / 2 + 30},
                 10.0f, 1, Fade(GRAY, gameOverFadeAlpha));
 
         // High score preview with placeholder
-        DrawRectangleLines(screenWidth / 2 - 90, screenHeight / 2 + 100, 180, 130, Fade(YELLOW, gameOverFadeAlpha));
+        DrawRectangleLines(screenWidth / 2 - 90, screenHeight / 2 + 50, 180, 130, Fade(YELLOW, gameOverFadeAlpha));
+        Vector2 highScoresLabelSize = MeasureTextEx(font, "High Scores:", 16.0f, 1);
         DrawTextEx(font, "High Scores:",
-                (Vector2){screenWidth / 2 - MeasureTextEx(font, "High Scores:", 16.0f, 1).x / 2, screenHeight / 2 + 110},
+                (Vector2){screenWidth / 2 - highScoresLabelSize.x / 2, screenHeight / 2 + 60},
                 16.0f, 1, Fade(YELLOW, gameOverFadeAlpha));
         for (int i = 0; i < MAX_HIGH_SCORES; i++) {
             char* scoreDisplayName = (i == 0 && pacman.score > highscores[i].score) ? "YOU" : highscores[i].name;
             int displayScore = (i == 0 && pacman.score > highscores[i].score) ? pacman.score : highscores[i].score;
-            DrawTextEx(font, TextFormat("%s: %d", scoreDisplayName, displayScore),
-                    (Vector2){screenWidth / 2 - 70, screenHeight / 2 + 130 + i * 20},
+            sprintf(scoreText, "%s: %d", scoreDisplayName, displayScore);
+            scoreSize = MeasureTextEx(font, scoreText, 12.0f, 1);
+            DrawTextEx(font, scoreText,
+                    (Vector2){screenWidth / 2 - scoreSize.x / 2, screenHeight / 2 + 80 + i * 20},
                     12.0f, 1, Fade((i == 0 && pacman.score > highscores[i].score) ? GREEN : WHITE, gameOverFadeAlpha));
         }
     } else {
+        Vector2 initialsLabelSize = MeasureTextEx(font, "Initials:", 16.0f, 1);
         DrawTextEx(font, "Initials:",
-                (Vector2){screenWidth / 2 - MeasureTextEx(font, "Initials:", 16.0f, 1).x / 2, screenHeight / 2 + 20},
+                (Vector2){screenWidth / 2 - initialsLabelSize.x / 2, screenHeight / 2 - 30},
                 16.0f, 1, Fade(YELLOW, gameOverFadeAlpha));
+        Vector2 playerNameSize = MeasureTextEx(font, playerNameInput, 16.0f, 1);
         DrawTextEx(font, playerNameInput,
-                (Vector2){screenWidth / 2 - MeasureTextEx(font, playerNameInput, 16.0f, 1).x / 2, screenHeight / 2 + 50},
+                (Vector2){screenWidth / 2 - playerNameSize.x / 2, screenHeight / 2},
                 16.0f, 1, Fade(WHITE, gameOverFadeAlpha));
         // High score list with retro border
-        DrawRectangleLines(screenWidth / 2 - 80, screenHeight / 2 + 100, 160, 120, Fade(YELLOW, gameOverFadeAlpha));
+        DrawRectangleLines(screenWidth / 2 - 80, screenHeight / 2 + 50, 160, 120, Fade(YELLOW, gameOverFadeAlpha));
+        Vector2 highScoresLabelSize = MeasureTextEx(font, "High Scores:", 16.0f, 1);
         DrawTextEx(font, "High Scores:",
-                (Vector2){screenWidth / 2 - MeasureTextEx(font, "High Scores:", 16.0f, 1).x / 2, screenHeight / 2 + 110},
+                (Vector2){screenWidth / 2 - highScoresLabelSize.x / 2, screenHeight / 2 + 60},
                 16.0f, 1, Fade(YELLOW, gameOverFadeAlpha));
         for (int i = 0; i < MAX_HIGH_SCORES; i++) {
             bool isPlayerScore = (strcmp(highscores[i].name, playerNameInput) == 0 && highscores[i].score == pacman.score);
-            DrawTextEx(font, TextFormat("%s: %d", highscores[i].name, highscores[i].score),
-                    (Vector2){screenWidth / 2 - 70, screenHeight / 2 + 130 + i * 20},
+            sprintf(scoreText, "%s: %d", highscores[i].name, highscores[i].score);
+            scoreSize = MeasureTextEx(font, scoreText, 12.0f, 1);
+            DrawTextEx(font, scoreText,
+                    (Vector2){screenWidth / 2 - scoreSize.x / 2, screenHeight / 2 + 80 + i * 20},
                     12.0f, 1, Fade(isPlayerScore ? GREEN : WHITE, gameOverFadeAlpha));
         }
+        Vector2 returnSize = MeasureTextEx(font, "Press ENTER to Return to Menu", 10.0f, 1);
         DrawTextEx(font, "Press ENTER to Return to Menu",
-                (Vector2){screenWidth / 2 - MeasureTextEx(font, "Press ENTER to Return to Menu", 10.0f, 1).x / 2, screenHeight / 2 + 230},
+                (Vector2){screenWidth / 2 - returnSize.x / 2, screenHeight / 2 + 180},
                 10.0f, 1, Fade(GRAY, gameOverFadeAlpha));
     }
 
     // Error message for failed high score saving
     if (saveHighScoreFailed) {
+        Vector2 errorSize = MeasureTextEx(font, "Failed to save high score!", 12.0f, 1);
         DrawTextEx(font, "Failed to save high score!",
-                (Vector2){screenWidth / 2 - MeasureTextEx(font, "Failed to save high score!", 12.0f, 1).x / 2, screenHeight / 2 + 260},
+                (Vector2){screenWidth / 2 - errorSize.x / 2, screenHeight / 2 + 210},
                 12.0f, 1, Fade(RED, gameOverFadeAlpha));
     }
 }

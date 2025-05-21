@@ -177,7 +177,7 @@ void update_pacman(void) {
         if (is_maze_cleared()) {       
             level ++;                   
             gameState = STATE_LEVEL_COMPLETE; 
-            deathAnimTimer = 6.0f;    
+            deathAnimTimer = 8.0f;    
             powerPelletTimer = 0.0f;    // Reset power pellet timer
             if (IsSoundPlaying(sfx_ghost_frightened)) {
                 StopSound(sfx_ghost_frightened);

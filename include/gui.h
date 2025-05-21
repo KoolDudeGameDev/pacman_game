@@ -39,6 +39,15 @@ bool handle_pause_input(bool *pausedThisFrame);
 //   selectedOption - Pointer to the selected menu option to set when returning to the menu.
 void handle_game_over_input(int *selectedOption);
 
+// Renders the main menu screen, displaying menu options, Pac-Man, and ghosts.
+// Handles visual feedback for the currently selected option.
+// Parameters:
+//   screenWidth - Width of the screen in pixels.
+//   screenHeight - Height of the screen in pixels.
+//   font - Font used for rendering text..
+//   selectedOption  - Index of the currently selected menu option (for highlighting).
+//   pacmanSprite    - Texture for the Pac-Man character to display in the menu.
+//   ghostArray      - Pointer to array of Ghost structs to render animated ghosts.
 void render_menu(int screenWidth, int screenHeight, Font font, int selectedOption, Texture2D pacmanSprite, Ghost* ghostArray);
 
 // Renders the high scores screen (STATE_HIGHSCORES) with the top scores.
